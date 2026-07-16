@@ -6,8 +6,10 @@
     "expo": "~57.0.6",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-native": "0.86.0",
-    "react-native-svg": "15.15.4"
+    "react-native-svg": "15.15.4",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -25,7 +27,9 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "testMatch": ["**/*.test.ts"]
+    "testMatch": [
+      "**/*.test.ts"
+    ]
   },
   "private": true
 }
