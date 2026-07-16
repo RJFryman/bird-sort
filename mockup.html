@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bird Sort — mockup</title>
+<style>
+  :root { --slot: 44px; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; font-family: system-ui, sans-serif;
+    background: linear-gradient(#87ceeb, #cdeffd);
+    color: #234; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    user-select: none;
+  }
+  h1 { margin: 16px 0 4px; font-size: 22px; }
+  .hud { display: flex; gap: 14px; align-items: center; margin-bottom: 10px; font-size: 15px; }
+  .hud b { font-variant-numeric: tabular-nums; }
+  button {
+    font: inherit; padding: 7px 14px; border: none; border-radius: 10px;
+    background: #4a7; color: #fff; font-weight: 600; cursor: pointer;
+  }
+  button:disabled { opacity: .4; cursor: default; }
+  button.ghost { background: #6a9bd8; }
+  #board {
+    display: flex; flex-wrap: wrap; gap: 18px 22px; justify-content: center;
+    max-width: 560px; padding: 20px;
+  }
+  .branch {
+    display: flex; flex-direction: column-reverse; align-items: center;
+    cursor: pointer; padding-bottom: 6px; position: relative;
+  }
+  /* the branch stick */
+  .branch::after {
+    content: ""; width: 78px; height: 8px; border-radius: 4px;
+    background: #7a4a26; margin-top: 4px;
+    box-shadow: 0 2px 0 #5e381d;
+  }
+  .slot {
+    width: var(--slot); height: var(--slot);
+    display: flex; align-items: center; justify-content: center;
+    margin: 1px 0;
+    transition: transform .18s ease, opacity .18s ease;
+  }
+  .slot svg { filter: drop-shadow(0 2px 1px rgba(0,0,0,.25)); }
+  .branch.selected { transform: translateY(-8px); }
+  .branch.selected .slot.top svg { transform: scale(1.15); }
+  /* solved branch: birds happy dance, locked */
+  .branch.done { cursor: default; }
+  .branch.done::after { background: #4a7; box-shadow: 0 2px 0 #386; }
+  @keyframes dance {
+    0%,100% { transform: translateY(0) rotate(-8deg); }
+    50%     { transform: translateY(-10px) rotate(8deg); }
+  }
+  .branch.done .slot.filled { animation: dance .6s ease-in-out infinite; }
+  .branch.done .slot:nth-child(1) { animation-delay: 0s; }
+  .branch.done .slot:nth-child(2) { animation-delay: .1s; }
+  .branch.done .slot:nth-child(3) { animation-delay: .2s; }
+  .branch.done .slot:nth-child(4) { animation-delay: .3s; }
+  .cap { position:absolute; top:-18px; font-size:11px; color:#456; opacity:.6; }
+  #win {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: none; align-items: center; justify-content: center; flex-direction: column;
+    gap: 16px; color: #fff; text-align: center;
+  }
+  #win.show { display: flex; }
+  #win h2 { font-size: 34px; margin: 0; }
+  .note { font-size: 12px; color: #456; opacity: .7; margin-top: 4px; text-align:center; max-width:420px;}
+</style>
+</head>
+<body>
+  <h1>🐦 Bird Sort</h1>
+  <div class="hud">
+    <span>Level <b id="lvl">1</b></span>
+    <span>Moves <b id="moves">0</b></span>
+    <button id="undo" class="ghost">Undo</button>
+    <button id="restart" class="ghost">Restart</button>
+  </div>
+  <div id="board"></div>
+  <div class="note">Tap a branch to pick up its top group of matching birds, tap another branch to drop them. A branch that fills up with one color flies away.</div>
+
+  <div id="win">
+    <h2>Level Complete! 🎉</h2>
+    <button id="next">Next level</button>
+  </div>
+
+<script>
+const COLORS = ['#e5533d','#f2c14e','#4a9d6f','#8f6bd8','#3d7de5','#e07bb0','#3fb6c9','#d98a3d','#7a8b3c','#c94f8f'];
+
+// one vector bird, tinted by color. wing/tail use a translucent black overlay
+// so shading works for ANY fill. swap the path for a different species later.
+function birdSVG(color){
+  return `<svg viewBox="0 0 44 40" width="36" height="34" aria-hidden="true">
+    <ellipse cx="19" cy="24" rx="14" ry="11" fill="${color}"/>
+    <circle cx="29" cy="15" r="9" fill="${color}"/>
+    <path d="M6 24 q-6 2 -9 7 q7 1 11 -3 z" fill="${color}"/>
+    <path d="M9 21 q7 -5 17 -1 q-6 9 -17 5 z" fill="rgba(0,0,0,.18)"/>
+    <path d="M37 13 l9 2 -9 4 z" fill="#f4a63b"/>
+    <circle cx="31" cy="13" r="2.6" fill="#fff"/>
+    <circle cx="31.8" cy="13.4" r="1.3" fill="#222"/>
+  </svg>`;
+}
+
+let level = 1, board = [], history = [], selected = null, capacity = 4;
+
+function colorsForLevel(l){ return Math.min(3 + Math.floor((l-1)/2), 8); }
+
+// build solved board then reverse-shuffle with legal moves -> always solvable
+function generateLevel(l){
+  capacity = 4;
+  const nColors = colorsForLevel(l);
+  const extra = 2;
+  let b = [];
+  for(let c=0;c<nColors;c++) b.push(Array(capacity).fill(c));
+  for(let e=0;e<extra;e++) b.push([]);
+  // scramble by applying random legal single-bird moves backwards
+  for(let i=0;i<80*nColors;i++){
+    const from = randIdx(b, x=>x.length>0);
+    if(from<0) continue;
+    const to = randIdx(b, (x,idx)=> idx!==from && x.length<capacity);
+    if(to<0) continue;
+    b[to].push(b[from].pop());
+  }
+  // avoid handing back an already-solved/near board: regenerate if won
+  return isWon(b) ? generateLevel(l) : b;
+}
+function randIdx(arr, pred){
+  const ok = arr.map((x,i)=>pred(x,i)?i:-1).filter(i=>i>=0);
+  return ok.length? ok[Math.floor(Math.random()*ok.length)] : -1;
+}
+
+function topGroup(branch){
+  if(!branch.length) return 0;
+  const c = branch[branch.length-1]; let n=0;
+  for(let i=branch.length-1;i>=0 && branch[i]===c;i--) n++;
+  return n;
+}
+function canMove(from,to){
+  if(from===to || !board[from].length) return false;
+  if(isCleared(board[from])) return false;   // solved branch locked
+  if(board[to].length>=capacity) return false;
+  if(!board[to].length) return true;
+  return board[to][board[to].length-1] === board[from][board[from].length-1];
+}
+function isCleared(branch){
+  return branch.length===capacity && branch.every(c=>c===branch[0]);
+}
+function isWon(b){ return b.every(br=>br.length===0 || isCleared(br)); }
+
+function applyMove(from,to){
+  const c = board[from][board[from].length-1];
+  let n = topGroup(board[from]);
+  const space = capacity - board[to].length;
+  n = Math.min(n, space);
+  for(let i=0;i<n;i++) board[to].push(board[from].pop());
+  return c;
+}
+
+// ---- render ----
+const boardEl = document.getElementById('board');
+function render(){
+  boardEl.innerHTML='';
+  board.forEach((branch,i)=>{
+    const el = document.createElement('div');
+    el.className = 'branch' + (selected===i?' selected':'') + (isCleared(branch)?' done':'');
+    el.dataset.i = i;
+    const cap = document.createElement('div'); cap.className='cap'; cap.textContent='';
+    for(let s=0;s<capacity;s++){
+      const slot = document.createElement('div');
+      slot.className='slot';
+      if(s<branch.length){
+        const c = branch[s];
+        slot.classList.add('filled');
+        if(s===branch.length-1) slot.classList.add('top');
+        slot.innerHTML = birdSVG(COLORS[c]);
+      }
+      el.appendChild(slot);
+    }
+    el.onclick = ()=>tap(i);
+    boardEl.appendChild(el);
+  });
+  document.getElementById('lvl').textContent = level;
+  document.getElementById('moves').textContent = history.length;
+  document.getElementById('undo').disabled = history.length===0;
+}
+
+function tap(i){
+  if(selected===null){
+    if(board[i].length && !isCleared(board[i])) { selected=i; render(); }
+    return;
+  }
+  if(selected===i){ selected=null; render(); return; }
+  if(canMove(selected,i)){
+    history.push(board.map(b=>b.slice()));
+    const from = selected; selected=null;
+    applyMove(from,i);
+    render();                    // solved branch auto-gets .done -> happy dance
+    checkWin();
+  } else {
+    // illegal: switch selection to tapped branch if it has movable birds
+    selected = (board[i].length && !isCleared(board[i])) ? i : null;
+    render();
+  }
+}
+
+function checkWin(){
+  if(isWon(board)) document.getElementById('win').classList.add('show');
+}
+
+function newLevel(l){
+  level=l; board=generateLevel(l); history=[]; selected=null;
+  document.getElementById('win').classList.remove('show');
+  render();
+}
+
+document.getElementById('undo').onclick=()=>{
+  if(!history.length) return;
+  board = history.pop(); selected=null; render();
+};
+document.getElementById('restart').onclick=()=>{
+  if(history.length){ board=history[0]; } history=[]; selected=null;
+  render();
+};
+document.getElementById('next').onclick=()=>newLevel(level+1);
+
+newLevel(1);
+</script>
+</body>
+</html>
