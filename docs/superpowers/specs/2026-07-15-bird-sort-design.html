@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bird Sort — Design Spec</title>
+<style>
+  body { font: 16px/1.6 system-ui, sans-serif; color: #1c2430; max-width: 820px;
+         margin: 40px auto; padding: 0 20px; background: #fbfdff; }
+  h1 { font-size: 30px; border-bottom: 3px solid #4a9d6f; padding-bottom: 8px; }
+  h2 { font-size: 22px; margin-top: 36px; color: #2a5; border-left: 5px solid #4a9d6f;
+       padding-left: 10px; }
+  h3 { font-size: 17px; margin-top: 22px; }
+  code { background: #eef3f0; padding: 1px 5px; border-radius: 4px; font-size: 14px; }
+  pre { background: #1c2430; color: #d6e6dd; padding: 14px 16px; border-radius: 8px;
+        overflow-x: auto; font-size: 13px; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+  th, td { border: 1px solid #cdd8d2; padding: 7px 10px; text-align: left; font-size: 14px; }
+  th { background: #e6f2ec; }
+  .meta { color: #667; font-size: 14px; }
+  .yagni { background: #fff4e5; border: 1px solid #f0c98a; padding: 10px 14px; border-radius: 8px; }
+  .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+            vertical-align: middle; margin-right: 6px; }
+  ul li { margin: 3px 0; }
+</style>
+</head>
+<body>
+
+<h1>🐦 Bird Sort — Design Spec</h1>
+<p class="meta">Date: 2026-07-15 · Platform: React Native (Expo + TypeScript) · Status: proposed</p>
+
+<h2>1. Concept</h2>
+<p>Bird Sort is a single-screen sorting puzzle. Birds sit on branches. The player picks up
+the top run of same-species birds from one branch and drops them on another. When a branch
+holds a full set of one species, that branch <strong>locks and the birds do a happy dance</strong>
+(they do <em>not</em> fly away). The level is won when every branch is either empty or a
+locked, sorted set.</p>
+
+<h2>2. Core Rules</h2>
+<ul>
+  <li><strong>Board:</strong> N branches. Each branch holds up to <code>capacity</code> birds (v1: 4).</li>
+  <li><strong>Move:</strong> tap a source branch to pick up its top group (all consecutive same-species birds from the top), then tap a destination.</li>
+  <li><strong>Legal destination:</strong> empty branch, OR a branch whose top bird is the same species AND has room. The group is capped by available space.</li>
+  <li><strong>Solve:</strong> a branch full of one species locks — birds happy-dance in place, branch turns green, can no longer be picked from.</li>
+  <li><strong>Win:</strong> every branch is empty or locked-solved.</li>
+</ul>
+
+<h2>3. Data Model</h2>
+<pre>type Species = number;        // index into ROSTER
+type Branch  = Species[];     // index 0 = base (bottom), last = top
+type Board   = Branch[];</pre>
+
+<h2>4. Game Logic — <code>game.ts</code> (pure, no React)</h2>
+<p>All rules live in pure functions so they are unit-testable without rendering.</p>
+<table>
+  <tr><th>Function</th><th>Purpose</th></tr>
+  <tr><td><code>generateLevel(species, capacity, extra)</code></td><td>Build a solved board, then reverse-shuffle by legal single-bird moves → always solvable.</td></tr>
+  <tr><td><code>topGroup(branch)</code></td><td>Count of same-species birds on top of a branch.</td></tr>
+  <tr><td><code>canMove(board, from, to)</code></td><td>True if the move is legal (not locked, dest empty or matching + has room).</td></tr>
+  <tr><td><code>applyMove(board, from, to)</code></td><td>Return a new board with the top group moved (capped by dest space). Immutable.</td></tr>
+  <tr><td><code>isCleared(branch)</code></td><td>Full <em>and</em> all one species → solved/locked.</td></tr>
+  <tr><td><code>isWon(board)</code></td><td>Every branch empty or cleared.</td></tr>
+</table>
+<h3>Known regression to guard</h3>
+<p>Earlier prototype bug: <code>applyMove</code> called <code>topGroup(from)</code> passing the branch
+<em>index</em> instead of the branch <em>array</em>, so it moved 0 birds. Unit test must assert a
+legal move actually relocates the whole top group.</p>
+
+<h2>5. Bird Roster (data-driven)</h2>
+<p>Roster is a data table. Each species = a distinct SVG path + palette. Adding "every type of bird"
+over time is one row each — no engine changes, no redraw of existing birds.</p>
+<table>
+  <tr><th>#</th><th>Species</th><th>Look</th></tr>
+  <tr><td>1</td><td><span class="swatch" style="background:#e5533d"></span>Cardinal</td><td>red, crest</td></tr>
+  <tr><td>2</td><td><span class="swatch" style="background:#3d7de5"></span>Bluebird</td><td>blue, round</td></tr>
+  <tr><td>3</td><td><span class="swatch" style="background:#f2c14e"></span>Canary</td><td>yellow, small</td></tr>
+  <tr><td>4</td><td><span class="swatch" style="background:#4a9d6f"></span>Macaw</td><td>green, long tail</td></tr>
+  <tr><td>5</td><td><span class="swatch" style="background:#2b2b2b"></span>Crow</td><td>black, sleek</td></tr>
+  <tr><td>6</td><td><span class="swatch" style="background:#d98a3d"></span>Robin</td><td>orange breast</td></tr>
+  <tr><td>7</td><td><span class="swatch" style="background:#e07bb0"></span>Flamingo</td><td>pink, tall neck</td></tr>
+  <tr><td>8</td><td><span class="swatch" style="background:#8a6a4a"></span>Sparrow</td><td>brown, plain</td></tr>
+  <tr><td>9</td><td><span class="swatch" style="background:#e8e8e8;border:1px solid #ccc"></span>Dove</td><td>white, soft</td></tr>
+  <tr><td>10</td><td><span class="swatch" style="background:#3fb6c9"></span>Kingfisher</td><td>teal</td></tr>
+</table>
+<p>Species differ by <strong>shape and color</strong> (colorblind-friendly). Rendered via
+<code>react-native-svg</code> — same path data as web SVG, <code>&lt;Path fill={color}/&gt;</code>,
+no image assets to bundle.</p>
+
+<h2>6. Components (React)</h2>
+<table>
+  <tr><th>File</th><th>Responsibility</th></tr>
+  <tr><td><code>App.tsx</code></td><td>Screen + <code>useReducer</code>. Actions: <code>SELECT</code>, <code>MOVE</code>, <code>UNDO</code>, <code>RESTART</code>, <code>NEXT</code>. Holds move history stack.</td></tr>
+  <tr><td><code>Branch.tsx</code></td><td>One branch row. Renders its birds, handles tap (select / move target). Lift + highlight when selected.</td></tr>
+  <tr><td><code>Bird.tsx</code></td><td>Renders one species SVG tinted by palette. Happy-dance animation when its branch is locked.</td></tr>
+  <tr><td><code>roster.ts</code></td><td>The bird data table (name, color, SVG path).</td></tr>
+  <tr><td><code>game.ts</code></td><td>Pure rules (section 4).</td></tr>
+</table>
+
+<h2>7. Interaction Flow</h2>
+<ol>
+  <li>Tap branch with movable birds → selected (branch lifts, top group highlighted).</li>
+  <li>Tap same branch → deselect.</li>
+  <li>Tap another branch → if <code>canMove</code>, apply move; else reselect that branch (if movable).</li>
+  <li>If the moved-to branch becomes solved → lock it, run happy-dance loop.</li>
+  <li>If <code>isWon</code> → show win overlay with "Next level".</li>
+</ol>
+
+<h2>8. Animation</h2>
+<ul>
+  <li><strong>Select:</strong> branch translateY up, top bird scales up.</li>
+  <li><strong>Happy dance:</strong> looping bounce + rotate on each bird in a solved branch, staggered per bird for a wave.</li>
+  <li>Use React Native <code>Animated</code> (or Reanimated if a loop needs to be smooth). No new heavy dep unless measured need.</li>
+</ul>
+
+<h2>9. Levels &amp; Difficulty</h2>
+<ul>
+  <li>Procedural, guaranteed solvable (build solved → reverse-shuffle via legal moves).</li>
+  <li>Species count scales with level number; capacity fixed at 4; 2 extra empty branches.</li>
+</ul>
+
+<h2>10. Chrome</h2>
+<ul>
+  <li>Move counter (top).</li>
+  <li>Undo (revert last move via history stack), Restart (reset current board), Next level (after win).</li>
+</ul>
+
+<h2>11. Testing</h2>
+<ul>
+  <li>Unit tests on <code>game.ts</code>: legal-move relocates full top group (regression), illegal moves rejected, locked branches immovable, <code>isWon</code> correctness, <code>generateLevel</code> output is solvable.</li>
+</ul>
+
+<h2>12. Out of Scope (YAGNI)</h2>
+<div class="yagni">Persistence / save state · sound · accounts · hints · level select · leaderboards.
+Add later only if wanted — none block the core loop.</div>
+
+</body>
+</html>
