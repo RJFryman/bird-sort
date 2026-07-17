@@ -1,7 +1,9 @@
-import React, { useReducer } from 'react';
-import { SafeAreaView, View, Text, Pressable, StyleSheet } from 'react-native';
+import React, { useReducer, useState } from 'react';
+import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Branch } from './Branch';
+import { Bird } from './Bird';
+import { ROSTER } from './roster';
 import { generateLevel, canMove, applyMove, isWon, isCleared, Board } from './game';
 
 const CAP = 4;
@@ -66,6 +68,7 @@ function reducer(s: State, a: Action): State {
 
 export default function App() {
   const [s, dispatch] = useReducer(reducer, 1, init);
+  const [gallery, setGallery] = useState(false);
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar style="dark" />
@@ -78,6 +81,9 @@ export default function App() {
         </Pressable>
         <Pressable style={styles.btn} onPress={() => dispatch({ type: 'RESTART' })}>
           <Text style={styles.btnText}>Restart</Text>
+        </Pressable>
+        <Pressable style={styles.btn} onPress={() => setGallery(true)}>
+          <Text style={styles.btnText}>Birds</Text>
         </Pressable>
       </View>
       <View style={styles.board}>
@@ -101,6 +107,22 @@ export default function App() {
           <Text style={styles.winText}>Level Complete! 🎉</Text>
           <Pressable style={styles.btnBig} onPress={() => dispatch({ type: 'NEXT' })}>
             <Text style={styles.btnText}>Next level</Text>
+          </Pressable>
+        </View>
+      )}
+      {gallery && (
+        <View style={[styles.overlay, styles.galleryOverlay]}>
+          <Text style={styles.galleryTitle}>Bird Gallery</Text>
+          <ScrollView contentContainerStyle={styles.gallery}>
+            {ROSTER.map((d, i) => (
+              <View key={i} style={styles.card}>
+                <Bird species={i} dancing delay={i * 60} />
+                <Text style={styles.cardName}>{d.name}</Text>
+              </View>
+            ))}
+          </ScrollView>
+          <Pressable style={styles.btnBig} onPress={() => setGallery(false)}>
+            <Text style={styles.btnText}>Close</Text>
           </Pressable>
         </View>
       )}
@@ -142,4 +164,22 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   winText: { color: '#fff', fontSize: 30, fontWeight: '800' },
+  galleryOverlay: { backgroundColor: '#274653', paddingTop: 30, paddingBottom: 20 },
+  galleryTitle: { color: '#fff', fontSize: 26, fontWeight: '800', marginBottom: 8 },
+  gallery: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    maxWidth: 520,
+  },
+  card: {
+    width: 92,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,.12)',
+    borderRadius: 12,
+    paddingVertical: 10,
+  },
+  cardName: { color: '#fff', fontSize: 13, fontWeight: '600', marginTop: 4 },
 });

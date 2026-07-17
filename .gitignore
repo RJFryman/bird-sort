@@ -43,3 +43,5 @@ yarn-error.*
 # tooling artifacts
 .playwright-mcp/
 bird-app-*.png
+/*.png
+!assets/*.png
