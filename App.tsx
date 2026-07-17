@@ -1,5 +1,5 @@
 import React, { useReducer, useState } from 'react';
-import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
@@ -69,6 +69,21 @@ function reducer(s: State, a: Action): State {
 export default function App() {
   const [s, dispatch] = useReducer(reducer, 1, init);
   const [gallery, setGallery] = useState(false);
+
+  // size everything off the actual screen so it fits any device (phone..iPad)
+  const { width, height } = useWindowDimensions();
+  const n = s.board.length;
+  const boardW = Math.min(width - 16, 1000);
+  const branchW = boardW / n;
+  // slot width fits a branch; clamp so it stays tappable but never overflows
+  const slotW = Math.max(30, Math.min(72, branchW - 6));
+  // also cap by height: title+hud+hint ~ 220px, CAP slots tall
+  const slotByH = Math.max(30, (height - 240) / CAP);
+  const slot = Math.min(slotW, slotByH);
+  const slotH = slot * 0.96;
+  const stickW = slot * 1.7;
+  const birdScale = slot / 48;
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar style="dark" />
@@ -95,6 +110,10 @@ export default function App() {
             selected={s.selected === i}
             done={isCleared(b, CAP)}
             onPress={() => dispatch({ type: 'TAP', i })}
+            slotW={slot}
+            slotH={slotH}
+            stickW={stickW}
+            birdScale={birdScale}
           />
         ))}
       </View>
