@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bird Art Lab</title>
+<style>
+  body { margin:0; font-family:system-ui,sans-serif; background:#0f171e; color:#e6eef4; }
+  header { padding:18px 24px; border-bottom:1px solid #223; position:sticky; top:0; background:#0f171edd; backdrop-filter:blur(6px); z-index:5;}
+  h1 { margin:0 0 4px; font-size:22px; }
+  .sub { color:#8aa; font-size:13px; }
+  .style { padding:20px 24px; border-bottom:1px solid #1c2a35; }
+  .style h2 { margin:0 0 2px; font-size:18px; }
+  .style .desc { color:#8aa; font-size:13px; margin-bottom:12px; }
+  .row { display:flex; flex-wrap:wrap; gap:14px; }
+  .card { background:#182530; border:1px solid #24333f; border-radius:12px; padding:8px 6px 6px;
+          width:120px; text-align:center; }
+  .card svg { display:block; margin:0 auto; width:106px; height:106px; }
+  .card .name { font-size:11px; color:#bcd; margin-top:2px; }
+  .grid-bg { background:
+      linear-gradient(#ffffff10 1px, transparent 1px),
+      linear-gradient(90deg,#ffffff10 1px, transparent 1px);
+      background-size:8px 8px; border-radius:8px; }
+  .pick { color:#7fd; font-size:12px; }
+  code { background:#1c2a35; padding:1px 5px; border-radius:4px; font-size:12px; color:#9fe; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐦 Bird Art Lab</h1>
+  <div class="sub">Every bird is pure SVG built from x/y coordinates in a shared trait table. Compare styles, then tell me which style + which per-bird tweaks. Grid = 8px.</div>
+</header>
+<div id="root"></div>
+
+<script>
+// ---------- shared trait table (edit these!) ----------
+const SPECIES = [
+  { name:'Cardinal',  color:'#d5372a', crest:'spike', beak:'seed',   leg:'#c26a2f' },
+  { name:'Bluebird',  color:'#2f74d0', belly:'#e9a24a' },
+  { name:'Canary',    color:'#f2c521', size:0.85, beak:'seed' },
+  { name:'Macaw',     color:'#2fae5f', tail:'long', beak:'hook', cheek:'#f5f0e6' },
+  { name:'Crow',      color:'#26262b', size:1.16, beak:'dagger' },
+  { name:'Robin',     color:'#6f5138', belly:'#e0662f' },
+  { name:'Flamingo',  color:'#ef86b6', neck:16, size:0.9, beak:'hook', leg:'#e06a9a' },
+  { name:'Sparrow',   color:'#a9895f', size:0.85, beak:'seed' },
+  { name:'Dove',      color:'#e2e2e6', size:1.06 },
+  { name:'Kingfisher',color:'#22b6cf', beak:'dagger', crest:'tuft', cheek:'#ffffff' },
+  // --- more colors + types ---
+  { name:'Oriole',    color:'#f2802a', belly:'#f7b955', beak:'seed' },   // ORANGE
+  { name:'Parrot',    color:'#8b5cf6', tail:'long', beak:'hook', cheek:'#f5f0e6' }, // purple
+  { name:'Owl',       color:'#7c6a4f', size:1.14, crest:'tuft' },        // brown, big
+  { name:'Toucan',    color:'#1c1c22', beak:'hook', cheek:'#f7d84b' },   // black + bright beak
+  { name:'Goldfinch', color:'#f4c20d', crest:'spike', beak:'seed', size:0.9 },
+  { name:'Peacock',   color:'#0e9aa7', tail:'long' },                    // teal
+  { name:'Bluejay',   color:'#4aa3e0', crest:'spike', cheek:'#f2f4f7' },
+  { name:'Hummingbird',color:'#2fae8f', size:0.72, beak:'dagger' },      // tiny
+];
+
+// ---------- color helpers ----------
+function shade(hex,f){ const n=parseInt(hex.slice(1),16);
+  const c=x=>Math.max(0,Math.min(255,Math.round(x*f)));
+  return `rgb(${c((n>>16)&255)},${c((n>>8)&255)},${c(n&255)})`; }
+
+let UID=0;
+
+// ===================================================================
+// STYLE A — Detailed flat-vector (gradients, feather layers, legs)
+// ===================================================================
+function styleDetailed(d){
+  const s=d.size||1, id='D'+(UID++);
+  const col=d.color, light=shade(col,1.22), dark=shade(col,0.72), wing=shade(col,0.6);
+  const belly=d.belly||shade(col,1.28), leg=d.leg||'#d99a3a';
+  const cx=28, cy=40, rx=15*s, ry=13*s;               // body
+  const neck=d.neck||0;
+  const hx=42, hy=26-neck, hr=10*s;                    // head
+  const beakType=d.beak||'normal';
+  const legLen = neck?16:8;
+
+  // tail
+  const tail = d.tail==='long'
+    ? `<path d="M${cx-rx+4} ${cy-2} q-20 -4 -30 6 q-2 4 3 5 q13 1 28 -6 z" fill="${wing}"/>
+       <path d="M${cx-rx+6} ${cy+2} q-16 0 -25 8 q-1 4 4 4 q12 -1 22 -8 z" fill="${dark}"/>`
+    : `<path d="M${cx-rx+3} ${cy-1} q-11 -1 -16 6 q-1 4 3 4 q9 0 15 -6 z" fill="${wing}"/>`;
+
+  // curved neck (flamingo)
+  const neckPath = neck>0
+    ? `<path d="M${cx+3} ${cy-ry+3} C${cx+2} ${cy-14}, ${hx-12} ${hy+12}, ${hx-4} ${hy+hr-1}
+        L${hx+4} ${hy+hr-1} C${hx-4} ${hy+9}, ${cx+11} ${cy-14}, ${cx+10} ${cy-ry+5} Z" fill="${col}"/>`
+    : '';
+
+  // legs + feet
+  const feet = `
+    <g stroke="${leg}" stroke-width="${1.8*s}" stroke-linecap="round" fill="none">
+      <path d="M${cx-3} ${cy+ry-2} v${legLen}"/><path d="M${cx+4} ${cy+ry-2} v${legLen}"/>
+      <path d="M${cx-6} ${cy+ry-2+legLen} h6 M${cx+1} ${cy+ry-2+legLen} h6"/>
+    </g>`;
+
+  // wing feather layers
+  const wingG = `
+    <path d="M${cx-9} ${cy-6} q15 -4 21 7 q-10 6 -21 2 q-3 -6 0 -11 z" fill="${wing}"/>
+    <path d="M${cx-6} ${cy-2} q11 -3 16 5 M${cx-4} ${cy+2} q10 -2 14 4" stroke="${shade(col,0.5)}" stroke-width="1" fill="none" opacity=".6"/>`;
+
+  // beak
+  const bx=hx+hr-2, by=hy-1;
+  const beak =
+    beakType==='dagger' ? `<path d="M${bx} ${by-1} l16 3 -15 4 z" fill="#f4a72a"/><path d="M${bx} ${by+2} l14 3 z" fill="#d98a1e"/>` :
+    beakType==='hook'   ? `<path d="M${bx} ${by-2} q11 0 12 5 q-2 4 -8 3 q-3 -1 -4 -3 z" fill="#2b2b2b"/>` :
+    beakType==='seed'   ? `<path d="M${bx} ${by-1} l7 3 -6 3 z" fill="#f4a72a"/>` :
+                          `<path d="M${bx} ${by-1} l9 2 -8 4 z" fill="#f4a72a"/>`;
+
+  // crest
+  const crest =
+    d.crest==='spike' ? `<path d="M${hx-4} ${hy-hr+3} q-5 -10 1 -15 q1 6 5 7 q-2 -8 4 -11 q0 7 4 9 q1 -5 5 -6 q1 8 -3 13 z" fill="${col}"/>` :
+    d.crest==='tuft'  ? `<path d="M${hx-6} ${hy-hr+4} q-4 -3 -2 -8 q3 3 5 2 M${hx-2} ${hy-hr+2} q-2 -5 1 -9 q2 4 4 4" stroke="${dark}" stroke-width="2.4" fill="none" stroke-linecap="round"/>` : '';
+
+  const cheek = d.cheek ? `<ellipse cx="${hx+1}" cy="${hy+2}" rx="${5*s}" ry="${6*s}" fill="${d.cheek}"/>` : '';
+  const belPatch = `<path d="M${cx+2} ${cy-ry*0.6} a${rx*0.7} ${ry*0.9} 0 0 0 0 ${ry*1.7} q${rx*0.7} 0 ${rx*0.7} -${ry*0.85} q0 -${ry*0.85} -${rx*0.7} -${ry*0.85} z" fill="${belly}"/>`;
+
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <defs>
+      <linearGradient id="b${id}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/>
+      </linearGradient>
+    </defs>
+    ${feet}
+    ${crest}
+    ${neckPath}
+    ${tail}
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#b${id})"/>
+    ${belPatch}
+    ${wingG}
+    <circle cx="${hx}" cy="${hy}" r="${hr}" fill="url(#b${id})"/>
+    ${cheek}
+    ${beak}
+    <circle cx="${hx+3}" cy="${hy-1.5}" r="${3*s}" fill="#fff"/>
+    <circle cx="${hx+3.6}" cy="${hy-1}" r="${1.7*s}" fill="#1a1a1a"/>
+    <circle cx="${hx+4.3}" cy="${hy-2}" r="${0.6*s}" fill="#fff"/>
+  </svg>`;
+}
+
+// ===================================================================
+// STYLE B — Cartoon mascot (big head, bold outline, big eyes)
+// ===================================================================
+function styleCartoon(d){
+  const s=d.size||1, col=d.color, dark=shade(col,0.7), OUT='#1c1c22';
+  const cx=30, cy=44, rx=16*s, ry=14*s;
+  const hx=32, hy=24, hr=15*s;
+  const beak = d.beak==='dagger'||d.beak==='hook'
+     ? `<path d="M${hx+hr-3} 24 l13 3 -12 4 z" fill="#f5a623" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`
+     : `<path d="M${hx+hr-3} 24 l8 3 -7 4 z" fill="#f5a623" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`;
+  const crest = d.crest ? `<path d="M${hx-3} ${hy-hr+2} q-3 -10 4 -13 q0 6 4 7 q0 -7 5 -9 q1 8 -3 13 z" fill="${col}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`:'';
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <g stroke="${OUT}" stroke-width="2.4" stroke-linejoin="round">
+      <path d="M${cx-6} ${cy+ry-1} v9 M${cx+6} ${cy+ry-1} v9" stroke-linecap="round"/>
+      <path d="M${cx-14} ${cy} q-8 3 -11 11 q10 1 15 -5 z" fill="${dark}"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${col}"/>
+      <path d="M${cx-2} ${cy-6} a11 12 0 0 0 0 22 q10 0 10 -11 q0 -11 -10 -11 z" fill="${d.belly||shade(col,1.3)}" stroke="none"/>
+      ${crest}
+      <circle cx="${hx}" cy="${hy}" r="${hr}" fill="${col}"/>
+    </g>
+    ${beak}
+    <circle cx="${hx-2}" cy="${hy-2}" r="6" fill="#fff" stroke="#1c1c22" stroke-width="1.5"/>
+    <circle cx="${hx+7}" cy="${hy-2}" r="6" fill="#fff" stroke="#1c1c22" stroke-width="1.5"/>
+    <circle cx="${hx-1}" cy="${hy-1}" r="2.6" fill="#1a1a1a"/>
+    <circle cx="${hx+8}" cy="${hy-1}" r="2.6" fill="#1a1a1a"/>
+  </svg>`;
+}
+
+// ===================================================================
+// STYLE C — Geometric / low-poly (triangles & facets)
+// ===================================================================
+function styleGeo(d){
+  const s=d.size||1, col=d.color, dk=shade(col,0.7), lt=shade(col,1.2);
+  const beak = `<path d="M46 27 l12 3 -12 3 z" fill="#f5a623"/>`;
+  const crest = d.crest?`<path d="M36 12 l4 -8 3 8 z" fill="${dk}"/>`:'';
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <path d="M10 44 L2 52 L16 50 Z" fill="${dk}"/>
+    ${crest}
+    <path d="M14 44 L30 26 L44 44 Z" fill="${lt}"/>
+    <path d="M14 44 L44 44 L30 60 Z" fill="${col}"/>
+    <path d="M30 60 L44 44 L40 54 Z" fill="${dk}"/>
+    <path d="M30 26 L44 44 L34 40 Z" fill="${dk}"/>
+    <path d="M40 20 L52 26 L40 34 L34 27 Z" fill="${col}"/>
+    <path d="M40 20 L52 26 L44 27 Z" fill="${lt}"/>
+    ${beak}
+    <circle cx="45" cy="26" r="2.4" fill="#111"/>
+  </svg>`;
+}
+
+// helpers shared by cartoon variants
+function eyes(hx,hy,r,gap,pupil){ return `
+  <circle cx="${hx-gap}" cy="${hy}" r="${r}" fill="#fff" stroke="#1c1c22" stroke-width="1.4"/>
+  <circle cx="${hx+gap}" cy="${hy}" r="${r}" fill="#fff" stroke="#1c1c22" stroke-width="1.4"/>
+  <circle cx="${hx-gap+1}" cy="${hy+1}" r="${pupil}" fill="#161616"/>
+  <circle cx="${hx+gap+1}" cy="${hy+1}" r="${pupil}" fill="#161616"/>
+  <circle cx="${hx-gap+2}" cy="${hy-1}" r="${pupil*0.4}" fill="#fff"/>
+  <circle cx="${hx+gap+2}" cy="${hy-1}" r="${pupil*0.4}" fill="#fff"/>`; }
+function blush(hx,hy,r){ return `
+  <ellipse cx="${hx-9}" cy="${hy+5}" rx="${r}" ry="${r*0.7}" fill="#ff6b8a" opacity=".35"/>
+  <ellipse cx="${hx+11}" cy="${hy+5}" rx="${r}" ry="${r*0.7}" fill="#ff6b8a" opacity=".35"/>`; }
+
+// STYLE D — Mascot Pro (refined B)
+function styleMascotPro(d){
+  const s=d.size||1, id='M'+(UID++), col=d.color, light=shade(col,1.2), dark=shade(col,0.72), OUT='#20202a';
+  const cx=31, cy=46, rx=15*s, ry=13*s, hx=32, hy=25, hr=15*s;
+  const beak = (d.beak==='dagger'||d.beak==='hook')
+    ? `<path d="M${hx+hr-3} 25 l12 3 -11 4 z" fill="#f5a623" stroke="${OUT}" stroke-width="1.8" stroke-linejoin="round"/>`
+    : `<path d="M${hx+hr-3} 25 l8 3 -7 4 z" fill="#f5a623" stroke="${OUT}" stroke-width="1.8" stroke-linejoin="round"/>`;
+  const crest = d.crest ? `<path d="M${hx-3} ${hy-hr+2} q-3 -11 5 -14 q0 6 4 7 q0 -8 5 -10 q1 9 -4 14 z" fill="${col}" stroke="${OUT}" stroke-width="1.8" stroke-linejoin="round"/>`:'';
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <defs><linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>
+    <g stroke="${OUT}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M${cx-5} ${cy+ry-2} v8 M${cx+5} ${cy+ry-2} v8"/>
+      <path d="M${cx-6} ${cy+ry+6} h5 M${cx+3} ${cy+ry+6} h5"/>
+      <path d="M${cx-13} ${cy-2} q-8 3 -10 10 q9 1 14 -5 z" fill="${dark}"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#g${id})"/>
+      <path d="M${cx-1} ${cy-6} a10 12 0 0 0 0 22 q9 0 9 -11 q0 -11 -9 -11 z" fill="${d.belly||shade(col,1.32)}" stroke="none"/>
+      <path d="M${cx+3} ${cy-3} q9 -1 12 8 q-8 4 -13 -1 z" fill="${dark}"/>
+      ${crest}
+      <circle cx="${hx}" cy="${hy}" r="${hr}" fill="url(#g${id})"/>
+    </g>
+    ${beak}
+    ${blush(hx,hy,4)}
+    ${eyes(hx,hy-1,6,4.5,3)}
+  </svg>`;
+}
+
+// STYLE E — Chibi (huge head, tiny body)
+function styleChibi(d){
+  const col=d.color, dark=shade(col,0.72), OUT='#20202a';
+  const cx=32, cy=54, rx=11, ry=9, hx=32, hy=28, hr=19;
+  const beak = `<path d="M${hx+hr-4} 28 l7 2.5 -6 3.5 z" fill="#f5a623" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>`;
+  const crest = d.crest?`<path d="M${hx-3} ${hy-hr+2} q-2 -9 5 -11 q0 5 3 6 q0 -7 5 -8 q1 8 -4 12 z" fill="${col}" stroke="${OUT}" stroke-width="1.6"/>`:'';
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <g stroke="${OUT}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M${cx-4} ${cy+ry-1} v5 M${cx+4} ${cy+ry-1} v5"/>
+      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${col}"/>
+      <path d="M${cx-9} ${cy-3} q-4 2 -5 7 q6 0 9 -4 z" fill="${dark}"/>
+      ${crest}
+      <circle cx="${hx}" cy="${hy}" r="${hr}" fill="${col}"/>
+    </g>
+    ${beak}
+    ${blush(hx,hy+1,5)}
+    <circle cx="${hx-6}" cy="${hy}" r="7.5" fill="#fff" stroke="#1c1c22" stroke-width="1.4"/>
+    <circle cx="${hx+7}" cy="${hy}" r="7.5" fill="#fff" stroke="#1c1c22" stroke-width="1.4"/>
+    <circle cx="${hx-5}" cy="${hy+1}" r="4" fill="#161616"/><circle cx="${hx+8}" cy="${hy+1}" r="4" fill="#161616"/>
+    <circle cx="${hx-3.5}" cy="${hy-1}" r="1.6" fill="#fff"/><circle cx="${hx+9.5}" cy="${hy-1}" r="1.6" fill="#fff"/>
+    <circle cx="${hx-6}" cy="${hy+3}" r="0.8" fill="#fff"/><circle cx="${hx+7}" cy="${hy+3}" r="0.8" fill="#fff"/>
+  </svg>`;
+}
+
+// STYLE F — Outline + Feathers (B meets A)
+function styleHybrid(d){
+  const s=d.size||1, id='H'+(UID++), col=d.color, light=shade(col,1.18), dark=shade(col,0.72), wing=shade(col,0.58), OUT='#1e1e26';
+  const cx=29, cy=42, rx=15*s, ry=13*s, neck=d.neck||0, hx=42, hy=26-neck, hr=11*s, legLen=neck?15:8;
+  const tail = d.tail==='long'
+    ? `<path d="M${cx-rx+4} ${cy-2} q-19 -4 -28 6 q-1 4 3 5 q12 1 26 -6 z" fill="${wing}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`
+    : `<path d="M${cx-rx+3} ${cy-1} q-11 -1 -16 6 q-1 4 3 4 q9 0 15 -6 z" fill="${wing}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`;
+  const neckPath = neck>0?`<path d="M${cx+3} ${cy-ry+3} C${cx+2} ${cy-14}, ${hx-12} ${hy+12}, ${hx-4} ${hy+hr-1} L${hx+4} ${hy+hr-1} C${hx-4} ${hy+9}, ${cx+11} ${cy-14}, ${cx+10} ${cy-ry+5} Z" fill="${col}" stroke="${OUT}" stroke-width="2"/>`:'';
+  const crest = d.crest==='spike'?`<path d="M${hx-4} ${hy-hr+3} q-5 -10 1 -15 q1 6 5 7 q-2 -8 4 -11 q0 7 4 9 q1 -5 5 -6 q1 8 -3 13 z" fill="${col}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`:'';
+  const beak = (d.beak==='dagger')?`<path d="M${hx+hr-2} ${hy-1} l15 3 -14 4 z" fill="#f4a72a" stroke="${OUT}" stroke-width="1.8" stroke-linejoin="round"/>`
+    : (d.beak==='hook')?`<path d="M${hx+hr-2} ${hy-2} q11 0 12 5 q-2 4 -8 3 q-3 -1 -4 -3 z" fill="#2b2b2b" stroke="${OUT}" stroke-width="1.6"/>`
+    : `<path d="M${hx+hr-2} ${hy-1} l8 2.5 -7 3.5 z" fill="#f4a72a" stroke="${OUT}" stroke-width="1.8" stroke-linejoin="round"/>`;
+  const cheek = d.cheek?`<ellipse cx="${hx+1}" cy="${hy+2}" rx="${5*s}" ry="${6*s}" fill="${d.cheek}"/>`:'';
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <defs><linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>
+    <g stroke="${OUT}" stroke-width="2" stroke-linecap="round">
+      <path d="M${cx-3} ${cy+ry-2} v${legLen} M${cx+4} ${cy+ry-2} v${legLen}" fill="none"/>
+    </g>
+    ${crest}${neckPath}${tail}
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#g${id})" stroke="${OUT}" stroke-width="2"/>
+    <path d="M${cx+2} ${cy-ry*0.6} a${rx*0.7} ${ry*0.9} 0 0 0 0 ${ry*1.7} q${rx*0.7} 0 ${rx*0.7} -${ry*0.85} q0 -${ry*0.85} -${rx*0.7} -${ry*0.85} z" fill="${d.belly||shade(col,1.28)}"/>
+    <path d="M${cx-9} ${cy-6} q15 -4 21 7 q-10 6 -21 2 q-3 -6 0 -11 z" fill="${wing}" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="${hx}" cy="${hy}" r="${hr}" fill="url(#g${id})" stroke="${OUT}" stroke-width="2"/>
+    ${cheek}${beak}
+    <circle cx="${hx+3}" cy="${hy-1.5}" r="${3.2*s}" fill="#fff" stroke="${OUT}" stroke-width="1.2"/>
+    <circle cx="${hx+3.7}" cy="${hy-1}" r="${1.8*s}" fill="#161616"/>
+    <circle cx="${hx+4.4}" cy="${hy-2}" r="${0.7*s}" fill="#fff"/>
+  </svg>`;
+}
+
+// STYLE G — Sticker (white halo + shadow)
+function styleSticker(d){
+  const s=d.size||1, col=d.color, dark=shade(col,0.72), HALO='#ffffff';
+  const cx=31, cy=45, rx=15*s, ry=13*s, hx=32, hy=25, hr=15*s;
+  const crestP = `M${hx-3} ${hy-hr+2} q-3 -11 5 -14 q0 6 4 7 q0 -8 5 -10 q1 9 -4 14 z`;
+  const crest = d.crest?`<path d="${crestP}" fill="${col}"/>`:'';
+  const body = `${crest}
+    <path d="M${cx-13} ${cy-2} q-8 3 -10 10 q9 1 14 -5 z" fill="${dark}"/>
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${col}"/>
+    <path d="M${cx-1} ${cy-6} a10 12 0 0 0 0 22 q9 0 9 -11 q0 -11 -9 -11 z" fill="${d.belly||shade(col,1.32)}"/>
+    <circle cx="${hx}" cy="${hy}" r="${hr}" fill="${col}"/>`;
+  const halo = `<g fill="none" stroke="${HALO}" stroke-width="7" stroke-linejoin="round">
+    <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/><circle cx="${hx}" cy="${hy}" r="${hr}"/>
+    <path d="M${cx-13} ${cy-2} q-8 3 -10 10 q9 1 14 -5 z"/>${d.crest?`<path d="${crestP}"/>`:''}</g>`;
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <ellipse cx="31" cy="66" rx="16" ry="3.5" fill="#000" opacity=".18"/>
+    ${halo}${body}
+    <path d="M${hx+hr-3} 25 l8 3 -7 4 z" fill="#f5a623"/>
+    ${eyes(hx,hy-1,5.5,4.2,2.8)}
+  </svg>`;
+}
+
+// STYLE H — Kawaii (pastel, :3 mouth)
+function styleKawaii(d){
+  const col=shade(d.color,1.12), dark=shade(d.color,0.85), OUT='#5b4a52';
+  const cx=32, cy=48, rx=16, ry=14, hx=32, hy=27, hr=16;
+  const crest = d.crest?`<path d="M${hx-2} ${hy-hr+2} q-2 -8 4 -10 q0 5 3 5 q0 -6 4 -7 q1 7 -3 10 z" fill="${col}"/>`:'';
+  return `<svg width="80" height="80" viewBox="0 0 64 72">
+    <g stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+      <ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${col}"/>
+      <path d="M${cx-14} ${cy-1} q-4 2 -5 6 q6 0 9 -3 z" fill="${dark}"/>
+      <path d="M${cx+14} ${cy-1} q4 2 5 6 q-6 0 -9 -3 z" fill="${dark}"/>
+      ${crest}
+      <circle cx="${hx}" cy="${hy}" r="${hr}" fill="${col}"/>
+    </g>
+    <path d="M${hx+hr-2} 27 l6 2 -5 3 z" fill="#f7b955"/>
+    ${blush(hx,hy+2,5)}
+    <circle cx="${hx-7}" cy="${hy+1}" r="4.5" fill="#3a2f34"/><circle cx="${hx+7}" cy="${hy+1}" r="4.5" fill="#3a2f34"/>
+    <circle cx="${hx-5.5}" cy="${hy-1}" r="1.6" fill="#fff"/><circle cx="${hx+8.5}" cy="${hy-1}" r="1.6" fill="#fff"/>
+    <path d="M${hx-3} ${hy+7} q3 3 6 0" fill="none" stroke="#5b4a52" stroke-width="1.4" stroke-linecap="round"/>
+  </svg>`;
+}
+
+// ===================================================================
+// STYLE I — Cutie-Bird (kawaii cuteness + REAL bird features + legs)
+// 3/4 view: two big eyes + blush (cute) AND crest/tail/beak/legs (bird)
+// ===================================================================
+function styleCuteBird(d){
+  const s=d.size||1, id='I'+(UID++), col=d.color;
+  const light=shade(col,1.2), dark=shade(col,0.74), wing=shade(col,0.62), OUT=shade(col,0.4);
+  const belly=d.belly||shade(col,1.3), leg=d.leg||'#e0a24a';
+  const neck=d.neck||0;
+  const bx=30, by=48, rx=16*s, ry=15*s;            // body
+  const hx=40, hy=28-neck, hr=14*s;                // head (up-right, big & cute)
+  const legLen=neck?16:9;
+
+  const tail = d.tail==='long'
+    ? `<path d="M${bx-rx+4} ${by-2} q-20 -3 -30 8 q-2 4 3 5 q13 1 28 -7 z" fill="${wing}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`
+    : `<path d="M${bx-rx+3} ${by-1} q-12 -1 -17 7 q-1 4 3 4 q10 0 16 -7 z" fill="${wing}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`;
+
+  const neckPath = neck>0
+    ? `<path d="M${bx+4} ${by-ry+3} C${bx+3} ${by-16}, ${hx-13} ${hy+13}, ${hx-5} ${hy+hr-1} L${hx+5} ${hy+hr-1} C${hx-4} ${hy+10}, ${bx+13} ${by-16}, ${bx+12} ${by-ry+5} Z" fill="${col}" stroke="${OUT}" stroke-width="2"/>`
+    : '';
+
+  const crest =
+    d.crest==='spike' ? `<path d="M${hx-4} ${hy-hr+3} q-6 -11 1 -16 q1 6 5 7 q-2 -9 5 -12 q0 8 4 10 q1 -6 6 -7 q1 9 -3 15 z" fill="${col}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>`
+    : d.crest==='tuft' ? `<path d="M${hx-7} ${hy-hr+3} q-5 -5 -2 -11 q4 4 6 3 M${hx+6} ${hy-hr+3} q5 -5 2 -11 q-4 4 -6 3" stroke="${OUT}" stroke-width="3" fill="${col}" stroke-linejoin="round"/>` : '';
+
+  const bkx=hx+hr-3, bky=hy+1;
+  const beak =
+    d.beak==='dagger' ? `<path d="M${bkx} ${bky-2} l16 3 -15 5 z" fill="#f4a72a" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>` :
+    d.beak==='hook'   ? `<path d="M${bkx} ${bky-3} q12 0 13 6 q-2 5 -9 3 q-3 -1 -4 -3 z" fill="#f4a72a" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>` :
+    d.beak==='seed'   ? `<path d="M${bkx} ${bky-2} l9 3.5 -8 4 z" fill="#f4a72a" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>` :
+                        `<path d="M${bkx} ${bky-2} l11 3 -10 4.5 z" fill="#f4a72a" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>`;
+
+  const cheek = d.cheek?`<ellipse cx="${hx+2}" cy="${hy+3}" rx="${6*s}" ry="${7*s}" fill="${d.cheek}"/>`:'';
+
+  // two big cute eyes on the face (3/4 view: left smaller/further)
+  const eL=`<circle cx="${hx-3}" cy="${hy-1}" r="${4.6*s}" fill="#fff" stroke="${OUT}" stroke-width="1.3"/>
+            <circle cx="${hx-2}" cy="${hy}" r="${2.8*s}" fill="#181818"/>
+            <circle cx="${hx-1}" cy="${hy-2}" r="${1.1*s}" fill="#fff"/>`;
+  const eR=`<circle cx="${hx+6}" cy="${hy-1}" r="${5.2*s}" fill="#fff" stroke="${OUT}" stroke-width="1.3"/>
+            <circle cx="${hx+7.4}" cy="${hy}" r="${3.1*s}" fill="#181818"/>
+            <circle cx="${hx+8.6}" cy="${hy-2}" r="${1.2*s}" fill="#fff"/>`;
+
+  return `<svg width="112" height="112" viewBox="0 0 72 84">
+    <defs><linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>
+    <g stroke="${leg}" stroke-width="${2.6*s}" stroke-linecap="round" fill="none">
+      <path d="M${bx-3} ${by+ry-3} v${legLen}"/><path d="M${bx+5} ${by+ry-3} v${legLen}"/>
+      <path d="M${bx-7} ${by+ry-3+legLen} h7 M${bx+1} ${by+ry-3+legLen} h7"/>
+    </g>
+    ${crest}${neckPath}${tail}
+    <ellipse cx="${bx}" cy="${by}" rx="${rx}" ry="${ry}" fill="url(#g${id})" stroke="${OUT}" stroke-width="2"/>
+    <path d="M${bx+3} ${by-ry*0.6} a${rx*0.72} ${ry*0.92} 0 0 0 0 ${ry*1.75} q${rx*0.72} 0 ${rx*0.72} -${ry*0.88} q0 -${ry*0.88} -${rx*0.72} -${ry*0.88} z" fill="${belly}"/>
+    <path d="M${bx-10} ${by-6} q17 -4 23 8 q-11 6 -23 2 q-3 -6 0 -10 z" fill="${wing}" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>
+    <circle cx="${hx}" cy="${hy}" r="${hr}" fill="url(#g${id})" stroke="${OUT}" stroke-width="2"/>
+    ${cheek}
+    ${blush(hx+1,hy+3,4.5*s)}
+    ${beak}${eL}${eR}
+  </svg>`;
+}
+
+// ---------- render all styles (cute-birdlike first, then cartoon family) ----------
+const STYLES = [
+  { title:'I — Cutie-Bird ⭐ (cute BUT bird-like, big + legs)', desc:'The new direction from your feedback: kawaii big eyes + blush (cute) AND real bird features — crest, tail, beak shapes, cheek, visible legs+feet. Bigger art. Recolorable, no assets.', fn:styleCuteBird },
+  { title:'B — Cartoon mascot (his #1)', desc:'The original favorite. Big head, bold outline, two big eyes.', fn:styleCartoon },
+  { title:'D — Mascot Pro', desc:'B refined: gradient body, glossy double-highlight eyes, rosy blush cheeks, little feet, side wing.', fn:styleMascotPro },
+  { title:'E — Chibi', desc:'Huge head, tiny body, giant sparkle eyes. Maximum cute.', fn:styleChibi },
+  { title:'F — Outline + Feathers (B meets A)', desc:'Cartoon bold outline PLUS feather layers, tail fans, legs, flamingo neck. Best of his top two.', fn:styleHybrid },
+  { title:'G — Sticker', desc:'Die-cut white halo + soft shadow. Modern sticker/emoji look.', fn:styleSticker },
+  { title:'H — Kawaii pastel', desc:'Softened colors, big shiny eyes, tiny :3 mouth, blush.', fn:styleKawaii },
+  { title:'A — Detailed flat-vector (his #2)', desc:'Gradient bodies, layered feathers, legs, per-species detail.', fn:styleDetailed },
+  { title:'C — Geometric / low-poly (his #3)', desc:'Faceted triangles. Kept for reference.', fn:styleGeo },
+];
+
+const root=document.getElementById('root');
+for(const st of STYLES){
+  const sec=document.createElement('div'); sec.className='style';
+  sec.innerHTML=`<h2>${st.title}</h2><div class="desc">${st.desc}</div>`;
+  const row=document.createElement('div'); row.className='row';
+  for(const sp of SPECIES){
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`<div class="grid-bg">${st.fn(sp)}</div><div class="name">${sp.name}</div>`;
+    row.appendChild(card);
+  }
+  sec.appendChild(row); root.appendChild(sec);
+}
+</script>
+</body>
+</html>

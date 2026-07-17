@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
   branch: { alignItems: 'center', margin: 8 },
   lift: { transform: [{ translateY: -8 }] },
   slots: { flexDirection: 'column-reverse', alignItems: 'center' },
-  slot: { width: 46, height: 44, alignItems: 'center', justifyContent: 'center' },
+  slot: { width: 48, height: 46, alignItems: 'center', justifyContent: 'center' },
   stick: { width: 84, height: 8, borderRadius: 4, backgroundColor: '#7a4a26', marginTop: 4 },
   stickDone: { backgroundColor: '#4a9d6f' },
 });

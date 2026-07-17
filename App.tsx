@@ -8,7 +8,7 @@ import { generateLevel, canMove, applyMove, isWon, isCleared, Board } from './ga
 
 const CAP = 4;
 const EXTRA = 2;
-const speciesForLevel = (l: number) => Math.min(5 + Math.floor((l - 1) / 2), 10);
+const speciesForLevel = (l: number) => Math.min(5 + Math.floor((l - 1) / 2), ROSTER.length);
 
 type State = {
   level: number;
