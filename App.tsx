@@ -1,6 +1,7 @@
-import React, { useReducer, useState } from 'react';
+import React, { useReducer, useState, useEffect, useRef } from 'react';
 import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
 import { ROSTER } from './roster';
@@ -8,19 +9,22 @@ import { generateLevel, canMove, applyMove, isWon, isCleared, Board } from './ga
 
 const CAP = 4;
 const EXTRA = 2;
+const SAVE_KEY = 'bird-sort-save-v1';
 const speciesForLevel = (l: number) => Math.min(5 + Math.floor((l - 1) / 2), ROSTER.length);
 
 type State = {
   level: number;
+  maxLevel: number; // highest level ever reached -> unlocks
   board: Board;
   history: Board[];
   selected: number | null;
   won: boolean;
 };
 
-function init(level: number): State {
+function init(level: number, maxLevel = level): State {
   return {
     level,
+    maxLevel: Math.max(maxLevel, level),
     board: generateLevel(speciesForLevel(level), CAP, EXTRA),
     history: [],
     selected: null,
@@ -28,10 +32,20 @@ function init(level: number): State {
   };
 }
 
-type Action = { type: 'TAP'; i: number } | { type: 'UNDO' } | { type: 'RESTART' } | { type: 'NEXT' };
+// how many species are unlocked at a given max level reached
+const unlockedCount = (maxLevel: number) => speciesForLevel(maxLevel);
+
+type Action =
+  | { type: 'TAP'; i: number }
+  | { type: 'UNDO' }
+  | { type: 'RESTART' }
+  | { type: 'NEXT' }
+  | { type: 'RESTORE'; state: State };
 
 function reducer(s: State, a: Action): State {
   switch (a.type) {
+    case 'RESTORE':
+      return a.state;
     case 'TAP': {
       const { i } = a;
       if (s.selected === null) {
@@ -62,13 +76,40 @@ function reducer(s: State, a: Action): State {
     case 'RESTART':
       return { ...s, board: s.history[0] ?? s.board, history: [], selected: null, won: false };
     case 'NEXT':
-      return init(s.level + 1);
+      return init(s.level + 1, s.maxLevel);
   }
 }
 
 export default function App() {
   const [s, dispatch] = useReducer(reducer, 1, init);
   const [gallery, setGallery] = useState(false);
+  const loaded = useRef(false);
+
+  // load saved game once on startup
+  useEffect(() => {
+    AsyncStorage.getItem(SAVE_KEY)
+      .then((raw) => {
+        if (raw) {
+          const saved = JSON.parse(raw) as State;
+          if (saved && typeof saved.level === 'number' && Array.isArray(saved.board)) {
+            dispatch({ type: 'RESTORE', state: { ...saved, won: false, selected: null } });
+            return;
+          }
+        }
+        // nothing valid saved yet -> persist the freshly generated level 1
+        AsyncStorage.setItem(SAVE_KEY, JSON.stringify(s)).catch(() => {});
+      })
+      .catch(() => {})
+      .finally(() => {
+        loaded.current = true;
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // save after every change (skip until initial load done so we don't clobber it)
+  useEffect(() => {
+    if (loaded.current) AsyncStorage.setItem(SAVE_KEY, JSON.stringify(s)).catch(() => {});
+  }, [s]);
 
   // size everything off the actual screen so it fits any device (phone..iPad)
   const { width, height } = useWindowDimensions();
@@ -132,13 +173,30 @@ export default function App() {
       {gallery && (
         <View style={[styles.overlay, styles.galleryOverlay]}>
           <Text style={styles.galleryTitle}>Bird Gallery</Text>
+          <Text style={styles.gallerySub}>
+            {unlockedCount(s.maxLevel)} of {ROSTER.length} birds unlocked
+          </Text>
           <ScrollView contentContainerStyle={styles.gallery}>
-            {ROSTER.map((d, i) => (
-              <View key={i} style={styles.card}>
-                <Bird species={i} dancing delay={i * 60} />
-                <Text style={styles.cardName}>{d.name}</Text>
-              </View>
-            ))}
+            {ROSTER.map((d, i) => {
+              const unlocked = i < unlockedCount(s.maxLevel);
+              return (
+                <View key={i} style={styles.card}>
+                  {unlocked ? (
+                    <>
+                      <Bird species={i} dancing delay={i * 60} />
+                      <Text style={styles.cardName}>{d.name}</Text>
+                    </>
+                  ) : (
+                    <>
+                      <View style={styles.lockBird}>
+                        <Text style={styles.lockMark}>?</Text>
+                      </View>
+                      <Text style={styles.cardLocked}>Locked</Text>
+                    </>
+                  )}
+                </View>
+              );
+            })}
           </ScrollView>
           <Pressable style={styles.btnBig} onPress={() => setGallery(false)}>
             <Text style={styles.btnText}>Close</Text>
@@ -184,7 +242,18 @@ const styles = StyleSheet.create({
   },
   winText: { color: '#fff', fontSize: 30, fontWeight: '800' },
   galleryOverlay: { backgroundColor: '#274653', paddingTop: 30, paddingBottom: 20 },
-  galleryTitle: { color: '#fff', fontSize: 26, fontWeight: '800', marginBottom: 8 },
+  galleryTitle: { color: '#fff', fontSize: 26, fontWeight: '800', marginBottom: 2 },
+  gallerySub: { color: '#bcd', fontSize: 13, marginBottom: 10 },
+  lockBird: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lockMark: { color: '#7f97a5', fontSize: 24, fontWeight: '800' },
+  cardLocked: { color: '#7f97a5', fontSize: 13, fontWeight: '600', marginTop: 4 },
   gallery: {
     flexDirection: 'row',
     flexWrap: 'wrap',
