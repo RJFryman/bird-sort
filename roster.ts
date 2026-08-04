@@ -83,4 +83,6 @@ export const ROSTER: BirdDef[] = [
   { name: 'Rainbow Lorikeet', color: '#2f9e44', hood: '#2456b0', belly: '#e8622a', beak: 'hook', size: 0.9, shape: 'parrot' },
   { name: 'Eclectus', color: '#1f9d3a', belly: '#2fae5f', beak: 'hook', cheek: '#f2c24b', shape: 'parrot' },
   { name: 'Eclectus Female', color: '#c0202a', belly: '#5b3b8c', beak: 'hook', cheek: '#f5f0e6', shape: 'parrot' },
+  // Asher asked for "a purple" (interview 2026-08-03). Unmistakably purple parrot.
+  { name: 'Purple Parrot', color: '#7b3fa0', belly: '#b57edc', beak: 'hook', cheek: '#efe3f7', shape: 'parrot' },
 ];
