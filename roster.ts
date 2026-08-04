@@ -3,6 +3,7 @@ export type BirdDef = {
   color: string;
   size?: number; // 1 = default
   crest?: 'spike' | 'tuft' | 'crown'; // crown = peacock head dots
+  crestColor?: string; // override crest color (cockatiel/cockatoo yellow)
   neck?: number; // raises head + gives long legs (flamingo / swan)
   tail?: 'long' | 'fan'; // fan = peacock
   beak?: 'seed' | 'dagger' | 'hook' | 'toucan' | 'pouch';
@@ -46,5 +47,18 @@ export const ROSTER: BirdDef[] = [
   { name: 'Duck', color: '#6a8f3c', belly: '#d8cdb0', beak: 'seed', size: 1.02 },
   { name: 'Seagull', color: '#f2f4f7', beak: 'hook', leg: '#e0a24a', size: 1.02 },
   { name: 'Woodpecker', color: '#1c1c22', crest: 'spike', belly: '#ffffff', beak: 'dagger' },
+  // --- parrots & cockatoos (from Asher's bird book) ---
+  { name: 'Cockatiel', color: '#a7adb3', crest: 'tuft', crestColor: '#f2c521', cheek: '#f0902f', size: 0.95 },
+  { name: 'Cockatoo', color: '#f5f6f8', crest: 'spike', crestColor: '#f2c521', beak: 'hook', size: 1.08 },
+  { name: 'Galah', color: '#ef9ab0', crest: 'spike', crestColor: '#f7d0dc', belly: '#cfd3d8', beak: 'hook' },
+  { name: 'African Grey', color: '#9aa0a6', beak: 'hook', tail: 'long', belly: '#c7ccd1' },
+  { name: 'Kea', color: '#6f6a3a', beak: 'hook', belly: '#b5482f', size: 1.05 },
+  { name: 'Kakapo', color: '#7f8a3c', crest: 'tuft', beak: 'hook', size: 1.12 },
+  { name: 'Rosella', color: '#e23b2e', belly: '#f2c521', cheek: '#f2f4f7', beak: 'seed' },
+  { name: 'Amazon', color: '#2fae5f', beak: 'hook', cheek: '#f2c521', tail: 'long' },
+  { name: 'Parakeet', color: '#4fae4f', beak: 'hook', size: 0.82, cheek: '#ec5a7a' },
+  { name: 'Budgie', color: '#5bc236', beak: 'seed', belly: '#f2e14a', cheek: '#f2f4f7', size: 0.8 },
+  { name: 'Lovebird', color: '#3fae5f', beak: 'hook', cheek: '#f0902f', belly: '#f2c24b', size: 0.78 },
+  { name: 'King Parrot', color: '#d5372a', belly: '#1f8f4f', beak: 'hook' },
   { name: 'Fish', color: '#ff8c1a', shape: 'fish' },
 ];

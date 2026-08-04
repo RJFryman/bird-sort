@@ -196,7 +196,7 @@ export function Bird({
         {/* legs + feet */}
         <Path d={legsPath} stroke={leg} strokeWidth={2.6 * s} strokeLinecap="round" fill="none" />
         {crestPath && (
-          <Path d={crestPath} fill={col} stroke={OUT} strokeWidth={d.crest === 'tuft' ? 3 : 2} strokeLinejoin="round" />
+          <Path d={crestPath} fill={d.crestColor ?? col} stroke={OUT} strokeWidth={d.crest === 'tuft' ? 3 : 2} strokeLinejoin="round" />
         )}
         {/* peacock crown: three dotted plumes */}
         {d.crest === 'crown' && [-6, 0, 6].map((dx, i) => (
