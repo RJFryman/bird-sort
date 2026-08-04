@@ -23,6 +23,9 @@
     },
     "experiments": {
       "baseUrl": "/bird-sort"
-    }
+    },
+    "plugins": [
+      "expo-audio"
+    ]
   }
 }

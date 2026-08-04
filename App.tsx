@@ -1,18 +1,95 @@
-import React, { useReducer, useState, useEffect } from 'react';
-import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
+import React, { useReducer, useState, useEffect, useRef } from 'react';
+import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView, Animated, Easing, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
 import { ROSTER } from './roster';
-import { isCleared } from './game';
+import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
 import { loadGame, saveGame } from './storage';
+import { initAudio, playSfx } from './audio';
+
+const HOLD_MS = 3000; // parent gate: hold this long to pass (spec §4)
+const IDLE_MS = 3500; // idle re-invite / level-start demo delay (spec §5)
+
+const clearedCount = (board: Board) => board.filter((b) => isCleared(b, CAP)).length;
+
+// first source branch that has any legal move — used to demo/hint the child
+function findHint(board: Board): number | null {
+  for (let from = 0; from < board.length; from++)
+    for (let to = 0; to < board.length; to++)
+      if (canMove(board, from, to, CAP)) return from;
+  return null;
+}
+
+// ---- Parent gate: press & hold to pass (the one place text is allowed, §4) ----
+function ParentGate({ onPass, onCancel }: { onPass: () => void; onCancel: () => void }) {
+  const prog = useRef(new Animated.Value(0)).current;
+  const anim = useRef<Animated.CompositeAnimation | null>(null);
+  const start = () => {
+    prog.setValue(0);
+    anim.current = Animated.timing(prog, { toValue: 1, duration: HOLD_MS, easing: Easing.linear, useNativeDriver: false });
+    anim.current.start(({ finished }) => finished && onPass());
+  };
+  const stop = () => {
+    anim.current?.stop();
+    prog.setValue(0);
+  };
+  const w = prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+  return (
+    <View style={styles.overlay}>
+      <Text style={styles.gateTitle}>Ask a grown-up</Text>
+      <Text style={styles.gateSub}>Press and hold the button</Text>
+      <Pressable onPressIn={start} onPressOut={stop} style={styles.gateBtn}>
+        <Animated.View style={[styles.gateFill, { width: w }]} />
+        <Text style={styles.gateBtnText}>Hold</Text>
+      </Pressable>
+      <Pressable onPress={onCancel} style={styles.gateCancel} hitSlop={16}>
+        <Text style={styles.gateCancelText}>← back to play</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+// expanding ripple at an empty-tap point (visual twin of the soft tap sound)
+function Ripple({ x, y }: { x: number; y: number }) {
+  const a = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(a, { toValue: 1, duration: 450, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+  }, [a]);
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: x - 30,
+        top: y - 30,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        borderWidth: 3,
+        borderColor: '#7fbfe0',
+        opacity: a.interpolate({ inputRange: [0, 1], outputRange: [0.7, 0] }),
+        transform: [{ scale: a.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1.6] }) }],
+      }}
+    />
+  );
+}
 
 export default function App() {
   const [s, dispatch] = useReducer(reducer, 1, init);
   const [gallery, setGallery] = useState(false);
+  const [menu, setMenu] = useState(false); // parent panel (after gate)
+  const [gate, setGate] = useState(false); // parent gate overlay
   const [loaded, setLoaded] = useState(false);
+  const [wiggle, setWiggle] = useState({ i: -1, n: 0 }); // illegal-tap shake target
+  const [hintFrom, setHintFrom] = useState<number | null>(null);
+  const [activity, setActivity] = useState(0); // bumps on every interaction
+  const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
+  const rid = useRef(0);
+  const winPop = useRef(new Animated.Value(0)).current;
 
+  // --- save wiring (Cadence's reliability API; do not re-inline — see msg 009) ---
   // load saved game once on startup (storage.ts rebuilds resumable state and
   // recomputes `won`, so a saved win resumes to the overlay, not a dead board)
   useEffect(() => {
@@ -28,21 +105,86 @@ export default function App() {
   }, []);
 
   // save after every change. skip until initial load done so we don't clobber it.
-  // only the resumable facts are persisted (see storage.ts).
   useEffect(() => {
     if (!loaded) return;
     void saveGame(s);
   }, [s, loaded]);
+  // --- end save wiring ---
+
+  // onboarding demo + idle re-invite: after quiet time, point at a legal move.
+  // Re-arms on every interaction and whenever the board changes (level start).
+  useEffect(() => {
+    setHintFrom(null);
+    if (s.won || menu || gate || gallery) return;
+    const t = setTimeout(() => setHintFrom(findHint(s.board)), IDLE_MS);
+    return () => clearTimeout(t);
+  }, [s.board, s.selected, activity, s.won, menu, gate, gallery]);
+
+  // juicy win pop-in
+  useEffect(() => {
+    if (s.won) {
+      winPop.setValue(0);
+      Animated.spring(winPop, { toValue: 1, friction: 5, tension: 90, useNativeDriver: true }).start();
+    }
+  }, [s.won, winPop]);
+
+  const onTap = (i: number) => {
+    initAudio();
+    setActivity((a) => a + 1);
+    const sel = s.selected;
+    const board = s.board;
+    if (sel === null) {
+      playSfx(board[i].length && !isCleared(board[i], CAP) ? 'lift' : 'tap');
+      dispatch({ type: 'TAP', i });
+      return;
+    }
+    if (sel === i) {
+      playSfx('tap');
+      dispatch({ type: 'TAP', i });
+      return;
+    }
+    if (canMove(board, sel, i, CAP)) {
+      const next = applyMove(board, sel, i, CAP);
+      const won = isWon(next, CAP);
+      const locked = clearedCount(next) > clearedCount(board);
+      playSfx('drop');
+      if (won) playSfx('win');
+      else if (locked) playSfx('chirp');
+      dispatch({ type: 'TAP', i });
+      return;
+    }
+    // illegal drop: gentle nope + wiggle, keep the pick up (reducer TAP would
+    // reselect; we intentionally skip dispatch so the child's pick stays lifted)
+    playSfx('nope');
+    setWiggle((w) => ({ i, n: w.n + 1 }));
+  };
+
+  const onEmptyTap = (e: any) => {
+    initAudio();
+    setActivity((a) => a + 1);
+    playSfx('tap');
+    const { locationX: x, locationY: y } = e.nativeEvent;
+    const id = rid.current++;
+    setRipples((r) => [...r, { id, x, y }]);
+    setTimeout(() => setRipples((r) => r.filter((p) => p.id !== id)), 500);
+  };
+
+  // run a parent-gated action, closing the gate/menu
+  const guard = (action: () => void) => {
+    setMenu(false);
+    setGate(false);
+    action();
+  };
 
   // size everything off the actual screen so it fits any device (phone..iPad)
   const { width, height } = useWindowDimensions();
   const n = s.board.length;
   const boardW = Math.min(width - 16, 1000);
   const branchW = boardW / n;
-  // slot width fits a branch; clamp so it stays tappable but never overflows
-  const slotW = Math.max(30, Math.min(72, branchW - 6));
-  // also cap by height: title+hud+hint ~ 220px, CAP slots tall
-  const slotByH = Math.max(30, (height - 240) / CAP);
+  // slot fits a branch; leave room for the 96px min touch target + spacing
+  const slotW = Math.max(30, Math.min(72, branchW - 44));
+  // also cap by height: title+controls ~ 200px, CAP slots tall
+  const slotByH = Math.max(30, (height - 260) / CAP);
   const slot = Math.min(slotW, slotByH);
   const slotH = slot * 0.96;
   const stickW = slot * 1.7;
@@ -51,27 +193,17 @@ export default function App() {
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar style="dark" />
-      <Text style={styles.title}>🐦 Bird Sort</Text>
-      <View style={styles.hud}>
-        <Pressable style={styles.step} onPress={() => dispatch({ type: 'GOTO', level: s.level - 1 })}>
-          <Text style={styles.stepText}>−</Text>
-        </Pressable>
-        <Text style={styles.hudText}>Level {s.level}</Text>
-        <Pressable style={styles.step} onPress={() => dispatch({ type: 'GOTO', level: s.level + 1 })}>
-          <Text style={styles.stepText}>+</Text>
-        </Pressable>
-        <Text style={styles.hudText}>Moves {s.history.length}</Text>
-        <Pressable style={styles.btn} onPress={() => dispatch({ type: 'UNDO' })}>
-          <Text style={styles.btnText}>Undo</Text>
-        </Pressable>
-        <Pressable style={styles.btn} onPress={() => dispatch({ type: 'RESTART' })}>
-          <Text style={styles.btnText}>Restart</Text>
-        </Pressable>
-        <Pressable style={styles.btn} onPress={() => setGallery(true)}>
-          <Text style={styles.btnText}>Birds</Text>
-        </Pressable>
-      </View>
-      <View style={styles.board}>
+
+      {/* empty-space taps still respond (no dead screen, spec §3) */}
+      <Pressable style={StyleSheet.absoluteFill} onPress={onEmptyTap} />
+      {ripples.map((r) => (
+        <Ripple key={r.id} x={r.x} y={r.y} />
+      ))}
+
+      {/* wordless title so the play screen carries no instructions (spec §2) */}
+      <Text style={styles.title}>🐦</Text>
+
+      <View style={styles.board} pointerEvents="box-none">
         {s.board.map((b, i) => (
           <Branch
             key={i}
@@ -79,7 +211,9 @@ export default function App() {
             capacity={CAP}
             selected={s.selected === i}
             done={isCleared(b, CAP)}
-            onPress={() => dispatch({ type: 'TAP', i })}
+            hint={hintFrom === i && s.selected === null}
+            wiggleNonce={wiggle.i === i ? wiggle.n : 0}
+            onPress={() => onTap(i)}
             slotW={slot}
             slotH={slotH}
             stickW={stickW}
@@ -87,18 +221,70 @@ export default function App() {
           />
         ))}
       </View>
-      <Text style={styles.hint}>
-        Tap a branch to lift its top matching birds, tap another to drop them. Fill a branch with
-        one species and they happy-dance!
-      </Text>
+
+      {/* kid-friendly, ungated undo (forgiving, never a fail state) */}
+      {s.history.length > 0 && !s.won && (
+        <Pressable
+          style={styles.undo}
+          onPress={() => { initAudio(); setActivity((a) => a + 1); playSfx('lift'); dispatch({ type: 'UNDO' }); }}
+          hitSlop={16}
+        >
+          <Text style={styles.undoText}>↩</Text>
+        </Pressable>
+      )}
+
+      {/* small grown-up entry, tucked in a corner, opens the parent gate */}
+      <Pressable style={styles.grownup} onPress={() => setGate(true)} hitSlop={16}>
+        <Text style={styles.grownupText}>grown-ups</Text>
+      </Pressable>
+
       {s.won && (
         <View style={styles.overlay}>
-          <Text style={styles.winText}>Level Complete! 🎉</Text>
-          <Pressable style={styles.btnBig} onPress={() => dispatch({ type: 'NEXT' })}>
-            <Text style={styles.btnText}>Next level</Text>
+          <Animated.Text
+            style={[
+              styles.winText,
+              { transform: [{ scale: winPop.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] },
+            ]}
+          >
+            🎉🎉🎉
+          </Animated.Text>
+          <Pressable
+            style={styles.btnBig}
+            onPress={() => { initAudio(); playSfx('lift'); dispatch({ type: 'NEXT' }); }}
+          >
+            <Text style={styles.btnBigText}>▶</Text>
           </Pressable>
         </View>
       )}
+
+      {gate && (
+        <ParentGate onPass={() => { setGate(false); setMenu(true); }} onCancel={() => setGate(false)} />
+      )}
+
+      {menu && (
+        <View style={[styles.overlay, styles.menuOverlay]}>
+          <Text style={styles.menuTitle}>Grown-up menu</Text>
+          <View style={styles.menuRow}>
+            <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'GOTO', level: s.level - 1 }))}>
+              <Text style={styles.menuBtnText}>◀ Level</Text>
+            </Pressable>
+            <Text style={styles.menuLevel}>Level {s.level}</Text>
+            <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'GOTO', level: s.level + 1 }))}>
+              <Text style={styles.menuBtnText}>Level ▶</Text>
+            </Pressable>
+          </View>
+          <Pressable style={styles.menuBtnWide} onPress={() => guard(() => dispatch({ type: 'RESTART' }))}>
+            <Text style={styles.menuBtnText}>Restart this level</Text>
+          </Pressable>
+          <Pressable style={styles.menuBtnWide} onPress={() => { setMenu(false); setGallery(true); }}>
+            <Text style={styles.menuBtnText}>Bird gallery</Text>
+          </Pressable>
+          <Pressable style={styles.menuBtnWide} onPress={() => setMenu(false)}>
+            <Text style={styles.menuBtnText}>Back to play</Text>
+          </Pressable>
+        </View>
+      )}
+
       {gallery && (
         <View style={[styles.overlay, styles.galleryOverlay]}>
           <Text style={styles.galleryTitle}>Bird Gallery</Text>
@@ -112,7 +298,7 @@ export default function App() {
             ))}
           </ScrollView>
           <Pressable style={styles.btnBig} onPress={() => setGallery(false)}>
-            <Text style={styles.btnText}>Close</Text>
+            <Text style={styles.btnBigText}>✕</Text>
           </Pressable>
         </View>
       )}
@@ -122,28 +308,27 @@ export default function App() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#cdeffd', alignItems: 'center' },
-  title: { fontSize: 24, fontWeight: '700', marginTop: 16, color: '#223344' },
-  hud: { flexDirection: 'row', gap: 12, alignItems: 'center', marginVertical: 10 },
-  hudText: { fontSize: 15, color: '#223344', fontWeight: '600' },
-  btn: { backgroundColor: '#6a9bd8', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10 },
-  step: { backgroundColor: '#6a9bd8', width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  stepText: { color: '#fff', fontSize: 20, fontWeight: '800', lineHeight: 22 },
-  btnBig: {
-    backgroundColor: '#44aa77',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 12,
+  title: { fontSize: 34, marginTop: 12 },
+  board: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', padding: 16, marginTop: 8 },
+  // big forgiving kid target for undo (spec §1: >=96px)
+  undo: {
+    position: 'absolute',
+    left: 24,
+    bottom: 24,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#ffffffcc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
   },
-  btnText: { color: '#fff', fontWeight: '700' },
-  board: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', padding: 16, gap: 8 },
-  hint: {
-    fontSize: 12,
-    color: '#456',
-    opacity: 0.7,
-    textAlign: 'center',
-    paddingHorizontal: 30,
-    maxWidth: 460,
-  },
+  undoText: { fontSize: 44, color: '#4a6b8a' },
+  grownup: { position: 'absolute', right: 20, top: 20, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#ffffff66' },
+  grownupText: { color: '#3a5568', fontSize: 12, fontWeight: '600' },
   overlay: {
     position: 'absolute',
     top: 0,
@@ -153,36 +338,32 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 16,
+    gap: 20,
   },
-  winText: { color: '#fff', fontSize: 30, fontWeight: '800' },
+  winText: { fontSize: 72 },
+  // huge primary "keep playing" target (spec §1: hero button 140+)
+  btnBig: { backgroundColor: '#44aa77', width: 140, height: 140, borderRadius: 70, alignItems: 'center', justifyContent: 'center' },
+  btnBigText: { color: '#fff', fontSize: 56, fontWeight: '800' },
+  // parent gate
+  gateTitle: { color: '#fff', fontSize: 30, fontWeight: '800' },
+  gateSub: { color: '#dfe', fontSize: 16 },
+  gateBtn: { width: 220, height: 96, borderRadius: 20, backgroundColor: '#33506a', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  gateFill: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#44aa77' },
+  gateBtnText: { color: '#fff', fontSize: 24, fontWeight: '800' },
+  gateCancel: { padding: 12 },
+  gateCancelText: { color: '#cde', fontSize: 15 },
+  // parent menu (adult, text allowed)
+  menuOverlay: { backgroundColor: '#274653ee', gap: 14 },
+  menuTitle: { color: '#fff', fontSize: 24, fontWeight: '800', marginBottom: 6 },
+  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  menuLevel: { color: '#fff', fontSize: 18, fontWeight: '700', minWidth: 90, textAlign: 'center' },
+  menuBtn: { backgroundColor: '#6a9bd8', paddingVertical: 16, paddingHorizontal: 20, borderRadius: 14, minHeight: 56, justifyContent: 'center' },
+  menuBtnWide: { backgroundColor: '#6a9bd8', paddingVertical: 18, paddingHorizontal: 28, borderRadius: 14, minWidth: 260, alignItems: 'center' },
+  menuBtnText: { color: '#fff', fontWeight: '700', fontSize: 17 },
   galleryOverlay: { backgroundColor: '#274653', paddingTop: 30, paddingBottom: 20 },
   galleryTitle: { color: '#fff', fontSize: 26, fontWeight: '800', marginBottom: 2 },
   gallerySub: { color: '#bcd', fontSize: 13, marginBottom: 10 },
-  lockBird: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,.10)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  lockMark: { color: '#7f97a5', fontSize: 24, fontWeight: '800' },
-  cardLocked: { color: '#7f97a5', fontSize: 13, fontWeight: '600', marginTop: 4 },
-  gallery: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    maxWidth: 520,
-  },
-  card: {
-    width: 92,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,.12)',
-    borderRadius: 12,
-    paddingVertical: 10,
-  },
+  gallery: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, paddingHorizontal: 16, maxWidth: 520 },
+  card: { width: 92, alignItems: 'center', backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 12, paddingVertical: 10 },
   cardName: { color: '#fff', fontSize: 13, fontWeight: '600', marginTop: 4 },
 });
