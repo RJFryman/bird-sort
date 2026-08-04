@@ -61,4 +61,16 @@ export const ROSTER: BirdDef[] = [
   { name: 'Lovebird', color: '#3fae5f', beak: 'hook', cheek: '#f0902f', belly: '#f2c24b', size: 0.78 },
   { name: 'King Parrot', color: '#d5372a', belly: '#1f8f4f', beak: 'hook' },
   { name: 'Fish', color: '#ff8c1a', shape: 'fish' },
+  // --- Macaws & parrots (Asher's wishlist, 2026-08-03). APPEND-ONLY: boards
+  // persist numeric roster indices, so never reorder/insert above this line —
+  // it would remap existing saved birds. New species go at the end. ---
+  { name: 'Blue-and-Gold Macaw', color: '#1c5fb0', belly: '#f4b400', tail: 'long', beak: 'hook', cheek: '#f5f0e6' },
+  { name: 'Green-winged Macaw', color: '#b3241d', belly: '#b3241d', tail: 'long', beak: 'hook', cheek: '#f5f0e6' },
+  { name: 'Military Macaw', color: '#5b7a34', belly: '#7a9448', tail: 'long', beak: 'hook', cheek: '#e8dcc5' },
+  { name: 'Hyacinth Macaw', color: '#33409e', belly: '#3a48b0', tail: 'long', beak: 'hook', leg: '#f4c20d', size: 1.08 },
+  { name: 'Blue-throated Macaw', color: '#1f8fce', belly: '#f2c24b', tail: 'long', beak: 'hook', cheek: '#f5f0e6' },
+  { name: "Hahn's Macaw", color: '#3a9a4f', hood: '#2456b0', tail: 'long', beak: 'hook', size: 0.82 },
+  { name: 'Rainbow Lorikeet', color: '#2f9e44', hood: '#2456b0', belly: '#e8622a', beak: 'hook', size: 0.9 },
+  { name: 'Eclectus', color: '#1f9d3a', belly: '#2fae5f', beak: 'hook', cheek: '#f2c24b', tail: 'long' },
+  { name: 'Eclectus Female', color: '#c0202a', belly: '#5b3b8c', beak: 'hook', tail: 'long' },
 ];
