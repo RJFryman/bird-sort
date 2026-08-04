@@ -1,16 +1,19 @@
 import React, { useReducer, useState, useEffect, useRef } from 'react';
-import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView, Animated, Easing, useWindowDimensions } from 'react-native';
+import { SafeAreaView, View, Text, Pressable, TextInput, StyleSheet, ScrollView, Animated, Easing, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
 import { ROSTER } from './roster';
 import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
-import { loadGame, saveGame } from './storage';
+import { loadGame, saveGame, loadGateOn, saveGateOn } from './storage';
 import { initAudio, playSfx } from './audio';
 
-const HOLD_MS = 3000; // parent gate: hold this long to pass (spec §4)
 const IDLE_MS = 3500; // idle re-invite / level-start demo delay (spec §5)
+// Word a grown-up types to pass the gate. Reading+typing beats a pre-reader 5yo
+// (hold-to-continue did not — Robert's flag, msg 011).
+// ponytail: fixed word, not configurable. Add a per-parent word only if asked.
+const GATE_WORD = 'grown-up';
 
 const clearedCount = (board: Board) => board.filter((b) => isCleared(b, CAP)).length;
 
@@ -22,27 +25,30 @@ function findHint(board: Board): number | null {
   return null;
 }
 
-// ---- Parent gate: press & hold to pass (the one place text is allowed, §4) ----
-function ParentGate({ onPass, onCancel }: { onPass: () => void; onCancel: () => void }) {
-  const prog = useRef(new Animated.Value(0)).current;
-  const anim = useRef<Animated.CompositeAnimation | null>(null);
-  const start = () => {
-    prog.setValue(0);
-    anim.current = Animated.timing(prog, { toValue: 1, duration: HOLD_MS, easing: Easing.linear, useNativeDriver: false });
-    anim.current.start(({ finished }) => finished && onPass());
-  };
-  const stop = () => {
-    anim.current?.stop();
-    prog.setValue(0);
-  };
-  const w = prog.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
+// ---- Parent gate: type a word to pass (the one place text is allowed, §4).
+// Name-gated, not hold-to-continue: a pre-reader 5yo can't read+type the word,
+// but hold-to-continue they just... hold (Robert's flag, msg 011). ----
+function NameGate({ onPass, onCancel }: { onPass: () => void; onCancel: () => void }) {
+  const [val, setVal] = useState('');
+  const ok = val.trim().toLowerCase() === GATE_WORD;
   return (
     <View style={styles.overlay}>
       <Text style={styles.gateTitle}>Ask a grown-up</Text>
-      <Text style={styles.gateSub}>Press and hold the button</Text>
-      <Pressable onPressIn={start} onPressOut={stop} style={styles.gateBtn}>
-        <Animated.View style={[styles.gateFill, { width: w }]} />
-        <Text style={styles.gateBtnText}>Hold</Text>
+      <Text style={styles.gateSub}>Type “{GATE_WORD}” to continue</Text>
+      <TextInput
+        style={styles.gateInput}
+        value={val}
+        onChangeText={setVal}
+        onSubmitEditing={() => ok && onPass()}
+        autoFocus
+        autoCapitalize="none"
+        autoCorrect={false}
+        placeholder={GATE_WORD}
+        placeholderTextColor="#8fb3c8"
+        returnKeyType="go"
+      />
+      <Pressable onPress={() => ok && onPass()} disabled={!ok} style={[styles.gateBtn, !ok && styles.gateBtnOff]}>
+        <Text style={styles.gateBtnText}>Enter</Text>
       </Pressable>
       <Pressable onPress={onCancel} style={styles.gateCancel} hitSlop={16}>
         <Text style={styles.gateCancelText}>← back to play</Text>
@@ -81,6 +87,7 @@ export default function App() {
   const [gallery, setGallery] = useState(false);
   const [menu, setMenu] = useState(false); // parent panel (after gate)
   const [gate, setGate] = useState(false); // parent gate overlay
+  const [gateOn, setGateOn] = useState(false); // is the gate enabled? default OFF (Robert's ask)
   const [loaded, setLoaded] = useState(false);
   const [wiggle, setWiggle] = useState({ i: -1, n: 0 }); // illegal-tap shake target
   const [hintFrom, setHintFrom] = useState<number | null>(null);
@@ -110,6 +117,11 @@ export default function App() {
     void saveGame(s);
   }, [s, loaded]);
   // --- end save wiring ---
+
+  // load the parent-gate setting once (default OFF if unset/unreadable)
+  useEffect(() => {
+    loadGateOn().then(setGateOn).catch(() => {});
+  }, []);
 
   // onboarding demo + idle re-invite: after quiet time, point at a legal move.
   // Re-arms on every interaction and whenever the board changes (level start).
@@ -234,7 +246,7 @@ export default function App() {
       )}
 
       {/* small grown-up entry, tucked in a corner, opens the parent gate */}
-      <Pressable style={styles.grownup} onPress={() => setGate(true)} hitSlop={16}>
+      <Pressable style={styles.grownup} onPress={() => (gateOn ? setGate(true) : setMenu(true))} hitSlop={16}>
         <Text style={styles.grownupText}>grown-ups</Text>
       </Pressable>
 
@@ -258,7 +270,7 @@ export default function App() {
       )}
 
       {gate && (
-        <ParentGate onPass={() => { setGate(false); setMenu(true); }} onCancel={() => setGate(false)} />
+        <NameGate onPass={() => { setGate(false); setMenu(true); }} onCancel={() => setGate(false)} />
       )}
 
       {menu && (
@@ -278,6 +290,12 @@ export default function App() {
           </Pressable>
           <Pressable style={styles.menuBtnWide} onPress={() => { setMenu(false); setGallery(true); }}>
             <Text style={styles.menuBtnText}>Bird gallery</Text>
+          </Pressable>
+          <Pressable
+            style={styles.menuBtnWide}
+            onPress={() => { const nv = !gateOn; setGateOn(nv); void saveGateOn(nv); }}
+          >
+            <Text style={styles.menuBtnText}>Ask a grown-up first: {gateOn ? 'ON' : 'OFF'}</Text>
           </Pressable>
           <Pressable style={styles.menuBtnWide} onPress={() => setMenu(false)}>
             <Text style={styles.menuBtnText}>Back to play</Text>
@@ -347,9 +365,10 @@ const styles = StyleSheet.create({
   // parent gate
   gateTitle: { color: '#fff', fontSize: 30, fontWeight: '800' },
   gateSub: { color: '#dfe', fontSize: 16 },
-  gateBtn: { width: 220, height: 96, borderRadius: 20, backgroundColor: '#33506a', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  gateFill: { position: 'absolute', left: 0, top: 0, bottom: 0, backgroundColor: '#44aa77' },
+  gateBtn: { width: 220, height: 96, borderRadius: 20, backgroundColor: '#44aa77', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  gateBtnOff: { backgroundColor: '#33506a', opacity: 0.6 },
   gateBtnText: { color: '#fff', fontSize: 24, fontWeight: '800' },
+  gateInput: { width: 260, height: 72, borderRadius: 16, backgroundColor: '#fff', color: '#123', fontSize: 26, fontWeight: '700', textAlign: 'center', paddingHorizontal: 16 },
   gateCancel: { padding: 12 },
   gateCancelText: { color: '#cde', fontSize: 15 },
   // parent menu (adult, text allowed)

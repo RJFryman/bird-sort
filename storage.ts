@@ -99,3 +99,26 @@ export async function saveGame(s: Pick<State, 'level' | 'maxLevel' | 'board'>): 
     console.warn('[storage] save failed:', (e as Error)?.message ?? e);
   }
 }
+
+// --- Parent-gate setting (Robert's ask: a SETTING, default OFF, name-gated). ---
+// Kept here because storage.ts owns on-disk keys. Single boolean, own key so it
+// can't corrupt or be corrupted by the game save. Never throws.
+export const GATE_KEY = 'bird-sort-gate-v1';
+
+/** Is the "ask a grown-up first" gate enabled? Default OFF (Robert's ask). */
+export async function loadGateOn(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(GATE_KEY)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+/** Persist the gate on/off setting. Never throws. */
+export async function saveGateOn(on: boolean): Promise<void> {
+  try {
+    await AsyncStorage.setItem(GATE_KEY, on ? '1' : '0');
+  } catch {
+    /* setting is non-critical; ignore write failure */
+  }
+}
