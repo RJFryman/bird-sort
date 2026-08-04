@@ -1,132 +1,37 @@
-import React, { useReducer, useState, useEffect, useRef } from 'react';
+import React, { useReducer, useState, useEffect } from 'react';
 import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView, useWindowDimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
 import { ROSTER } from './roster';
-import { generateLevel, canMove, applyMove, isWon, isCleared, Board } from './game';
-
-const CAP = 4;
-const EXTRA = 2;
-const SAVE_KEY = 'bird-sort-save-v1';
-const speciesForLevel = (l: number) => Math.min(5 + Math.floor((l - 1) / 2), ROSTER.length);
-
-// pick `count` distinct random bird indices from the full roster (so every level
-// shows a different mix, not always Cardinal..Crow)
-function pickBirds(count: number, rng: () => number = Math.random): number[] {
-  const idx = ROSTER.map((_, i) => i);
-  for (let i = idx.length - 1; i > 0; i--) {
-    const j = Math.floor(rng() * (i + 1));
-    [idx[i], idx[j]] = [idx[j], idx[i]];
-  }
-  return idx.slice(0, count);
-}
-
-type State = {
-  level: number;
-  maxLevel: number; // highest level ever reached -> unlocks
-  board: Board;
-  history: Board[];
-  selected: number | null;
-  won: boolean;
-};
-
-function init(level: number, maxLevel = level): State {
-  const count = speciesForLevel(level);
-  const pick = pickBirds(count);
-  // generate with sequential ids 0..count-1, then remap to random roster indices
-  const board = generateLevel(count, CAP, EXTRA).map((br) => br.map((id) => pick[id]));
-  return {
-    level,
-    maxLevel: Math.max(maxLevel, level),
-    board,
-    history: [],
-    selected: null,
-    won: false,
-  };
-}
-
-type Action =
-  | { type: 'TAP'; i: number }
-  | { type: 'UNDO' }
-  | { type: 'RESTART' }
-  | { type: 'NEXT' }
-  | { type: 'GOTO'; level: number }
-  | { type: 'RESTORE'; state: State };
-
-function reducer(s: State, a: Action): State {
-  switch (a.type) {
-    case 'RESTORE':
-      return a.state;
-    case 'TAP': {
-      const { i } = a;
-      if (s.selected === null) {
-        return s.board[i].length && !isCleared(s.board[i], CAP) ? { ...s, selected: i } : s;
-      }
-      if (s.selected === i) return { ...s, selected: null };
-      if (canMove(s.board, s.selected, i, CAP)) {
-        const board = applyMove(s.board, s.selected, i, CAP);
-        return {
-          ...s,
-          board,
-          history: [...s.history, s.board],
-          selected: null,
-          won: isWon(board, CAP),
-        };
-      }
-      return { ...s, selected: s.board[i].length && !isCleared(s.board[i], CAP) ? i : null };
-    }
-    case 'UNDO':
-      if (!s.history.length) return s;
-      return {
-        ...s,
-        board: s.history[s.history.length - 1],
-        history: s.history.slice(0, -1),
-        selected: null,
-        won: false,
-      };
-    case 'RESTART':
-      return { ...s, board: s.history[0] ?? s.board, history: [], selected: null, won: false };
-    case 'NEXT':
-      return init(s.level + 1, s.maxLevel);
-    case 'GOTO':
-      return init(Math.max(1, a.level), s.maxLevel);
-  }
-}
+import { isCleared } from './game';
+import { reducer, init, CAP } from './state';
+import { loadGame, saveGame } from './storage';
 
 export default function App() {
   const [s, dispatch] = useReducer(reducer, 1, init);
   const [gallery, setGallery] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  // load saved game once on startup
+  // load saved game once on startup (storage.ts rebuilds resumable state and
+  // recomputes `won`, so a saved win resumes to the overlay, not a dead board)
   useEffect(() => {
-    AsyncStorage.getItem(SAVE_KEY)
-      .then((raw) => {
-        console.log('[save] load raw =', raw ? raw.slice(0, 80) + '...' : raw);
-        if (raw) {
-          const saved = JSON.parse(raw) as State;
-          if (saved && typeof saved.level === 'number' && Array.isArray(saved.board)) {
-            console.log('[save] RESTORE level', saved.level, 'maxLevel', saved.maxLevel);
-            dispatch({ type: 'RESTORE', state: { ...saved, won: false, selected: null } });
-            return;
-          }
-        }
-        console.log('[save] nothing valid saved -> keeping fresh level 1');
+    let live = true;
+    loadGame()
+      .then((resumed) => {
+        if (live && resumed) dispatch({ type: 'RESTORE', state: resumed });
       })
-      .catch((e) => console.warn('[save] LOAD FAILED:', e?.message ?? e))
-      .finally(() => setLoaded(true));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      .finally(() => live && setLoaded(true));
+    return () => {
+      live = false;
+    };
   }, []);
 
-  // save after every change (and once right after load, so a fresh board persists
-  // before the first move). skip until initial load done so we don't clobber it.
+  // save after every change. skip until initial load done so we don't clobber it.
+  // only the resumable facts are persisted (see storage.ts).
   useEffect(() => {
     if (!loaded) return;
-    AsyncStorage.setItem(SAVE_KEY, JSON.stringify(s))
-      .then(() => console.log('[save] wrote level', s.level, 'maxLevel', s.maxLevel))
-      .catch((e) => console.warn('[save] WRITE FAILED:', e?.message ?? e));
+    void saveGame(s);
   }, [s, loaded]);
 
   // size everything off the actual screen so it fits any device (phone..iPad)
