@@ -1,0 +1,8 @@
+- generic [active] [ref=f3e1]:
+  - heading "🐦 Bird Sort" [level=1] [ref=f3e2]
+  - generic [ref=f3e3]:
+    - generic [ref=f3e4]: Level 1
+    - generic [ref=f3e5]: Moves 0
+    - button "Undo" [disabled] [ref=f3e6]
+    - button "Restart" [ref=f3e7] [cursor=pointer]
+  - generic [ref=f3e130]: Tap a branch to pick up its top group of matching birds, tap another branch to drop them. A branch that fills up with one color flies away.
