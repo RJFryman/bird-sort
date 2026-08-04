@@ -94,13 +94,18 @@ export function Bird({
           {/* flippers */}
           <Ellipse cx={14} cy={46} rx={5} ry={16} fill={wing} stroke={OUT} strokeWidth={1.6} />
           <Ellipse cx={52} cy={46} rx={5} ry={16} fill={wing} stroke={OUT} strokeWidth={1.6} />
-          {/* white belly + face */}
-          <Path d="M33 20 C18 20 18 44 20 58 C22 70 44 70 46 58 C48 44 48 20 33 20 Z" fill={belly} />
+          {/* white belly — narrower + lower so the black "coat" and head-cap
+             show as a real tuxedo (the penguin tell), not a white blob */}
+          <Path d="M33 27 C23 27 22 46 24 58 C26 69 40 69 42 58 C44 46 43 27 33 27 Z" fill={belly} />
           {/* beak */}
           <Path d="M28 40 l10 3 -10 3 z" fill="#f4a72a" stroke={OUT} strokeWidth={1.4} strokeLinejoin="round" />
+          {/* king-penguin signature: orange ear-patches + yellow throat wash */}
+          <Path d="M28 44 q5 6 10 0 q-1 8 -5 9 q-4 -1 -5 -9 z" fill="#f4c53a" opacity={0.75} />
+          <Ellipse cx={19} cy={34} rx={4} ry={7} fill="#f39a1c" stroke={OUT} strokeWidth={1} />
+          <Ellipse cx={47} cy={34} rx={4} ry={7} fill="#f39a1c" stroke={OUT} strokeWidth={1} />
           {/* blush */}
-          <Ellipse cx={22} cy={40} rx={4} ry={2.8} fill="#ff6b8a" opacity={0.35} />
-          <Ellipse cx={44} cy={40} rx={4} ry={2.8} fill="#ff6b8a" opacity={0.35} />
+          <Ellipse cx={24} cy={40} rx={3.5} ry={2.6} fill="#ff6b8a" opacity={0.3} />
+          <Ellipse cx={42} cy={40} rx={3.5} ry={2.6} fill="#ff6b8a" opacity={0.3} />
           {eyes(33, 32)}
         </G>
       </ASvg>
@@ -127,6 +132,170 @@ export function Bird({
           {/* blush */}
           <Ellipse cx={49} cy={50} rx={4} ry={2.8} fill="#ff6b8a" opacity={0.35} />
           {eyes(49, 42)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- PARROT / MACAW: long streamer tail + hook beak + pale face patch ----
+  // The long tail (longer than the body) is the macaw tell; color does the species.
+  if (d.shape === 'parrot') {
+    const face = d.cheek ?? '#f5f0e6';
+    return (
+      <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* long streamer tail — the macaw tell. Starts high, splays well below
+             the body so a clear pointed tail reads at 48px. */}
+          <Path d="M30 46 Q17 72 23 84 Q31 70 38 58 Z" fill={col} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          <Path d="M37 46 Q37 78 45 84 Q47 66 45 56 Z" fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          {/* feet */}
+          <Path d="M30 60 v7 M40 60 v7" stroke={leg} strokeWidth={3} strokeLinecap="round" />
+          {/* upright chunky body (sits above the tail so the tail stays visible) */}
+          <Ellipse cx={34} cy={44} rx={16 * s} ry={18 * s} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          <Ellipse cx={34} cy={52} rx={10 * s} ry={13 * s} fill={belly} />
+          {/* big head (hood = a differently-coloured cap, e.g. lorikeet's blue) */}
+          <Circle cx={40} cy={27} r={14 * s} fill={d.hood ?? `url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* pale bare face patch cradling the eye */}
+          <Ellipse cx={43} cy={27} rx={9 * s} ry={10 * s} fill={face} stroke={OUT} strokeWidth={1} />
+          {/* big hooked beak */}
+          <Path d="M50 21 q12 1 13 9 q-1 8 -10 6 q5 -6 -3 -11 z" fill="#48484f" stroke={OUT} strokeWidth={1.8} strokeLinejoin="round" />
+          <Path d="M51 31 q7 1 9 3" stroke={OUT} strokeWidth={1.2} fill="none" opacity={0.5} />
+          {eyes(43, 26, s)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- TOUCAN: the beak IS the bird — as big as the body, downcurved ----
+  if (d.shape === 'toucan') {
+    const bib = d.belly ?? '#f7d84b';
+    const beakC = d.cheek ?? '#f2a71b';
+    return (
+      <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* feet */}
+          <Path d="M27 66 v6 M37 66 v6" stroke={leg} strokeWidth={3} strokeLinecap="round" />
+          {/* small round body */}
+          <Ellipse cx={29} cy={52} rx={16} ry={16} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* white/yellow bib */}
+          <Path d="M21 44 q8 -6 16 0 q2 13 -8 17 q-10 -4 -8 -17 z" fill={bib} />
+          {/* head */}
+          <Circle cx={31} cy={34} r={12} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* OVERSIZED banana beak (as long as the body), gentle downcurve */}
+          <Path d="M39 26 q27 -2 31 11 q-1 8 -9 10 q-15 2 -23 -6 q-3 -9 1 -15 z" fill={beakC} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          <Path d="M39 37 q17 6 27 3 q-4 6 -13 6 q-10 0 -15 -5 z" fill={shade(beakC, 0.85)} stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
+          {/* dark beak tip */}
+          <Path d="M64 32 q6 2 6 7 q-1 5 -6 5 q2 -7 0 -12 z" fill="#c0392b" stroke={OUT} strokeWidth={1.4} strokeLinejoin="round" />
+          <Path d="M39 29 q25 -1 30 10" stroke={shade(beakC, 0.55)} strokeWidth={1.4} fill="none" opacity={0.6} />
+          {eyes(31, 32, 1)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- COCKATOO: parrot body + big recurved crest fan ----
+  if (d.shape === 'cockatoo') {
+    const crestC = d.crestColor ?? shade(col, 1.1);
+    return (
+      <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* short tail */}
+          <Path d="M27 58 Q23 72 30 78 Q34 70 38 62 Z" fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          <Path d="M29 62 v8 M39 62 v8" stroke={leg} strokeWidth={3} strokeLinecap="round" />
+          {/* recurved crest: plumes sweeping up and back over the head */}
+          {[0, 1, 2, 3].map((i) => (
+            <Path
+              key={i}
+              d={`M${35 + i * 3} 19 q-2 -12 ${3 + i * 2} -17`}
+              stroke={crestC}
+              strokeWidth={4}
+              strokeLinecap="round"
+              fill="none"
+            />
+          ))}
+          {/* body */}
+          <Ellipse cx={34} cy={47} rx={16 * s} ry={20 * s} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          <Ellipse cx={34} cy={51} rx={9 * s} ry={12 * s} fill={belly} />
+          {/* head */}
+          <Circle cx={38} cy={28} r={13 * s} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {d.cheek && <Ellipse cx={41} cy={31} rx={5} ry={6} fill={d.cheek} />}
+          {/* hook beak */}
+          <Path d="M47 25 q10 1 11 8 q-1 6 -9 5 q4 -5 -2 -9 z" fill="#5a5a62" stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
+          {eyes(38, 27, s)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- KINGFISHER: oversized head + long straight dagger beak + stub tail ----
+  if (d.shape === 'kingfisher') {
+    return (
+      <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* stubby tail */}
+          <Path d="M17 52 l-8 4 8 5 z" fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          <Path d="M30 62 v7 M38 62 v7" stroke={leg} strokeWidth={2.6} strokeLinecap="round" />
+          {/* compact body */}
+          <Ellipse cx={32} cy={50} rx={15} ry={15} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          <Ellipse cx={34} cy={54} rx={9} ry={11} fill={belly} />
+          {/* oversized head */}
+          <Circle cx={32} cy={28} r={16} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {d.cheek && <Ellipse cx={26} cy={30} rx={4} ry={5} fill={d.cheek} />}
+          {/* long straight dagger beak */}
+          <Path d="M45 25 l23 3.5 -23 4 z" fill="#3a3a42" stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
+          {eyes(34, 26, 1)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- DOVE / PIGEON: plump barrel body + small head + short beak ----
+  if (d.shape === 'dove') {
+    return (
+      <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* short fanned tail */}
+          <Path d="M13 48 l-6 -4 v16 z" fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          <Path d="M31 66 v6 M41 66 v6" stroke={leg} strokeWidth={2.6} strokeLinecap="round" />
+          {/* plump barrel body */}
+          <Ellipse cx={34} cy={48} rx={21} ry={19} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          <Ellipse cx={37} cy={52} rx={12} ry={13} fill={belly} />
+          {/* wing line */}
+          <Path d="M24 42 q16 -3 24 6" stroke={OUT} strokeWidth={1.4} fill="none" opacity={0.4} />
+          {/* small head */}
+          <Circle cx={49} cy={30} r={9} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* short beak */}
+          <Path d="M56 29 l7 2 -6 3 z" fill="#c9954a" stroke={OUT} strokeWidth={1.3} strokeLinejoin="round" />
+          {eyes(50, 29, 0.8)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- HUMMINGBIRD: tiny body + needle beak + hover pose + throat gorget ----
+  if (d.shape === 'hummingbird') {
+    const gorget = d.cheek ?? d.belly ?? '#e0335f';
+    return (
+      <ASvg width={40 * scale} height={48 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* swept-back hover wings */}
+          <Ellipse cx={22} cy={44} rx={17} ry={6} fill={wing} stroke={OUT} strokeWidth={1.6} opacity={0.9} rotation={-26} originX={22} originY={44} />
+          <Ellipse cx={44} cy={44} rx={17} ry={6} fill={wing} stroke={OUT} strokeWidth={1.6} opacity={0.9} rotation={26} originX={44} originY={44} />
+          {/* tiny body */}
+          <Ellipse cx={33} cy={47} rx={11} ry={13} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* head */}
+          <Circle cx={40} cy={33} r={9} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* throat gorget */}
+          <Path d="M35 39 q6 4 10 1 q-1 6 -6 7 q-4 -1 -4 -8 z" fill={gorget} />
+          {/* long needle beak */}
+          <Path d="M46 32 l21 2 -21 2 z" fill="#2b2b30" stroke={OUT} strokeWidth={1} strokeLinejoin="round" />
+          {eyes(40, 32, 0.75)}
         </G>
       </ASvg>
     );
