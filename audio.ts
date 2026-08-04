@@ -33,6 +33,12 @@ function resolveSource(mod: number): number | string {
   }
 }
 
+// Playful pitch wobble so rapid taps never sound robotic — a 5yo mashing the
+// screen hears a living instrument, not one repeated beep. Fraction = ± range on
+// playback rate (pitch, since we disable pitch-correction). Win/nope stay steady:
+// the fanfare should land the same triumphant every time, the nope stay gentle.
+const JITTER: Record<Sfx, number> = { tap: 0.08, lift: 0.07, drop: 0.07, chirp: 0.06, win: 0, nope: 0 };
+
 const players: Partial<Record<Sfx, AudioPlayer>> = {};
 let ready = false;
 
@@ -58,6 +64,11 @@ export function playSfx(name: Sfx) {
   const p = players[name];
   if (!p) return;
   try {
+    const j = JITTER[name];
+    if (j) {
+      // 'low' quality => no pitch correction => rate shifts pitch (the playful part)
+      p.setPlaybackRate(1 + (Math.random() * 2 - 1) * j, 'low');
+    }
     p.seekTo(0);
     p.play();
   } catch {

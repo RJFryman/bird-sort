@@ -78,19 +78,29 @@ const sounds = {
   lift: tone(130, (t) => 480 + t * 300, { amp: 0.26, wave: 'soft', releaseFrac: 0.7 }),
   // drop = gentle settle (birds land)
   drop: tone(140, (t) => 760 - t * 300, { amp: 0.26, wave: 'soft', releaseFrac: 0.75 }),
-  // happy little bird chirp when a branch locks
-  chirp: mix(
-    tone(200, (t) => 900 + 700 * Math.sin(Math.PI * t), { amp: 0.3, vibrato: 0.05, releaseFrac: 0.6 }),
-    concat(silence(70), tone(130, (t) => 1500 + t * 300, { amp: 0.16, releaseFrac: 0.7 })),
+  // cheerful two-note bird "ti-tweep" when a branch locks — rises, feels happy
+  chirp: concat(
+    tone(95, (t) => 1080 + 520 * t, { amp: 0.3, vibrato: 0.04, releaseFrac: 0.5 }),
+    silence(35),
+    tone(135, (t) => 1300 + 780 * Math.sin((Math.PI / 2) * t), { amp: 0.28, vibrato: 0.06, releaseFrac: 0.6 }),
   ),
-  // warm major arpeggio fanfare on win (C5 E5 G5 C6), short (~0.7s)
+  // grand fanfare on win: ascending run into a shining major chord + high twinkle.
+  // Still short (~1.1s) so a toddler doesn't lose the thread.
   win: concat(
-    tone(150, 523.25, { amp: 0.3, wave: 'triangle', releaseFrac: 0.5 }),
-    tone(150, 659.25, { amp: 0.3, wave: 'triangle', releaseFrac: 0.5 }),
-    tone(150, 783.99, { amp: 0.3, wave: 'triangle', releaseFrac: 0.5 }),
+    tone(130, 523.25, { amp: 0.3, wave: 'triangle', releaseFrac: 0.4 }), // C5
+    tone(130, 659.25, { amp: 0.3, wave: 'triangle', releaseFrac: 0.4 }), // E5
+    tone(130, 783.99, { amp: 0.3, wave: 'triangle', releaseFrac: 0.4 }), // G5
+    tone(150, 1046.5, { amp: 0.3, wave: 'triangle', releaseFrac: 0.45 }), // C6
+    // triumphant shining chord (C6+E6+G6) with a sparkle arpeggio on top
     mix(
-      tone(280, 1046.5, { amp: 0.32, wave: 'triangle', releaseFrac: 0.7 }),
-      tone(280, 1567.98, { amp: 0.12, wave: 'sine', releaseFrac: 0.8 }), // sparkle
+      tone(520, 1046.5, { amp: 0.26, wave: 'triangle', releaseFrac: 0.85 }),
+      tone(520, 1318.51, { amp: 0.18, wave: 'triangle', releaseFrac: 0.88 }),
+      tone(520, 1567.98, { amp: 0.14, wave: 'sine', releaseFrac: 0.9 }),
+      concat(
+        silence(60),
+        tone(120, 2093, { amp: 0.1, wave: 'sine', releaseFrac: 0.7 }), // C7 twinkle
+        tone(140, 2637.02, { amp: 0.08, wave: 'sine', releaseFrac: 0.8 }), // E7 twinkle
+      ),
     ),
   ),
   // gentle, non-punishing "nope" — two soft descending notes, no buzz
