@@ -57,12 +57,87 @@ export function Bird({
 
   const translateY = t.interpolate({ inputRange: [0, 1], outputRange: [0, -8] });
   const rotate = t.interpolate({ inputRange: [0, 1], outputRange: ['-7deg', '7deg'] });
+  const svgStyle = { transform: [{ translateY }, { rotate }] };
 
-  // geometry
+  const grad = (
+    <Defs>
+      <LinearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+        <Stop offset="0" stopColor={light} />
+        <Stop offset="1" stopColor={dark} />
+      </LinearGradient>
+    </Defs>
+  );
+
+  // reusable pair of big cute eyes centered at (ex, ey)
+  const eyes = (ex: number, ey: number, r = 1) => (
+    <>
+      <Circle cx={ex - 4.5} cy={ey} r={4.6 * r} fill="#fff" stroke={OUT} strokeWidth={1.3} />
+      <Circle cx={ex - 3.5} cy={ey + 1} r={2.8 * r} fill="#181818" />
+      <Circle cx={ex - 2.5} cy={ey - 1} r={1.1 * r} fill="#fff" />
+      <Circle cx={ex + 4.5} cy={ey} r={5.2 * r} fill="#fff" stroke={OUT} strokeWidth={1.3} />
+      <Circle cx={ex + 5.9} cy={ey + 1} r={3.1 * r} fill="#181818" />
+      <Circle cx={ex + 7.1} cy={ey - 1} r={1.2 * r} fill="#fff" />
+    </>
+  );
+
+  // ---- PENGUIN: fully alternate upright silhouette ----
+  if (d.shape === 'penguin') {
+    return (
+      <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* feet */}
+          <Ellipse cx={26} cy={76} rx={7} ry={3.5} fill={leg} stroke={OUT} strokeWidth={1.4} />
+          <Ellipse cx={40} cy={76} rx={7} ry={3.5} fill={leg} stroke={OUT} strokeWidth={1.4} />
+          {/* body */}
+          <Ellipse cx={33} cy={44} rx={20} ry={30} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* flippers */}
+          <Ellipse cx={14} cy={46} rx={5} ry={16} fill={wing} stroke={OUT} strokeWidth={1.6} />
+          <Ellipse cx={52} cy={46} rx={5} ry={16} fill={wing} stroke={OUT} strokeWidth={1.6} />
+          {/* white belly + face */}
+          <Path d="M33 20 C18 20 18 44 20 58 C22 70 44 70 46 58 C48 44 48 20 33 20 Z" fill={belly} />
+          {/* beak */}
+          <Path d="M28 40 l10 3 -10 3 z" fill="#f4a72a" stroke={OUT} strokeWidth={1.4} strokeLinejoin="round" />
+          {/* blush */}
+          <Ellipse cx={22} cy={40} rx={4} ry={2.8} fill="#ff6b8a" opacity={0.35} />
+          <Ellipse cx={44} cy={40} rx={4} ry={2.8} fill="#ff6b8a" opacity={0.35} />
+          {eyes(33, 32)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- FISH: side-profile, big cute eye (the requested non-bird) ----
+  if (d.shape === 'fish') {
+    return (
+      <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+        {grad}
+        <G>
+          {/* tail fin */}
+          <Path d="M14 44 l-9 -12 v24 z" fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          {/* dorsal + bottom fins */}
+          <Path d="M34 30 q6 -12 14 -8 q-4 6 -3 12 z" fill={wing} stroke={OUT} strokeWidth={1.8} strokeLinejoin="round" />
+          <Path d="M32 58 q4 8 12 7 q-3 -6 -2 -10 z" fill={wing} stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
+          {/* body */}
+          <Ellipse cx={38} cy={46} rx={22} ry={15} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+          {/* gill + stripe */}
+          <Path d="M44 34 q-5 12 0 24" stroke={OUT} strokeWidth={1.6} fill="none" opacity={0.5} />
+          {/* lips */}
+          <Path d="M58 46 q6 -3 6 0 q0 3 -6 0 z" fill="#e0662f" stroke={OUT} strokeWidth={1.4} strokeLinejoin="round" />
+          {/* blush */}
+          <Ellipse cx={49} cy={50} rx={4} ry={2.8} fill="#ff6b8a" opacity={0.35} />
+          {eyes(49, 42)}
+        </G>
+      </ASvg>
+    );
+  }
+
+  // ---- DEFAULT bird ----
   const bx = 30, by = 48, rx = 16 * s, ry = 15 * s;
   const hx = 40, hy = 28 - neck, hr = 14 * s;
   const legLen = neck ? 16 : 9;
   const legY = by + ry - 3;
+  const headFill = d.hood ? d.hood : `url(#${gid})`;
 
   const tailPath = d.tail === 'long'
     ? `M${bx - rx + 4} ${by - 2} q-20 -3 -30 8 q-2 4 3 5 q13 1 28 -7 z`
@@ -94,49 +169,68 @@ export function Bird({
     `M${bx + 3} ${by - ry * 0.6} a${rx * 0.72} ${ry * 0.92} 0 0 0 0 ${ry * 1.75} q${rx * 0.72} 0 ${rx * 0.72} -${ry * 0.88} q0 -${ry * 0.88} -${rx * 0.72} -${ry * 0.88} z`;
   const wingPath = `M${bx - 10} ${by - 6} q17 -4 23 8 q-11 6 -23 2 q-3 -6 0 -10 z`;
 
+  // peacock fan: teal feathers with eyespots, drawn behind the body
+  const fan = d.tail === 'fan'
+    ? [-52, -26, 0, 26, 52].map((deg, i) => {
+        const a = (deg * Math.PI) / 180;
+        const px = bx, py = by + 4;
+        const len = 34;
+        const tx = px + Math.sin(a) * len;
+        const ty = py - Math.cos(a) * len;
+        return { key: i, tx, ty };
+      })
+    : null;
+
   return (
-    <ASvg
-      width={48 * scale}
-      height={56 * scale}
-      viewBox="0 0 72 84"
-      style={{ transform: [{ translateY }, { rotate }] }}
-    >
-      <Defs>
-        <LinearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={light} />
-          <Stop offset="1" stopColor={dark} />
-        </LinearGradient>
-      </Defs>
+    <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
+      {grad}
       <G>
+        {/* peacock fan behind everything */}
+        {fan?.map((f) => (
+          <React.Fragment key={f.key}>
+            <Path d={`M${bx} ${by + 4} L${f.tx} ${f.ty}`} stroke="#0e9aa7" strokeWidth={3.4} strokeLinecap="round" />
+            <Circle cx={f.tx} cy={f.ty} r={5} fill="#1f6fd0" stroke="#0e6b73" strokeWidth={1.4} />
+            <Circle cx={f.tx} cy={f.ty} r={2.2} fill="#f2c521" />
+          </React.Fragment>
+        ))}
         {/* legs + feet */}
         <Path d={legsPath} stroke={leg} strokeWidth={2.6 * s} strokeLinecap="round" fill="none" />
         {crestPath && (
-          <Path
-            d={crestPath}
-            fill={d.crest === 'tuft' ? col : col}
-            stroke={OUT}
-            strokeWidth={d.crest === 'tuft' ? 3 : 2}
-            strokeLinejoin="round"
-          />
+          <Path d={crestPath} fill={col} stroke={OUT} strokeWidth={d.crest === 'tuft' ? 3 : 2} strokeLinejoin="round" />
         )}
+        {/* peacock crown: three dotted plumes */}
+        {d.crest === 'crown' && [-6, 0, 6].map((dx, i) => (
+          <React.Fragment key={i}>
+            <Path d={`M${hx + dx} ${hy - hr + 2} v-8`} stroke={OUT} strokeWidth={1.6} />
+            <Circle cx={hx + dx} cy={hy - hr - 8} r={2.4} fill="#1f6fd0" stroke={OUT} strokeWidth={1} />
+          </React.Fragment>
+        ))}
         {neckPath && <Path d={neckPath} fill={col} stroke={OUT} strokeWidth={2} />}
         <Path d={tailPath} fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
         <Ellipse cx={bx} cy={by} rx={rx} ry={ry} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
         <Path d={bellyPath} fill={belly} />
         <Path d={wingPath} fill={wing} stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
-        <Circle cx={hx} cy={hy} r={hr} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
+        <Circle cx={hx} cy={hy} r={hr} fill={headFill} stroke={OUT} strokeWidth={2} />
         {d.cheek && <Ellipse cx={hx + 2} cy={hy + 3} rx={6 * s} ry={7 * s} fill={d.cheek} />}
         {/* blush */}
         <Ellipse cx={hx + 1 - 9} cy={hy + 3 + 4.5 * s * 0.7} rx={4.5 * s} ry={4.5 * s * 0.7} fill="#ff6b8a" opacity={0.35} />
         <Ellipse cx={hx + 1 + 11} cy={hy + 3 + 4.5 * s * 0.7} rx={4.5 * s} ry={4.5 * s * 0.7} fill="#ff6b8a" opacity={0.35} />
-        <Path d={beakPath} fill="#f4a72a" stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
-        {/* eyes */}
-        <Circle cx={hx - 3} cy={hy - 1} r={4.6 * s} fill="#fff" stroke={OUT} strokeWidth={1.3} />
-        <Circle cx={hx - 2} cy={hy} r={2.8 * s} fill="#181818" />
-        <Circle cx={hx - 1} cy={hy - 2} r={1.1 * s} fill="#fff" />
-        <Circle cx={hx + 6} cy={hy - 1} r={5.2 * s} fill="#fff" stroke={OUT} strokeWidth={1.3} />
-        <Circle cx={hx + 7.4} cy={hy} r={3.1 * s} fill="#181818" />
-        <Circle cx={hx + 8.6} cy={hy - 2} r={1.2 * s} fill="#fff" />
+        {/* beak: toucan + pouch are big custom shapes */}
+        {d.beak === 'toucan' ? (
+          <>
+            <Path d={`M${bkx - 1} ${bky - 6} q22 -4 26 8 q-2 9 -13 8 q-9 -1 -13 -6 z`} fill="#f2a71b" stroke={OUT} strokeWidth={1.8} strokeLinejoin="round" />
+            <Path d={`M${bkx + 18} ${bky - 4} q7 2 7 6 q-1 5 -6 5 q3 -6 -1 -11 z`} fill="#d5372a" stroke={OUT} strokeWidth={1.4} strokeLinejoin="round" />
+            <Path d={`M${bkx - 1} ${bky - 6} q22 -4 26 8`} stroke="#7a4a12" strokeWidth={1.6} fill="none" />
+          </>
+        ) : d.beak === 'pouch' ? (
+          <>
+            <Path d={`M${bkx - 1} ${bky - 3} q20 0 24 4 q-3 4 -10 4 q-9 0 -14 -3 z`} fill="#f2c24b" stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
+            <Path d={`M${bkx + 2} ${bky + 4} q10 6 20 1`} stroke="#e0a24a" strokeWidth={1.6} fill="none" />
+          </>
+        ) : (
+          <Path d={beakPath} fill="#f4a72a" stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
+        )}
+        {eyes(hx + 1, hy - 1, s)}
       </G>
     </ASvg>
   );
