@@ -6,6 +6,7 @@ import { Bird } from './Bird';
 import { COLLECTIONS, CollectionId } from './roster';
 import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
+import { fitGrid, marginFor, handFor } from './layout';
 import { loadGame, saveGame, loadGateOn, saveGateOn, loadLastCollection, saveLastCollection } from './storage';
 import { initAudio, playSfx } from './audio';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
@@ -214,6 +215,20 @@ export default function App() {
   };
 
   // run a parent-gated action, closing the gate/menu
+  // ponytail: a plain wrapper, not a scroll-always ScrollView — a toddler who
+  // can flick the board out from under their own finger mid-move is worse than
+  // a fixed one. Only boards that genuinely don't fit become scrollable.
+  const BoardFrame = ({ scroll, children }: { scroll: boolean; children: React.ReactNode }) =>
+    scroll ? (
+      // paddingBottom clears the corner buttons — without it the last row
+      // scrolls into view underneath the fish/undo and still can't be tapped
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center', paddingBottom: 150, paddingTop: 12 }}>
+        {children}
+      </ScrollView>
+    ) : (
+      <>{children}</>
+    );
+
   const guard = (action: () => void) => {
     setMenu(false);
     setGate(false);
@@ -223,16 +238,14 @@ export default function App() {
   // size everything off the actual screen so it fits any device (phone..iPad)
   const { width, height } = useWindowDimensions();
   const n = s.board.length;
-  const boardW = Math.min(width - 16, 1000);
-  const branchW = boardW / n;
-  // slot fits a branch; leave room for the 96px min touch target + spacing
-  const slotW = Math.max(30, Math.min(72, branchW - 44));
-  // also cap by height: title+controls ~ 200px, CAP slots tall
-  const slotByH = Math.max(30, (height - 260) / CAP);
-  const slot = Math.min(slotW, slotByH);
+  // Pick the grid first, then size to it. Sizing off `boardW / n` assumed one
+  // row of n branches, which stopped being true as soon as the board wrapped.
+  const { slot, boardW, overflow } = fitGrid(n, width, height, CAP);
   const slotH = slot * 0.96;
   const stickW = slot * 1.7;
   const birdScale = slot / 48;
+  const branchMargin = marginFor(slot);
+  const handH = handFor(slot);
 
   const isFish = collection === 'fish';
 
@@ -249,7 +262,11 @@ export default function App() {
       {/* wordless title so the play screen carries no instructions (spec §2) */}
       <Text style={styles.title}>{isFish ? '🐠' : '🐦'}</Text>
 
-      <View style={styles.board} pointerEvents="box-none">
+      {/* Width is pinned to exactly `cols` cells so flexWrap breaks where fitGrid
+          decided. Late levels can put more rows on screen than fit, so those
+          scroll — clipping the last row behind the corner buttons is worse. */}
+      <BoardFrame scroll={overflow}>
+      <View style={[styles.board, { width: boardW + 32 }]} pointerEvents="box-none">
         {s.board.map((b, i) => (
           <Branch
             key={i}
@@ -265,9 +282,12 @@ export default function App() {
             slotH={slotH}
             stickW={stickW}
             birdScale={birdScale}
+            margin={branchMargin}
+            handH={handH}
           />
         ))}
       </View>
+      </BoardFrame>
 
       {/* kid-friendly, ungated undo (forgiving, never a fail state) */}
       {s.history.length > 0 && !s.won && (
@@ -401,7 +421,9 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#cdeffd', alignItems: 'center' },
+  // centred so leftover space splits above and below the board instead of all
+  // pooling under it — the board used to sit high with a dead bottom third
+  root: { flex: 1, backgroundColor: '#cdeffd', alignItems: 'center', justifyContent: 'center' },
   rootFish: { backgroundColor: '#a7dbef' }, // deeper water tint for fish mode
   title: { fontSize: 34, marginTop: 12 },
   // swap-collection button: big corner cutie, no words (spec §1 >=96px, >=60 edge)
