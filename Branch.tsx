@@ -32,6 +32,9 @@ export function Branch({
   slotH,
   stickW,
   birdScale,
+  margin,
+  handH,
+  touchMin,
 }: {
   birds: number[];
   collection: CollectionId;
@@ -45,6 +48,11 @@ export function Branch({
   slotH: number;
   stickW: number;
   birdScale: number;
+  /** Gutter + hint-row height come from fitGrid, so the cell matches what it measured. */
+  margin: number;
+  handH: number;
+  /** Hitbox floor fitGrid solved at — must match or the cells won't wrap right. */
+  touchMin: number;
 }) {
   const wig = useRef(new Animated.Value(0)).current; // -1..1 shake
   const pop = useRef(new Animated.Value(0)).current; // 0..1 lock burst
@@ -140,8 +148,10 @@ export function Branch({
   const unsquash = () =>
     Animated.spring(press, { toValue: 0, friction: 4, tension: 200, useNativeDriver: true }).start();
 
-  // whole branch is one big forgiving target
-  const touchW = Math.max(96, stickW + 24);
+  // whole branch is one big forgiving target — touchMin keeps it toddler-sized
+  // (96), dropping to the 44 HIG minimum only when that's what makes the board
+  // fit on screen. hitSlop below still buys back some slop either way.
+  const touchW = Math.max(touchMin, stickW + 24);
   const burst = slotW * 1.3; // how far sparkles fly
 
   return (
@@ -149,12 +159,25 @@ export function Branch({
       onPress={onPress}
       onPressIn={squash}
       onPressOut={unsquash}
-      style={{ width: touchW, alignItems: 'center', marginHorizontal: 20, paddingVertical: 10 }}
+      style={{ width: touchW, alignItems: 'center', marginHorizontal: margin, paddingVertical: 10 }}
       hitSlop={12}
     >
-      {/* bouncing hand hint above the branch (visual twin of the demo/idle re-invite) */}
+      {/* Bouncing hand hint (visual twin of the demo/idle re-invite). Drawn as an
+          overlay rather than a reserved row: a row cost height on every branch
+          whether or not a hint was showing, and absolute means branches still
+          don't jump when it appears. */}
       <Animated.Text
-        style={{ fontSize: 34, height: 40, opacity: hint ? 1 : 0, transform: [{ translateY: handY }] }}
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          // Sit just above the topmost bird, not above the cell — the stack is
+          // bottom-aligned, so anchoring to the cell left the hand floating in
+          // the empty slots with nothing under it to point at.
+          bottom: 24 + birds.length * slotH,
+          fontSize: handH * 0.85,
+          opacity: hint ? 1 : 0,
+          transform: [{ translateY: handY }],
+        }}
       >
         👆
       </Animated.Text>
