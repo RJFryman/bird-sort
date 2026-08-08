@@ -6,7 +6,7 @@ import { Bird } from './Bird';
 import { COLLECTIONS, CollectionId } from './roster';
 import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
-import { fitGrid, marginFor, handFor } from './layout';
+import { fitGrid, marginFor, handFor, perchWidth } from './layout';
 import { loadGame, saveGame, loadGateOn, saveGateOn, loadLastCollection, saveLastCollection } from './storage';
 import { initAudio, playSfx } from './audio';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
@@ -228,7 +228,7 @@ export default function App() {
   // row of n branches, which stopped being true as soon as the board wrapped.
   const { slot, boardW, touchMin } = fitGrid(n, width, height, CAP);
   const slotH = slot * 0.96;
-  const stickW = slot * 1.7;
+  const perchW = perchWidth(slot, CAP);
   const birdScale = slot / 48;
   const branchMargin = marginFor(slot);
   const handH = handFor(slot);
@@ -264,7 +264,7 @@ export default function App() {
             onPress={() => onTap(i)}
             slotW={slot}
             slotH={slotH}
-            stickW={stickW}
+            perchW={perchW}
             birdScale={birdScale}
             margin={branchMargin}
             handH={handH}

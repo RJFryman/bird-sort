@@ -30,7 +30,7 @@ export function Branch({
   onPress,
   slotW,
   slotH,
-  stickW,
+  perchW,
   birdScale,
   margin,
   handH,
@@ -46,7 +46,8 @@ export function Branch({
   onPress: () => void;
   slotW: number;
   slotH: number;
-  stickW: number;
+  /** The perch runs the full width of the row of birds. */
+  perchW: number;
   birdScale: number;
   /** Gutter + hint-row height come from fitGrid, so the cell matches what it measured. */
   margin: number;
@@ -151,8 +152,11 @@ export function Branch({
   // whole branch is one big forgiving target — touchMin keeps it toddler-sized
   // (96), dropping to the 44 HIG minimum only when that's what makes the board
   // fit on screen. hitSlop below still buys back some slop either way.
-  const touchW = Math.max(touchMin, stickW + 24);
+  const touchW = Math.max(touchMin, perchW + 12);
   const burst = slotW * 1.3; // how far sparkles fly
+  // The movable bird is the one at the open end of the perch — the right end,
+  // since birds fill left to right. That's what the hint should point at.
+  const endBirdX = (Math.max(birds.length, 1) - 0.5) * slotW - (capacity * slotW) / 2;
 
   return (
     <Pressable
@@ -170,13 +174,13 @@ export function Branch({
         pointerEvents="none"
         style={{
           position: 'absolute',
-          // Sit just above the topmost bird, not above the cell — the stack is
-          // bottom-aligned, so anchoring to the cell left the hand floating in
-          // the empty slots with nothing under it to point at.
-          bottom: 24 + birds.length * slotH,
+          // Sit just above the bird at the open end of the perch, not above the
+          // middle of the cell — pointing at the row's centre would point at a
+          // bird the kid can't actually move.
+          bottom: slotH + 18,
           fontSize: handH * 0.85,
           opacity: hint ? 1 : 0,
-          transform: [{ translateY: handY }],
+          transform: [{ translateX: endBirdX }, { translateY: handY }],
         }}
       >
         👆
@@ -196,7 +200,7 @@ export function Branch({
           pointerEvents="none"
           style={{
             position: 'absolute',
-            top: slotH,
+            top: slotH * 0.15,
             width: slotW * 1.4,
             height: slotW * 1.4,
             borderRadius: slotW * 0.7,
@@ -226,16 +230,19 @@ export function Branch({
             {sp.e}
           </Animated.Text>
         ))}
-        <View style={{ flexDirection: 'column-reverse', alignItems: 'center' }}>
+        {/* Birds perch side by side, filling left to right. birds[0] is the far
+            end; the last one sits at the open right end and is the movable one,
+            which keeps the array order the game logic already uses. */}
+        <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
           {Array.from({ length: capacity }).map((_, i) => (
-            <View key={i} style={{ width: slotW, height: slotH, alignItems: 'center', justifyContent: 'center' }}>
+            <View key={i} style={{ width: slotW, height: slotH, alignItems: 'center', justifyContent: 'flex-end' }}>
               {i < birds.length && <Bird species={birds[i]} collection={collection} dancing={done} delay={i * 100} scale={birdScale} />}
             </View>
           ))}
         </View>
         <View
           style={{
-            width: stickW,
+            width: perchW,
             height: 10,
             borderRadius: 5,
             backgroundColor: done ? '#4a9d6f' : '#7a4a26',
