@@ -74,7 +74,13 @@ export const ROSTER: BirdDef[] = [
   { name: 'Budgie', color: '#5bc236', belly: '#f2e14a', cheek: '#f2f4f7', size: 0.8, shape: 'parrot' },
   { name: 'Lovebird', color: '#3fae5f', cheek: '#f0902f', belly: '#f2c24b', size: 0.78, shape: 'parrot' },
   { name: 'King Parrot', color: '#d5372a', belly: '#1f8f4f', cheek: '#f5f0e6', shape: 'parrot' },
-  { name: 'Fish', color: '#ff8c1a', shape: 'fish' },
+  // Index 41 was a stray shape:'fish' that leaked into the BIRD roster (live
+  // since 2026-08-03 — bird mode could deal a lone fish). Replaced IN PLACE:
+  // saved boards persist numeric indices, so the row must stay at 41 and the
+  // array length must not change. Sun Conure keeps the warm orange of the slot
+  // it replaces, is a real parrot (Asher: "every parrot"), and is the only
+  // gold/orange bird wearing the parrot silhouette.
+  { name: 'Sun Conure', color: '#f79a18', hood: '#f7d21b', belly: '#ef6a24', beak: 'hook', cheek: '#f5f0e6', size: 0.92, shape: 'parrot' },
   // --- Macaws & parrots (Asher's wishlist, 2026-08-03). APPEND-ONLY: boards
   // persist numeric roster indices, so never reorder/insert above this line —
   // it would remap existing saved birds. New species go at the end. ---
