@@ -1,4 +1,5 @@
-import { fitGrid, cellWidth, cellHeight, verticalChrome, TOUCH_MIN } from './layout';
+import { fitGrid, cellWidth, cellHeight, verticalChrome } from './layout';
+import { speciesForLevel, EXTRA, MAX_SPECIES } from './state';
 
 // The screens Asher actually plays on, plus the extremes.
 const SCREENS = {
@@ -9,34 +10,40 @@ const SCREENS = {
   desktop: [1440, 900],
 } as const;
 
-// n grows with level; 4..12 is the real range the generator produces.
-const COUNTS = [4, 5, 6, 7, 8, 9, 10, 11, 12];
+// n = species + EXTRA, and species is capped, so this is the whole real range.
+const COUNTS = Array.from({ length: MAX_SPECIES + EXTRA - 3 }, (_, i) => i + 4);
 
 describe('fitGrid', () => {
-  test('the grid always fits the width, and fits the height unless it says it overflows', () => {
-    for (const [name, [w, h]] of Object.entries(SCREENS)) {
+  test('the whole board always fits on screen — no scrolling, no clipping', () => {
+    for (const [, [w, h]] of Object.entries(SCREENS)) {
       for (const n of COUNTS) {
         const g = fitGrid(n, w, h);
         expect(g.cols * g.rows).toBeGreaterThanOrEqual(n); // every branch has a cell
-        // Width is never violated — that's what caused the cramped two columns.
-        expect(cellWidth(g.slot) * g.cols).toBeLessThanOrEqual(Math.min(w, 1000) - 16 - 32);
-        expect(g.boardW).toBeCloseTo(cellWidth(g.slot) * g.cols);
-        // A cell never drops below the toddler touch target (spec §1).
-        expect(cellWidth(g.slot)).toBeGreaterThanOrEqual(TOUCH_MIN);
-        // Height either fits, or the grid admits it doesn't so the caller scrolls.
-        const fitsH = cellHeight(g.slot) * g.rows <= h - verticalChrome(h);
-        expect(fitsH || g.overflow).toBe(true);
+        expect(cellWidth(g.slot, g.touchMin) * g.cols).toBeLessThanOrEqual(Math.min(w, 1000) - 16 - 32);
+        expect(cellHeight(g.slot) * g.rows).toBeLessThanOrEqual(h - verticalChrome(h));
+        expect(g.boardW).toBeCloseTo(cellWidth(g.slot, g.touchMin) * g.cols);
       }
     }
   });
 
-  test('overflow is only ever set when nothing could have fit', () => {
-    // If it claims overflow, even the smallest slot in the widest grid must fail.
-    const g = fitGrid(40, 390, 844);
-    expect(g.overflow).toBe(true);
-    expect(cellHeight(30) * g.rows).toBeGreaterThan(844 - verticalChrome(844));
-    // ...and a board that comfortably fits must not be scrollable.
-    expect(fitGrid(6, 390, 844).overflow).toBe(false);
+  test('every level fits, forever — the species cap is what guarantees it', () => {
+    for (const [, [w, h]] of Object.entries(SCREENS)) {
+      for (const level of [1, 5, 12, 40, 200]) {
+        const n = speciesForLevel(level) + EXTRA;
+        const g = fitGrid(n, w, h);
+        expect(cellHeight(g.slot) * g.rows).toBeLessThanOrEqual(h - verticalChrome(h));
+        expect(g.slot).toBeGreaterThanOrEqual(14);
+      }
+    }
+  });
+
+  test('the touch target only shrinks when the full one would not fit', () => {
+    // Roomy screens keep the 96px toddler target.
+    expect(fitGrid(12, 390, 844).touchMin).toBe(96);
+    expect(fitGrid(12, 820, 1180).touchMin).toBe(96);
+    // 320px physically cannot hold three 96px cells, and 2 columns of 12 needs
+    // 6 rows that don't fit the height. The hitbox gives, not the fit.
+    expect(fitGrid(12, 320, 568).touchMin).toBe(44);
   });
 
   test('the regression: 7 branches on a phone no longer collapse to the slot floor', () => {
@@ -68,5 +75,14 @@ describe('fitGrid', () => {
     expect(g.cols).toBeGreaterThanOrEqual(1);
     expect(g.slot).toBeGreaterThan(0);
     expect(g.cols * g.rows).toBeGreaterThanOrEqual(12);
+  });
+});
+
+describe('speciesForLevel', () => {
+  test('ramps, then caps so the board can always fit', () => {
+    expect(speciesForLevel(1)).toBe(5);
+    expect(speciesForLevel(3)).toBe(6);
+    expect(speciesForLevel(11)).toBe(MAX_SPECIES);
+    expect(speciesForLevel(500)).toBe(MAX_SPECIES); // was 52 — a 54-branch board
   });
 });

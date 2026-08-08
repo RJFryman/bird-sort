@@ -7,10 +7,19 @@ import { COLLECTIONS, CollectionId } from './roster';
 export const CAP = 4;
 export const EXTRA = 2;
 
+/**
+ * Most branches a board may ever have is MAX_SPECIES + EXTRA = 12. Above that
+ * the birds have to shrink past the point a toddler can tell them apart on a
+ * phone, and the board stops fitting on screen at all. Difficulty past level 12
+ * comes from the shuffle, not from more branches — `pickBirds` still draws a
+ * different mix from the full 52-bird roster every level, so variety is intact.
+ */
+export const MAX_SPECIES = 10;
+
 // Level ramp is relative to whichever collection is active (roster length is the
 // species cap). Defaults to the birds count so old call sites keep working.
 export const speciesForLevel = (l: number, rosterLen = COLLECTIONS.birds.length) =>
-  Math.min(5 + Math.floor((l - 1) / 2), rosterLen);
+  Math.min(5 + Math.floor((l - 1) / 2), rosterLen, MAX_SPECIES);
 
 // pick `count` distinct random species indices from a roster of `rosterLen` (so
 // every level shows a different mix). Index-based — collection-agnostic.

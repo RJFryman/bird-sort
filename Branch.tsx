@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, Text, View } from 'react-native';
 import { Bird } from './Bird';
-import { TOUCH_MIN } from './layout';
 import { CollectionId } from './roster';
 
 // sparkle burst layout: emoji + direction each shoots on lock
@@ -35,6 +34,7 @@ export function Branch({
   birdScale,
   margin,
   handH,
+  touchMin,
 }: {
   birds: number[];
   collection: CollectionId;
@@ -51,6 +51,8 @@ export function Branch({
   /** Gutter + hint-row height come from fitGrid, so the cell matches what it measured. */
   margin: number;
   handH: number;
+  /** Hitbox floor fitGrid solved at — must match or the cells won't wrap right. */
+  touchMin: number;
 }) {
   const wig = useRef(new Animated.Value(0)).current; // -1..1 shake
   const pop = useRef(new Animated.Value(0)).current; // 0..1 lock burst
@@ -146,8 +148,10 @@ export function Branch({
   const unsquash = () =>
     Animated.spring(press, { toValue: 0, friction: 4, tension: 200, useNativeDriver: true }).start();
 
-  // whole branch is one big forgiving target — TOUCH_MIN keeps it toddler-sized
-  const touchW = Math.max(TOUCH_MIN, stickW + 24);
+  // whole branch is one big forgiving target — touchMin keeps it toddler-sized
+  // (96), dropping to the 44 HIG minimum only when that's what makes the board
+  // fit on screen. hitSlop below still buys back some slop either way.
+  const touchW = Math.max(touchMin, stickW + 24);
   const burst = slotW * 1.3; // how far sparkles fly
 
   return (
