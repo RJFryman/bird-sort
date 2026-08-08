@@ -1,5 +1,5 @@
 import { fitGrid, cellWidth, cellHeight, verticalChrome } from './layout';
-import { speciesForLevel, EXTRA, MAX_SPECIES } from './state';
+import { speciesForLevel, EXTRA, MAX_SPECIES, CAP } from './state';
 
 // The screens Asher actually plays on, plus the extremes.
 const SCREENS = {
@@ -19,9 +19,9 @@ describe('fitGrid', () => {
       for (const n of COUNTS) {
         const g = fitGrid(n, w, h);
         expect(g.cols * g.rows).toBeGreaterThanOrEqual(n); // every branch has a cell
-        expect(cellWidth(g.slot, g.touchMin) * g.cols).toBeLessThanOrEqual(Math.min(w, 1000) - 16 - 32);
+        expect(cellWidth(g.slot, CAP, g.touchMin) * g.cols).toBeLessThanOrEqual(Math.min(w, 1000) - 16 - 32);
         expect(cellHeight(g.slot) * g.rows).toBeLessThanOrEqual(h - verticalChrome(h));
-        expect(g.boardW).toBeCloseTo(cellWidth(g.slot, g.touchMin) * g.cols);
+        expect(g.boardW).toBeCloseTo(cellWidth(g.slot, CAP, g.touchMin) * g.cols);
       }
     }
   });
@@ -37,21 +37,27 @@ describe('fitGrid', () => {
     }
   });
 
-  test('the touch target only shrinks when the full one would not fit', () => {
-    // Roomy screens keep the 96px toddler target.
-    expect(fitGrid(12, 390, 844).touchMin).toBe(96);
-    expect(fitGrid(12, 820, 1180).touchMin).toBe(96);
-    // 320px physically cannot hold three 96px cells, and 2 columns of 12 needs
-    // 6 rows that don't fit the height. The hitbox gives, not the fit.
-    expect(fitGrid(12, 320, 568).touchMin).toBe(44);
+  test('every real screen keeps the full 96px toddler touch target', () => {
+    // A horizontal perch is `cap` slots wide, so the cell clears 96px on its own
+    // and the hitbox floor stops binding. Stacked branches had to drop to 44 on
+    // a 320px screen; this layout never does on a device anyone actually holds.
+    for (const [, [w, h]] of Object.entries(SCREENS)) {
+      for (const n of COUNTS) {
+        expect(fitGrid(n, w, h).touchMin).toBe(96);
+      }
+    }
+    // Only a window smaller than any real device still gives up the target.
+    expect(fitGrid(12, 300, 300).touchMin).toBe(44);
   });
 
-  test('the regression: 7 branches on a phone no longer collapse to the slot floor', () => {
-    // This is the screenshot. The old `boardW / n` math gave slot = 30 (the
-    // floor) in two cramped columns with an orphan branch below the fold.
+  test('the regression: a full board on a small phone stays readable', () => {
+    // The screenshot that started this: 7 branches drawn at the slot floor in
+    // two cramped columns. Then, once scrolling was ruled out, a full 12-branch
+    // board on an iPhone SE bottomed out at slot 17 — technically fitting,
+    // barely legible. Perching sideways is what bought that back.
+    expect(fitGrid(7, 390, 844).slot).toBeGreaterThanOrEqual(50);
+    expect(fitGrid(12, 320, 568).slot).toBeGreaterThanOrEqual(22);
     const g = fitGrid(7, 390, 844);
-    expect(g.slot).toBeGreaterThan(30);
-    expect(g.cols).toBeGreaterThanOrEqual(3); // 7 in 2 columns is what left the orphan
     expect(g.rows * g.cols - 7).toBeLessThanOrEqual(2); // and not a wasteful grid
   });
 
