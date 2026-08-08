@@ -16,8 +16,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Board, isWon } from './game';
 import { State, CAP } from './state';
+import { CollectionId } from './roster';
 
+// Base key. Each collection gets its own slot (`${SAVE_KEY}:birds` / `:fish`) so
+// birds and fish progress never clobber each other. The bare SAVE_KEY is the
+// pre-Fish-Mode save — still read once for birds so no child loses progress.
 export const SAVE_KEY = 'bird-sort-save-v1';
+export const saveKey = (c: CollectionId) => `${SAVE_KEY}:${c}`;
 
 // Only the facts needed to resume. Versioned so future shape changes are safe.
 export type SaveData = {
@@ -68,11 +73,12 @@ export function deserialize(raw: string | null | undefined): SaveData | null {
  * `won` is RECOMPUTED from the board so a saved win resumes to the win overlay
  * (the dead-end-board fix). Returns null if the save is unusable.
  */
-export function toResumeState(save: SaveData | null): State | null {
+export function toResumeState(save: SaveData | null, collection: CollectionId = 'birds'): State | null {
   if (!save) return null;
   return {
     level: Math.max(1, save.level),
     maxLevel: Math.max(save.maxLevel, save.level, 1),
+    collection,
     board: save.board,
     history: [],
     selected: null,
@@ -80,23 +86,46 @@ export function toResumeState(save: SaveData | null): State | null {
   };
 }
 
-/** Load + rebuild resume state in one call. Never throws. */
-export async function loadGame(): Promise<State | null> {
+/** Load + rebuild resume state for a collection. Never throws. */
+export async function loadGame(collection: CollectionId = 'birds'): Promise<State | null> {
   try {
-    const raw = await AsyncStorage.getItem(SAVE_KEY);
-    return toResumeState(deserialize(raw));
+    let raw = await AsyncStorage.getItem(saveKey(collection));
+    // migrate the pre-Fish-Mode single save into the birds slot (once)
+    if (raw == null && collection === 'birds') raw = await AsyncStorage.getItem(SAVE_KEY);
+    return toResumeState(deserialize(raw), collection);
   } catch (e) {
     console.warn('[storage] load failed:', (e as Error)?.message ?? e);
     return null;
   }
 }
 
-/** Persist the resumable facts. Never throws (logs on failure). */
-export async function saveGame(s: Pick<State, 'level' | 'maxLevel' | 'board'>): Promise<void> {
+/** Persist the resumable facts under the game's collection slot. Never throws. */
+export async function saveGame(s: Pick<State, 'level' | 'maxLevel' | 'board' | 'collection'>): Promise<void> {
   try {
-    await AsyncStorage.setItem(SAVE_KEY, serialize(s));
+    await AsyncStorage.setItem(saveKey(s.collection), serialize(s));
   } catch (e) {
     console.warn('[storage] save failed:', (e as Error)?.message ?? e);
+  }
+}
+
+// --- Last-played collection, so we open straight into it (spec §5 "<=1 tap to
+// fun"). Own key, single value, never throws. ---
+export const LAST_KEY = 'bird-sort-last-collection-v1';
+
+export async function loadLastCollection(): Promise<CollectionId | null> {
+  try {
+    const v = await AsyncStorage.getItem(LAST_KEY);
+    return v === 'birds' || v === 'fish' ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveLastCollection(c: CollectionId): Promise<void> {
+  try {
+    await AsyncStorage.setItem(LAST_KEY, c);
+  } catch {
+    /* non-critical */
   }
 }
 

@@ -11,6 +11,10 @@ export type BirdDef = {
   cheek?: string; // face patch color
   leg?: string; // leg color override
   hood?: string; // white/pale cap over the head (bald eagle)
+  // Fish-only traits (shape:'fish'). Additive — birds ignore them. Give a fish
+  // its "tell": clownfish bands, puffer/koi spots (see Bird.tsx fish branch).
+  stripe?: string; // vertical body bands (clownfish white, angelfish grey)
+  spot?: string; // scattered dots (pufferfish, koi patches)
   // Silhouette archetype — the shape carries the species (see Bird.tsx + the
   // art-direction bible). Absent = the default perching songbird.
   shape?:
@@ -86,3 +90,27 @@ export const ROSTER: BirdDef[] = [
   // Asher asked for "a purple" (interview 2026-08-03). Unmistakably purple parrot.
   { name: 'Purple Parrot', color: '#7b3fa0', belly: '#b57edc', beak: 'hook', cheek: '#efe3f7', shape: 'parrot' },
 ];
+
+// FISH collection — a SECOND collection alongside birds (Noctowl's Fish Mode
+// plan). Same engine, same trait vocab. Cute + recognizable, no macabre.
+// APPEND-ONLY like ROSTER: boards persist numeric indices, so add at the end.
+export const FISH: BirdDef[] = [
+  { name: 'Clownfish', color: '#f2792a', shape: 'fish', belly: '#ffffff', stripe: '#ffffff' },
+  { name: 'Blue Tang', color: '#2f74d0', shape: 'fish', belly: '#f2c521' },
+  { name: 'Yellow Tang', color: '#f2c521', shape: 'fish', size: 0.9 },
+  { name: 'Pufferfish', color: '#c9b27a', shape: 'fish', size: 1.1, belly: '#f4ead0', spot: '#8a7a4a' },
+  { name: 'Seahorse', color: '#ef86b6', shape: 'fish', size: 0.9 },
+  { name: 'Angelfish', color: '#e2e2e6', shape: 'fish', tail: 'fan', size: 1.05, stripe: '#9a9aa2' },
+  { name: 'Betta', color: '#8b5cf6', shape: 'fish', tail: 'fan' },
+  { name: 'Goldfish', color: '#f2802a', shape: 'fish', belly: '#f7b955' },
+  { name: 'Guppy', color: '#22b6cf', shape: 'fish', size: 0.72, tail: 'fan' },
+  { name: 'Koi', color: '#f4f1ea', shape: 'fish', belly: '#e8622f', spot: '#e8622f' },
+  // --- Asher's picks (fill from what he names) ---
+  { name: 'Green Fish', color: '#3fae5f', shape: 'fish', belly: '#bfe8c8' }, // Asher's, 2026-08
+  // { name: '???', color: '#______', shape: 'fish' },
+  // { name: '???', color: '#______', shape: 'fish' },
+];
+
+// One sort mechanic, two collections. `birds` aliases ROSTER for back-compat.
+export type CollectionId = 'birds' | 'fish';
+export const COLLECTIONS: Record<CollectionId, BirdDef[]> = { birds: ROSTER, fish: FISH };

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useId } from 'react';
 import { Animated, Easing } from 'react-native';
 import Svg, { Defs, LinearGradient, Stop, G, Path, Ellipse, Circle } from 'react-native-svg';
-import { ROSTER } from './roster';
+import { COLLECTIONS, CollectionId } from './roster';
 
 const ASvg = Animated.createAnimatedComponent(Svg);
 
@@ -16,16 +16,18 @@ function shade(hex: string, f: number): string {
 // viewBox 0 0 72 84. See bird-lab.html styleCuteBird for the coordinate source.
 export function Bird({
   species,
+  collection = 'birds',
   dancing,
   delay = 0,
   scale = 1,
 }: {
   species: number;
+  collection?: CollectionId;
   dancing?: boolean;
   delay?: number;
   scale?: number;
 }) {
-  const d = ROSTER[species];
+  const d = COLLECTIONS[collection][species];
   const s = d.size ?? 1;
   const col = d.color;
   const light = shade(col, 1.2);
@@ -112,20 +114,36 @@ export function Bird({
     );
   }
 
-  // ---- FISH: side-profile, big cute eye (the requested non-bird) ----
+  // ---- FISH: side-profile, big cute eye (the requested non-bird). Size scales
+  // the whole body; stripe/spot/fan-tail give each species its tell. ----
   if (d.shape === 'fish') {
+    // flowy fan tail (betta/guppy/angelfish) vs plain triangle tail
+    const tailFin = d.tail === 'fan'
+      ? 'M16 44 q-14 -18 -12 -1 q-2 17 12 1 z'
+      : 'M14 44 l-9 -12 v24 z';
     return (
       <ASvg width={48 * scale} height={56 * scale} viewBox="0 0 72 84" style={svgStyle}>
         {grad}
-        <G>
+        <G scale={s} originX={38} originY={44}>
           {/* tail fin */}
-          <Path d="M14 44 l-9 -12 v24 z" fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
+          <Path d={tailFin} fill={wing} stroke={OUT} strokeWidth={2} strokeLinejoin="round" />
           {/* dorsal + bottom fins */}
           <Path d="M34 30 q6 -12 14 -8 q-4 6 -3 12 z" fill={wing} stroke={OUT} strokeWidth={1.8} strokeLinejoin="round" />
           <Path d="M32 58 q4 8 12 7 q-3 -6 -2 -10 z" fill={wing} stroke={OUT} strokeWidth={1.6} strokeLinejoin="round" />
           {/* body */}
           <Ellipse cx={38} cy={46} rx={22} ry={15} fill={`url(#${gid})`} stroke={OUT} strokeWidth={2} />
-          {/* gill + stripe */}
+          {/* body bands (clownfish/angelfish tell) */}
+          {d.stripe && (
+            <>
+              <Ellipse cx={32} cy={46} rx={2.7} ry={12.5} fill={d.stripe} opacity={0.95} />
+              <Ellipse cx={43} cy={46} rx={2.7} ry={11} fill={d.stripe} opacity={0.95} />
+            </>
+          )}
+          {/* scattered spots (pufferfish/koi tell) */}
+          {d.spot && [[30, 42], [36, 51], [45, 43], [41, 52]].map(([cx, cy], i) => (
+            <Circle key={i} cx={cx} cy={cy} r={2.3} fill={d.spot} opacity={0.8} />
+          ))}
+          {/* gill line */}
           <Path d="M44 34 q-5 12 0 24" stroke={OUT} strokeWidth={1.6} fill="none" opacity={0.5} />
           {/* lips */}
           <Path d="M58 46 q6 -3 6 0 q0 3 -6 0 z" fill="#e0662f" stroke={OUT} strokeWidth={1.4} strokeLinejoin="round" />

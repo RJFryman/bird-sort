@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, Text, View } from 'react-native';
 import { Bird } from './Bird';
+import { CollectionId } from './roster';
 
 // sparkle burst layout: emoji + direction each shoots on lock
 const SPARKS = [
@@ -20,6 +21,7 @@ const SPARKS = [
 //  - hint/idle re-invite: gentle pulse + a bouncing 👆 hand (spec §2/§5)
 export function Branch({
   birds,
+  collection,
   capacity,
   selected,
   done,
@@ -32,6 +34,7 @@ export function Branch({
   birdScale,
 }: {
   birds: number[];
+  collection: CollectionId;
   capacity: number;
   selected: boolean;
   done: boolean;
@@ -203,7 +206,7 @@ export function Branch({
         <View style={{ flexDirection: 'column-reverse', alignItems: 'center' }}>
           {Array.from({ length: capacity }).map((_, i) => (
             <View key={i} style={{ width: slotW, height: slotH, alignItems: 'center', justifyContent: 'center' }}>
-              {i < birds.length && <Bird species={birds[i]} dancing={done} delay={i * 100} scale={birdScale} />}
+              {i < birds.length && <Bird species={birds[i]} collection={collection} dancing={done} delay={i * 100} scale={birdScale} />}
             </View>
           ))}
         </View>

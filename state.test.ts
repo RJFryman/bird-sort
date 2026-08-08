@@ -1,9 +1,9 @@
-import { reducer, State, CAP } from './state';
+import { reducer, init, State, CAP } from './state';
 import { Board } from './game';
 
 // Build a deterministic State (no rng) so transitions are exact.
 function make(board: Board, over: Partial<State> = {}): State {
-  return { level: 1, maxLevel: 1, board, history: [], selected: null, won: false, ...over };
+  return { level: 1, maxLevel: 1, collection: 'birds', board, history: [], selected: null, won: false, ...over };
 }
 
 test('TAP selects a non-empty, non-cleared branch', () => {
@@ -84,4 +84,13 @@ test('RESTORE swaps in the given state verbatim', () => {
 
 test('CAP is the branch capacity used by transitions', () => {
   expect(CAP).toBe(4);
+});
+
+test('init carries the collection; NEXT/GOTO preserve it (fish stays fish)', () => {
+  const f = init(1, 1, 'fish');
+  expect(f.collection).toBe('fish');
+  expect(reducer(f, { type: 'NEXT' }).collection).toBe('fish');
+  expect(reducer(f, { type: 'GOTO', level: 3 }).collection).toBe('fish');
+  // default is birds
+  expect(init(1).collection).toBe('birds');
 });

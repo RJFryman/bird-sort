@@ -35,7 +35,7 @@ const solved: Board = [[3, 3, 3, 3], []]; // a won board (one species full, rest
 const mid: Board = [[0, 1], [1, 0], []];
 
 function fullState(board: Board, over: Partial<State> = {}): State {
-  return { level: 4, maxLevel: 6, board, history: [board, board], selected: 1, won: true, ...over };
+  return { level: 4, maxLevel: 6, collection: 'birds', board, history: [board, board], selected: 1, won: true, ...over };
 }
 
 test('serialize/deserialize round-trips the resumable facts', () => {
@@ -105,4 +105,29 @@ test('loadGame with nothing saved returns null (fresh start, not a crash)', asyn
 
 test('SAVE_KEY is the versioned key', () => {
   expect(SAVE_KEY).toBe('bird-sort-save-v1');
+});
+
+test('saves are per-collection: birds and fish do not clobber each other', async () => {
+  const AS = require('@react-native-async-storage/async-storage').default;
+  AS.__reset();
+  await saveGame({ level: 3, maxLevel: 3, board: mid, collection: 'birds' });
+  await saveGame({ level: 7, maxLevel: 8, board: solved, collection: 'fish' });
+  const b = (await loadGame('birds'))!;
+  const f = (await loadGame('fish'))!;
+  expect(b.level).toBe(3);
+  expect(b.collection).toBe('birds');
+  expect(f.level).toBe(7);
+  expect(f.collection).toBe('fish');
+});
+
+test('pre-Fish-Mode save (bare key) migrates into the birds slot', async () => {
+  const AS = require('@react-native-async-storage/async-storage').default;
+  AS.__reset();
+  await AS.setItem(SAVE_KEY, JSON.stringify({ v: 1, level: 4, maxLevel: 6, board: mid }));
+  const b = (await loadGame('birds'))!;
+  expect(b.level).toBe(4);
+  expect(b.maxLevel).toBe(6);
+  expect(b.collection).toBe('birds');
+  // fish slot is untouched by the migration
+  expect(await loadGame('fish')).toBeNull();
 });
