@@ -1,0 +1,82 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Bird Sort — Fish Mode proof</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body { margin: 0; font-family: -apple-system, system-ui, sans-serif; color: #234; background: #eef7fc; }
+  h1 { text-align: center; margin: 18px 0 2px; font-size: 22px; }
+  .sub { text-align: center; color: #567; margin: 0 0 14px; font-size: 14px; }
+  .home { display: flex; height: 300px; border-radius: 16px; overflow: hidden; max-width: 640px; margin: 0 auto 8px; box-shadow: 0 6px 20px #0002; }
+  .sky { flex: 1; background: linear-gradient(#bfe4fb, #cdeffd); }
+  .water { flex: 1; background: linear-gradient(#5fb0dd, #a7dbef); }
+  .home .half { display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .home .half:active { filter: brightness(1.05); }
+  .cap { text-align: center; color: #456; font-size: 13px; margin: 0 auto 26px; max-width: 640px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; max-width: 760px; margin: 0 auto 40px; }
+  .card { width: 108px; background: #fff; border-radius: 12px; padding: 10px 4px 8px; text-align: center; box-shadow: 0 2px 8px #0001; }
+  .name { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .section { text-align: center; font-weight: 700; color: #345; margin: 24px 0 10px; font-size: 15px; }
+</style>
+
+<h1>🐠 Fish Mode — pick-and-see proof</h1>
+<p class="sub">A second collection alongside Birds. Same sort game, same engine — fish added as data + one new silhouette.</p>
+
+<div class="home" id="home"></div>
+<p class="cap"><b>Wordless home:</b> tap the bird (sky, left) → Birds · tap the fish (water, right) → Fish. No words, whole-creature buttons. A swap button flips mid-play, one tap, no parent gate.</p>
+
+<div class="section">The 11 fish (10 starters + Asher's Green Fish)</div>
+<div class="grid" id="grid"></div>
+
+<script>
+const shade = (hex, f) => {
+  const n = parseInt(hex.slice(1), 16);
+  const c = x => Math.max(0, Math.min(255, Math.round(x * f)));
+  return `rgb(${c((n>>16)&255)},${c((n>>8)&255)},${c(n&255)})`;
+};
+
+// mirrors Bird.tsx fish branch (viewBox 0 0 72 84)
+function fishSVG(d, px = 96) {
+  const col = d.color, wing = shade(col, .62), OUT = shade(col, .4), light = shade(col, 1.2), dark = shade(col, .74);
+  const s = d.size ?? 1;
+  const tail = d.tail === 'fan' ? 'M16 44 q-14 -18 -12 -1 q-2 17 12 1 z' : 'M14 44 l-9 -12 v24 z';
+  const stripes = d.stripe ? `<ellipse cx="32" cy="46" rx="2.7" ry="12.5" fill="${d.stripe}" opacity=".95"/><ellipse cx="43" cy="46" rx="2.7" ry="11" fill="${d.stripe}" opacity=".95"/>` : '';
+  const spots = d.spot ? [[30,42],[36,51],[45,43],[41,52]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.3" fill="${d.spot}" opacity=".8"/>`).join('') : '';
+  const eye = (ex,ey)=>`<circle cx="${ex-4.5}" cy="${ey}" r="4.6" fill="#fff" stroke="${OUT}" stroke-width="1.3"/><circle cx="${ex-3.5}" cy="${ey+1}" r="2.8" fill="#181818"/><circle cx="${ex-2.5}" cy="${ey-1}" r="1.1" fill="#fff"/><circle cx="${ex+4.5}" cy="${ey}" r="5.2" fill="#fff" stroke="${OUT}" stroke-width="1.3"/><circle cx="${ex+5.9}" cy="${ey+1}" r="3.1" fill="#181818"/><circle cx="${ex+7.1}" cy="${ey-1}" r="1.2" fill="#fff"/>`;
+  const gid = 'g' + Math.abs([...d.name].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7));
+  return `<svg width="${px}" height="${px*56/48}" viewBox="0 0 72 84">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${light}"/><stop offset="1" stop-color="${dark}"/></linearGradient></defs>
+    <g transform="translate(38 44) scale(${s}) translate(-38 -44)">
+      <path d="${tail}" fill="${wing}" stroke="${OUT}" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M34 30 q6 -12 14 -8 q-4 6 -3 12 z" fill="${wing}" stroke="${OUT}" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M32 58 q4 8 12 7 q-3 -6 -2 -10 z" fill="${wing}" stroke="${OUT}" stroke-width="1.6" stroke-linejoin="round"/>
+      <ellipse cx="38" cy="46" rx="22" ry="15" fill="url(#${gid})" stroke="${OUT}" stroke-width="2"/>
+      ${stripes}${spots}
+      <path d="M44 34 q-5 12 0 24" stroke="${OUT}" stroke-width="1.6" fill="none" opacity=".5"/>
+      <path d="M58 46 q6 -3 6 0 q0 3 -6 0 z" fill="#e0662f" stroke="${OUT}" stroke-width="1.4" stroke-linejoin="round"/>
+      <ellipse cx="49" cy="50" rx="4" ry="2.8" fill="#ff6b8a" opacity=".35"/>
+      ${eye(49,42)}
+    </g></svg>`;
+}
+
+const FISH = [
+  { name:'Clownfish', color:'#f2792a', belly:'#ffffff', stripe:'#ffffff' },
+  { name:'Blue Tang', color:'#2f74d0', belly:'#f2c521' },
+  { name:'Yellow Tang', color:'#f2c521', size:.9 },
+  { name:'Pufferfish', color:'#c9b27a', size:1.1, belly:'#f4ead0', spot:'#8a7a4a' },
+  { name:'Seahorse', color:'#ef86b6', size:.9 },
+  { name:'Angelfish', color:'#e2e2e6', tail:'fan', size:1.05, stripe:'#9a9aa2' },
+  { name:'Betta', color:'#8b5cf6', tail:'fan' },
+  { name:'Goldfish', color:'#f2802a', belly:'#f7b955' },
+  { name:'Guppy', color:'#22b6cf', size:.72, tail:'fan' },
+  { name:'Koi', color:'#f4f1ea', belly:'#e8622f', spot:'#e8622f' },
+  { name:'Green Fish', color:'#3fae5f', belly:'#bfe8c8' },
+];
+
+// simple cardinal-ish bird glyph for the home mock (emoji stand-in keeps it lazy)
+document.getElementById('home').innerHTML =
+  `<div class="half sky" onclick="alert('→ Birds collection')"><div style="font-size:120px">🐦</div></div>` +
+  `<div class="half water" onclick="alert('→ Fish collection')">${fishSVG(FISH[0], 150)}</div>`;
+
+document.getElementById('grid').innerHTML = FISH.map(f =>
+  `<div class="card">${fishSVG(f)}<div class="name">${f.name}</div></div>`).join('');
+</script>

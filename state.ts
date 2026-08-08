@@ -2,18 +2,24 @@
 // Owned by the reliability track. This is the STABLE public API the UI (App.tsx)
 // and persistence (storage.ts) build on — keep signatures steady.
 import { generateLevel, canMove, applyMove, isWon, isCleared, Board } from './game';
-import { ROSTER } from './roster';
+import { COLLECTIONS, CollectionId } from './roster';
 
 export const CAP = 4;
 export const EXTRA = 2;
 
-export const speciesForLevel = (l: number) =>
-  Math.min(5 + Math.floor((l - 1) / 2), ROSTER.length);
+// Level ramp is relative to whichever collection is active (roster length is the
+// species cap). Defaults to the birds count so old call sites keep working.
+export const speciesForLevel = (l: number, rosterLen = COLLECTIONS.birds.length) =>
+  Math.min(5 + Math.floor((l - 1) / 2), rosterLen);
 
-// pick `count` distinct random bird indices from the full roster (so every level
-// shows a different mix, not always Cardinal..Crow)
-export function pickBirds(count: number, rng: () => number = Math.random): number[] {
-  const idx = ROSTER.map((_, i) => i);
+// pick `count` distinct random species indices from a roster of `rosterLen` (so
+// every level shows a different mix). Index-based — collection-agnostic.
+export function pickBirds(
+  count: number,
+  rosterLen = COLLECTIONS.birds.length,
+  rng: () => number = Math.random,
+): number[] {
+  const idx = Array.from({ length: rosterLen }, (_, i) => i);
   for (let i = idx.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
     [idx[i], idx[j]] = [idx[j], idx[i]];
@@ -24,20 +30,23 @@ export function pickBirds(count: number, rng: () => number = Math.random): numbe
 export type State = {
   level: number;
   maxLevel: number; // highest level ever reached -> unlocks
+  collection: CollectionId; // which collection this game is playing
   board: Board;
   history: Board[];
   selected: number | null;
   won: boolean;
 };
 
-export function init(level: number, maxLevel = level): State {
-  const count = speciesForLevel(level);
-  const pick = pickBirds(count);
+export function init(level: number, maxLevel = level, collection: CollectionId = 'birds'): State {
+  const rosterLen = COLLECTIONS[collection].length;
+  const count = speciesForLevel(level, rosterLen);
+  const pick = pickBirds(count, rosterLen);
   // generate with sequential ids 0..count-1, then remap to random roster indices
   const board = generateLevel(count, CAP, EXTRA).map((br) => br.map((id) => pick[id]));
   return {
     level,
     maxLevel: Math.max(maxLevel, level),
+    collection,
     board,
     history: [],
     selected: null,
@@ -87,8 +96,8 @@ export function reducer(s: State, a: Action): State {
     case 'RESTART':
       return { ...s, board: s.history[0] ?? s.board, history: [], selected: null, won: false };
     case 'NEXT':
-      return init(s.level + 1, s.maxLevel);
+      return init(s.level + 1, s.maxLevel, s.collection);
     case 'GOTO':
-      return init(Math.max(1, a.level), s.maxLevel);
+      return init(Math.max(1, a.level), s.maxLevel, s.collection);
   }
 }

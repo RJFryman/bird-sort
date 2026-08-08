@@ -3,10 +3,10 @@ import { SafeAreaView, View, Text, Pressable, TextInput, StyleSheet, ScrollView,
 import { StatusBar } from 'expo-status-bar';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
-import { ROSTER } from './roster';
+import { COLLECTIONS, CollectionId } from './roster';
 import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
-import { loadGame, saveGame, loadGateOn, saveGateOn } from './storage';
+import { loadGame, saveGame, loadGateOn, saveGateOn, loadLastCollection, saveLastCollection } from './storage';
 import { initAudio, playSfx } from './audio';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
 import { FeedbackButton } from '@harmony/feedback/FeedbackButton';
@@ -100,6 +100,8 @@ export default function App() {
   const [gate, setGate] = useState(false); // parent gate overlay
   const [gateOn, setGateOn] = useState(false); // is the gate enabled? default OFF (Robert's ask)
   const [loaded, setLoaded] = useState(false);
+  const [home, setHome] = useState(true); // wordless two-hero mode picker (first run)
+  const collection = s.collection; // active collection is the single source of truth
   const [wiggle, setWiggle] = useState({ i: -1, n: 0 }); // illegal-tap shake target
   const [hintFrom, setHintFrom] = useState<number | null>(null);
   const [activity, setActivity] = useState(0); // bumps on every interaction
@@ -112,15 +114,30 @@ export default function App() {
   // recomputes `won`, so a saved win resumes to the overlay, not a dead board)
   useEffect(() => {
     let live = true;
-    loadGame()
-      .then((resumed) => {
-        if (live && resumed) dispatch({ type: 'RESTORE', state: resumed });
+    loadLastCollection()
+      .then(async (last) => {
+        if (!live || !last) return; // first run -> leave the two-hero home showing
+        const resumed = await loadGame(last);
+        if (!live) return;
+        dispatch({ type: 'RESTORE', state: resumed ?? init(1, 1, last) });
+        setHome(false);
       })
       .finally(() => live && setLoaded(true));
     return () => {
       live = false;
     };
   }, []);
+
+  // Enter a collection: remember it, resume its own save (or start fresh), leave
+  // the home picker. Used by the two heroes and the mid-play swap button.
+  const enter = async (c: CollectionId) => {
+    initAudio();
+    playSfx('lift');
+    void saveLastCollection(c);
+    const resumed = await loadGame(c);
+    dispatch({ type: 'RESTORE', state: resumed ?? init(1, 1, c) });
+    setHome(false);
+  };
 
   // save after every change. skip until initial load done so we don't clobber it.
   useEffect(() => {
@@ -217,8 +234,10 @@ export default function App() {
   const stickW = slot * 1.7;
   const birdScale = slot / 48;
 
+  const isFish = collection === 'fish';
+
   return (
-    <SafeAreaView style={styles.root}>
+    <SafeAreaView style={[styles.root, isFish && styles.rootFish]}>
       <StatusBar style="dark" />
 
       {/* empty-space taps still respond (no dead screen, spec §3) */}
@@ -228,13 +247,14 @@ export default function App() {
       ))}
 
       {/* wordless title so the play screen carries no instructions (spec §2) */}
-      <Text style={styles.title}>🐦</Text>
+      <Text style={styles.title}>{isFish ? '🐠' : '🐦'}</Text>
 
       <View style={styles.board} pointerEvents="box-none">
         {s.board.map((b, i) => (
           <Branch
             key={i}
             birds={b}
+            collection={collection}
             capacity={CAP}
             selected={s.selected === i}
             done={isCleared(b, CAP)}
@@ -264,6 +284,15 @@ export default function App() {
       <Pressable style={styles.grownup} onPress={() => (gateOn ? setGate(true) : setMenu(true))} hitSlop={16}>
         <Text style={styles.grownupText}>grown-ups</Text>
       </Pressable>
+
+      {/* swap collections — one tap, mid-play, NO parent gate (it's play, not an
+          exit; spec §2). Shows the OTHER collection's cutie so the child knows
+          what they'll get. */}
+      {!home && !s.won && (
+        <Pressable style={styles.swap} onPress={() => void enter(isFish ? 'birds' : 'fish')} hitSlop={16}>
+          <Text style={styles.swapText}>{isFish ? '🐦' : '🐠'}</Text>
+        </Pressable>
+      )}
 
       {s.won && (
         <View style={styles.overlay}>
@@ -314,7 +343,7 @@ export default function App() {
           </Pressable>
           <FeedbackButton
             kinds={['idea', 'bug', 'praise']}
-            context={{ level: s.level, birds: ROSTER.length, gateOn }}
+            context={{ level: s.level, collection, species: COLLECTIONS[collection].length, gateOn }}
             who="robert"
           >
             {/* onPress={open} only — no setMenu(false). The sheet is a Modal and
@@ -334,12 +363,12 @@ export default function App() {
 
       {gallery && (
         <View style={[styles.overlay, styles.galleryOverlay]}>
-          <Text style={styles.galleryTitle}>Bird Gallery</Text>
-          <Text style={styles.gallerySub}>All {ROSTER.length} birds</Text>
+          {/* wordless header — the collection's own cutie, not a title (spec §2) */}
+          <Text style={styles.galleryTitle}>{isFish ? '🐠' : '🐦'}</Text>
           <ScrollView contentContainerStyle={styles.gallery}>
-            {ROSTER.map((d, i) => (
+            {COLLECTIONS[collection].map((d, i) => (
               <View key={i} style={styles.card}>
-                <Bird species={i} dancing delay={i * 60} />
+                <Bird species={i} collection={collection} dancing delay={i * 60} />
                 <Text style={styles.cardName}>{d.name}</Text>
               </View>
             ))}
@@ -349,13 +378,55 @@ export default function App() {
           </Pressable>
         </View>
       )}
+
+      {/* HOME: wordless two-hero mode picker. Sky (left) = birds, water (right) =
+          fish. Tap a cutie to dive/fly into that collection (spec §2). Shown on
+          first run and reachable via the swap button any time. */}
+      {home && (
+        <View style={styles.homeOverlay}>
+          <View style={styles.homeSky} />
+          <View style={styles.homeWater} />
+          <View style={styles.homeRow} pointerEvents="box-none">
+            <Pressable style={styles.hero} onPress={() => void enter('birds')} hitSlop={24}>
+              <Bird species={0} collection="birds" dancing scale={2.6} />
+            </Pressable>
+            <Pressable style={styles.hero} onPress={() => void enter('fish')} hitSlop={24}>
+              <Bird species={0} collection="fish" dancing scale={2.6} />
+            </Pressable>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#cdeffd', alignItems: 'center' },
+  rootFish: { backgroundColor: '#a7dbef' }, // deeper water tint for fish mode
   title: { fontSize: 34, marginTop: 12 },
+  // swap-collection button: big corner cutie, no words (spec §1 >=96px, >=60 edge)
+  swap: {
+    position: 'absolute',
+    right: 24,
+    bottom: 24,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#ffffffcc',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  swapText: { fontSize: 46 },
+  // wordless two-hero home (sky = birds, water = fish)
+  homeOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flexDirection: 'row' },
+  homeSky: { flex: 1, backgroundColor: '#bfe4fb' },
+  homeWater: { flex: 1, backgroundColor: '#5fb0dd' },
+  homeRow: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  hero: { width: 168, height: 200, alignItems: 'center', justifyContent: 'center' },
   board: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', padding: 16, marginTop: 8 },
   // big forgiving kid target for undo (spec §1: >=96px)
   undo: {
@@ -409,8 +480,7 @@ const styles = StyleSheet.create({
   menuBtnWide: { backgroundColor: '#6a9bd8', paddingVertical: 18, paddingHorizontal: 28, borderRadius: 14, minWidth: 260, alignItems: 'center' },
   menuBtnText: { color: '#fff', fontWeight: '700', fontSize: 17 },
   galleryOverlay: { backgroundColor: '#274653', paddingTop: 30, paddingBottom: 20 },
-  galleryTitle: { color: '#fff', fontSize: 26, fontWeight: '800', marginBottom: 2 },
-  gallerySub: { color: '#bcd', fontSize: 13, marginBottom: 10 },
+  galleryTitle: { fontSize: 44, marginBottom: 8 },
   gallery: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, paddingHorizontal: 16, maxWidth: 520 },
   card: { width: 92, alignItems: 'center', backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 12, paddingVertical: 10 },
   cardName: { color: '#fff', fontSize: 13, fontWeight: '600', marginTop: 4 },
