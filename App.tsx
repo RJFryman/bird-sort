@@ -110,6 +110,26 @@ export default function App() {
   const rid = useRef(0);
   const winPop = useRef(new Animated.Value(0)).current;
 
+  // Added to the home screen, iOS runs this standalone and paints the status-bar
+  // strip from <meta name="theme-color">. There wasn't one, so it came out white
+  // above a blue app. Set it at runtime rather than in a build template: Expo
+  // owns index.html, and the colour has to follow the collection anyway.
+  // ponytail: html/body background too, so the strip is right before React mounts
+  // and stays right under an overscroll bounce.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const tint = collection === 'fish' ? '#a7dbef' : '#cdeffd';
+    let meta = document.querySelector('meta[name="theme-color"]');
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.setAttribute('name', 'theme-color');
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute('content', tint);
+    document.documentElement.style.backgroundColor = tint;
+    document.body.style.backgroundColor = tint;
+  }, [collection]);
+
   // --- save wiring (Cadence's reliability API; do not re-inline — see msg 009) ---
   // load saved game once on startup (storage.ts rebuilds resumable state and
   // recomputes `won`, so a saved win resumes to the overlay, not a dead board)
