@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>%WEB_TITLE%</title>
+
+    <!--
+      This file is Expo's stock web template (@expo/cli/static/template/index.html) plus the
+      one <link> below. Expo reads public/index.html in preference to its own template
+      (webTemplate.js getTemplateIndexHtmlAsync), then string-replaces four sentinels: the
+      LANG_ISO_CODE and WEB_TITLE percent-tokens on the html and title lines, and the closing
+      head and body tags. Those four, plus the #root div, must stay.
+
+      DO NOT repeat any of those four sentinels as literal text anywhere in this file,
+      including inside a comment. Expo replaces the FIRST occurrence of each, so a mention in
+      prose swallows the injection: writing the closing head/body tags here once put the
+      favicon link and, fatally, the JS bundle script tag inside this comment — the exported
+      page booted to a blank screen while the build still reported success.
+
+      Why a static file and not a runtime injection like App.tsx does for <meta name="theme-color">:
+      iOS reads apple-touch-icon when you tap Share -> Add to Home Screen, and the home-screen
+      TILE is baked at that moment from the parse-time document. A React-mounted <link> is a race
+      we don't need to run, and unlike theme-color the icon does not vary with app state, so
+      there is nothing to update at runtime. Expo's own favicon <link> is emitted the same way.
+
+      href carries the "/bird-sort" prefix by hand because that is app.json
+      experiments.baseUrl — Expo only prefixes baseUrl onto its OWN favicon href, not onto
+      template-authored links. If baseUrl ever changes, change it here too.
+      public/ is copied verbatim (unhashed, same filename) to the root of dist/, so this
+      resolves to dist/apple-touch-icon.png.
+    -->
+    <link rel="apple-touch-icon" href="/bird-sort/apple-touch-icon.png" />
+
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  </body>
+</html>

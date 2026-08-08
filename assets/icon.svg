@@ -1,0 +1,53 @@
+<!--
+  Bird Sort app icon — "Cardinal Head".
+  Source of truth. Every shipped raster (assets/icon.png 1024, assets/favicon.png 48,
+  public/apple-touch-icon.png 180) is rasterised from THIS file. Edit here, re-render, commit.
+
+  It is ROSTER[0], the Cardinal — the left hero on the wordless home picker — cropped to a
+  head-and-crest portrait so the tile and the app's front door are the same face. Colours are
+  the game's own: #d5372a-family red, #551611 outline (the 0.4-shade rule from Bird.tsx),
+  #f4a72a beak, the white/#181818/white eye stack from Bird.tsx's eyes(), on the #cdeffd sky.
+
+  Deliberate reductions, all for legibility at 29-40px where the full bird turns to mud:
+    - body, tail, legs, wing, belly and the second eye are dropped;
+    - what survives is four pre-literate signals: round red head, swept crest, gold beak,
+      one big eye.
+  Deliberate constraints:
+    - the background rect is FULL-BLEED and OPAQUE, so nothing goes black under the iOS
+      squircle mask (iOS composites alpha onto black);
+    - ink occupies ~79% of the square with ~107px margins at 1024, so corner masking never
+      bites the crest tip or the beak;
+    - the edge vignette keeps the tile boundary readable on white / light / photo wallpapers,
+      where a near-white tile edge otherwise dissolves.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="sky" cx="0.5" cy="0.4" r="0.8">
+      <stop offset="0" stop-color="#eafaff"/>
+      <stop offset="0.55" stop-color="#cdeffd"/>
+      <stop offset="1" stop-color="#a7dbef"/>
+    </radialGradient>
+    <radialGradient id="vig" cx="0.5" cy="0.5" r="0.72">
+      <stop offset="0.5" stop-color="#6fbcdf" stop-opacity="0"/>
+      <stop offset="1" stop-color="#6fbcdf" stop-opacity="0.3"/>
+    </radialGradient>
+    <linearGradient id="red" gradientUnits="userSpaceOnUse" x1="0" y1="170" x2="0" y2="910">
+      <stop offset="0" stop-color="#ff4232"/>
+      <stop offset="1" stop-color="#a52c21"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#sky)"/>
+  <rect x="0" y="0" width="1024" height="1024" fill="url(#vig)"/>
+
+  <g transform="translate(-39,29)">
+    <g stroke="#551611" stroke-width="32" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M630 376 C 622 194 512 92 360 96 L 292 128 C 410 210 384 320 376 350 Z" fill="url(#red)"/>
+      <circle cx="456" cy="572" r="294" fill="url(#red)"/>
+      <path d="M694 500 L940 596 L700 684 Z" fill="#f4a72a"/>
+    </g>
+    <circle cx="552" cy="476" r="104" fill="#ffffff" stroke="#551611" stroke-width="22"/>
+    <circle cx="580" cy="496" r="56" fill="#181818"/>
+    <circle cx="606" cy="460" r="23" fill="#ffffff"/>
+  </g>
+</svg>
