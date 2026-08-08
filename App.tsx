@@ -1,5 +1,5 @@
 import React, { useReducer, useState, useEffect, useRef } from 'react';
-import { SafeAreaView, View, Text, Pressable, TextInput, StyleSheet, ScrollView, Animated, Easing, useWindowDimensions } from 'react-native';
+import { SafeAreaView, View, Text, Pressable, TextInput, StyleSheet, ScrollView, Animated, Easing, useWindowDimensions, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
@@ -8,6 +8,17 @@ import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
 import { loadGame, saveGame, loadGateOn, saveGateOn } from './storage';
 import { initAudio, playSfx } from './audio';
+import { configureFeedback, flushFeedback } from '@harmony/feedback';
+import { FeedbackButton } from '@harmony/feedback/FeedbackButton';
+
+// Feedback lives behind the grown-up gate, never on the play surface — a kid
+// should not be able to post to Slack. Same reasoning as the parent settings.
+configureFeedback({
+  endpoint: process.env.EXPO_PUBLIC_FEEDBACK_URL ?? 'http://localhost:6300/feedback',
+  app: 'bird-sort',
+  appVersion: '1.0.0',
+  platform: Platform.OS,
+});
 
 const IDLE_MS = 3500; // idle re-invite / level-start demo delay (spec §5)
 // Word a grown-up types to pass the gate. Reading+typing beats a pre-reader 5yo
@@ -139,6 +150,10 @@ export default function App() {
       Animated.spring(winPop, { toValue: 1, friction: 5, tension: 90, useNativeDriver: true }).start();
     }
   }, [s.won, winPop]);
+
+  // Send anything captured while offline. Safe on every start — the collector
+  // dedupes on ref, so a re-send costs nothing.
+  useEffect(() => { void flushFeedback(); }, []);
 
   const onTap = (i: number) => {
     initAudio();
@@ -297,6 +312,20 @@ export default function App() {
           >
             <Text style={styles.menuBtnText}>Ask a grown-up first: {gateOn ? 'ON' : 'OFF'}</Text>
           </Pressable>
+          <FeedbackButton
+            kinds={['idea', 'bug', 'praise']}
+            context={{ level: s.level, birds: ROSTER.length, gateOn }}
+            who="robert"
+          >
+            {/* onPress={open} only — no setMenu(false). The sheet is a Modal and
+                renders above the menu; closing the menu would unmount this
+                component mid-open. */}
+            {(open) => (
+              <Pressable style={styles.menuBtnWide} onPress={open}>
+                <Text style={styles.menuBtnText}>Send feedback</Text>
+              </Pressable>
+            )}
+          </FeedbackButton>
           <Pressable style={styles.menuBtnWide} onPress={() => setMenu(false)}>
             <Text style={styles.menuBtnText}>Back to play</Text>
           </Pressable>
