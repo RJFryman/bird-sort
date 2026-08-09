@@ -3,6 +3,11 @@ import { Animated, Easing, Pressable, Text, View } from 'react-native';
 import { Bird } from './Bird';
 import { CollectionId } from './roster';
 
+// Length of the dark knob capping each end of a perch. Fixed, not scaled with
+// slot: it only has to read as "the branch stops here", and at small slots a
+// proportional cap would vanish exactly when it's needed most.
+const TIP_W = 11;
+
 // sparkle burst layout: emoji + direction each shoots on lock
 const SPARKS = [
   { e: '✨', dx: -1, dy: -0.9 },
@@ -153,6 +158,7 @@ export function Branch({
   // (96), dropping to the 44 HIG minimum only when that's what makes the board
   // fit on screen. hitSlop below still buys back some slop either way.
   const touchW = Math.max(touchMin, perchW + 12);
+  const [bark, tip, lit] = done ? ['#4a9d6f', '#23543a', '#6fc292'] : ['#7a4a26', '#43260f', '#9a6338'];
   const burst = slotW * 1.3; // how far sparkles fly
   // The movable bird is the one at the open end of the perch — the right end,
   // since birds fill left to right. That's what the hint should point at.
@@ -240,15 +246,29 @@ export function Branch({
             </View>
           ))}
         </View>
-        <View
-          style={{
-            width: perchW,
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: done ? '#4a9d6f' : '#7a4a26',
-            marginTop: 4,
-          }}
-        />
+        {/* Dark knob at each end of the perch, lit edge along the top. A flat
+            one-colour bar merged with its neighbour: the gutter between cells is
+            only 12 + 2*margin px (46px at a 1000px viewport) against a perch
+            several hundred px long, and both sit on the same baseline in the
+            same brown — so a row of perches read as one continuous branch.
+            The knobs terminate each perch; the highlight makes it a round stick
+            rather than a painted line.
+            Total height stays 10 and total width stays perchW — layout.ts's
+            CELL_CHROME and perchWidth() both assume that. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', height: 10, marginTop: 4 }}>
+          <View style={{ width: TIP_W, height: 10, borderRadius: 5, backgroundColor: tip }} />
+          <View
+            style={{
+              width: perchW - TIP_W * 2,
+              height: 10,
+              borderRadius: 2,
+              backgroundColor: bark,
+              borderTopWidth: 2,
+              borderTopColor: lit,
+            }}
+          />
+          <View style={{ width: TIP_W, height: 10, borderRadius: 5, backgroundColor: tip }} />
+        </View>
       </Animated.View>
     </Pressable>
   );
