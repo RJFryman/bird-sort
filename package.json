@@ -26,7 +26,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "build": "expo export -p web",
+    "deploy": "expo export -p web && wrangler pages deploy dist --project-name bird-sort --branch main"
   },
   "jest": {
     "preset": "jest-expo",
