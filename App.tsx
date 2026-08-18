@@ -11,6 +11,7 @@ import { loadGame, saveGame, loadGateOn, saveGateOn, loadLastCollection, saveLas
 import { initAudio, playSfx } from './audio';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
 import { FeedbackButton } from '@harmony/feedback/FeedbackButton';
+import UpdateBanner from './UpdateBanner';
 
 // Feedback lives behind the grown-up gate, never on the play surface — a kid
 // should not be able to post to Slack. Same reasoning as the parent settings.
@@ -234,6 +235,16 @@ export default function App() {
     setTimeout(() => setRipples((r) => r.filter((p) => p.id !== id)), 500);
   };
 
+  // Home-screen PWA has no browser reload. Force a fresh load that busts the
+  // cache — a plain reload() re-serves the cached bundle on iOS standalone, so
+  // bump a query param to make the browser refetch index.html (→ new hashed JS).
+  const hardReload = () => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    const u = new URL(window.location.href);
+    u.searchParams.set('v', String(Date.now()));
+    window.location.replace(u.toString());
+  };
+
   // run a parent-gated action, closing the gate/menu
   const guard = (action: () => void) => {
     setMenu(false);
@@ -258,6 +269,7 @@ export default function App() {
   return (
     <SafeAreaView style={[styles.root, isFish && styles.rootFish]}>
       <StatusBar style="dark" />
+      <UpdateBanner />
 
       {/* empty-space taps still respond (no dead screen, spec §3) */}
       <Pressable style={StyleSheet.absoluteFill} onPress={onEmptyTap} />
@@ -379,6 +391,9 @@ export default function App() {
               </Pressable>
             )}
           </FeedbackButton>
+          <Pressable style={styles.menuBtnWide} onPress={hardReload}>
+            <Text style={styles.menuBtnText}>🔄 Refresh / get update</Text>
+          </Pressable>
           <Pressable style={styles.menuBtnWide} onPress={() => setMenu(false)}>
             <Text style={styles.menuBtnText}>Back to play</Text>
           </Pressable>
