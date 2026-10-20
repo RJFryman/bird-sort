@@ -16,7 +16,8 @@ import UpdateBanner from './UpdateBanner';
 // Feedback lives behind the grown-up gate, never on the play surface — a kid
 // should not be able to post to Slack. Same reasoning as the parent settings.
 configureFeedback({
-  endpoint: process.env.EXPO_PUBLIC_FEEDBACK_URL ?? 'http://localhost:6300/feedback',
+  endpoint:
+    process.env.EXPO_PUBLIC_FEEDBACK_URL ?? 'https://harmony-feedback.fly.dev/api/entries',
   app: 'bird-sort',
   appVersion: '1.0.0',
   platform: Platform.OS,
