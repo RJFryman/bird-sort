@@ -258,11 +258,11 @@ export default function App() {
   const n = s.board.length;
   // Pick the grid first, then size to it. Sizing off `boardW / n` assumed one
   // row of n branches, which stopped being true as soon as the board wrapped.
-  const { slot, boardW, touchMin } = fitGrid(n, width, height, CAP);
+  const { slot, boardW, touchMin, rowGap, colGap } = fitGrid(n, width, height, CAP);
   const slotH = slot * 0.96;
   const perchW = perchWidth(slot, CAP);
   const birdScale = slot / 48;
-  const branchMargin = marginFor(slot);
+  const branchMargin = marginFor(slot) + colGap;
   const handH = handFor(slot);
 
   const isFish = collection === 'fish';
@@ -302,6 +302,7 @@ export default function App() {
             margin={branchMargin}
             handH={handH}
             touchMin={touchMin}
+            rowGap={rowGap}
           />
         ))}
       </View>

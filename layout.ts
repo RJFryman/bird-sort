@@ -59,6 +59,9 @@ export type Grid = {
   boardW: number;
   /** Hitbox width floor this grid was solved at; Branch must use the same one. */
   touchMin: number;
+  /** Extra space between rows / each side of a cell, carved from leftover room. */
+  rowGap: number;
+  colGap: number;
 };
 
 /** Chrome outside the board: title, grown-ups chip, bottom buttons. */
@@ -70,11 +73,11 @@ function bestGrid(
   usableH: number,
   cap: number,
   touchMin: number,
-): Grid | null {
+): Omit<Grid, 'rowGap' | 'colGap'> | null {
   // Columns are bounded by width alone — no slot size buys a narrower cell than
   // the touch minimum, so this is the most columns that can ever fit.
   const maxCols = Math.max(1, Math.floor(usableW / cellWidth(SLOT_MIN, cap, touchMin)));
-  let best: Grid | null = null;
+  let best: Omit<Grid, 'rowGap' | 'colGap'> | null = null;
 
   for (let cols = 1; cols <= Math.min(n, maxCols); cols++) {
     const rows = Math.ceil(n / cols);
@@ -91,6 +94,19 @@ function bestGrid(
   return best;
 }
 
+/**
+ * Breathing room between branches. On an iPad the birds hit SLOT_MAX and the
+ * board sat in a tight block, heads brushing the perch above, reading as one
+ * tangle. The gap only spends space the fit left over, so birds never shrink
+ * for it; capped so a sparse board doesn't scatter across the screen.
+ */
+function withGaps(g: Omit<Grid, 'rowGap' | 'colGap'>, usableW: number, usableH: number): Grid {
+  const cap = g.slot * 0.6;
+  const rowGap = Math.floor(Math.min(cap, (usableH - cellHeight(g.slot) * g.rows) / g.rows));
+  const colGap = Math.floor(Math.min(cap / 2, (usableW - g.boardW) / (2 * g.cols)));
+  return { ...g, rowGap, colGap, boardW: g.boardW + 2 * colGap * g.cols };
+}
+
 export function fitGrid(n: number, width: number, height: number, cap = CAP): Grid {
   // 16 keeps us off the screen edges, 32 is the board's own horizontal padding.
   const usableW = Math.min(width, 1000) - 16 - 32;
@@ -103,8 +119,8 @@ export function fitGrid(n: number, width: number, height: number, cap = CAP): Gr
   // more bird AND a target only 13px under the one we were protecting.
   const want = bestGrid(n, usableW, usableH, cap, TOUCH_WANT);
   const floor = bestGrid(n, usableW, usableH, cap, TOUCH_FLOOR);
-  if (want && (!floor || floor.slot <= want.slot)) return want;
-  if (floor) return floor;
+  if (want && (!floor || floor.slot <= want.slot)) return withGaps(want, usableW, usableH);
+  if (floor) return withGaps(floor, usableW, usableH);
 
   // Only reachable in a window smaller than any real device (a desktop browser
   // dragged down to a sliver). Smallest everything, widest grid — the birds
@@ -116,5 +132,7 @@ export function fitGrid(n: number, width: number, height: number, cap = CAP): Gr
     rows: Math.ceil(n / cols),
     boardW: cellWidth(SLOT_MIN, cap, TOUCH_FLOOR) * cols,
     touchMin: TOUCH_FLOOR,
+    rowGap: 0,
+    colGap: 0,
   };
 }

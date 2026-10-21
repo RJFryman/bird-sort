@@ -10,7 +10,7 @@ const config = getDefaultConfig(__dirname);
 //
 // disableHierarchicalLookup stops Metro walking up into the linked package's
 // node_modules; nodeModulesPaths pins every resolution to this app's copy.
-const FEEDBACK = path.resolve(__dirname, '../harmony-bet-feedback/packages/feedback');
+const FEEDBACK = path.resolve(__dirname, '../harmony/packages/feedback');
 
 config.watchFolders = [FEEDBACK];
 config.resolver.nodeModulesPaths = [path.resolve(__dirname, 'node_modules')];

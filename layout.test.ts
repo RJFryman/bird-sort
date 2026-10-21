@@ -19,9 +19,9 @@ describe('fitGrid', () => {
       for (const n of COUNTS) {
         const g = fitGrid(n, w, h);
         expect(g.cols * g.rows).toBeGreaterThanOrEqual(n); // every branch has a cell
-        expect(cellWidth(g.slot, CAP, g.touchMin) * g.cols).toBeLessThanOrEqual(Math.min(w, 1000) - 16 - 32);
-        expect(cellHeight(g.slot) * g.rows).toBeLessThanOrEqual(h - verticalChrome(h));
-        expect(g.boardW).toBeCloseTo(cellWidth(g.slot, CAP, g.touchMin) * g.cols);
+        expect(g.boardW).toBeLessThanOrEqual(Math.min(w, 1000) - 16 - 32);
+        expect((cellHeight(g.slot) + g.rowGap) * g.rows).toBeLessThanOrEqual(h - verticalChrome(h));
+        expect(g.boardW).toBeCloseTo((cellWidth(g.slot, CAP, g.touchMin) + 2 * g.colGap) * g.cols);
       }
     }
   });
@@ -90,5 +90,16 @@ describe('speciesForLevel', () => {
     expect(speciesForLevel(3)).toBe(6);
     expect(speciesForLevel(11)).toBe(MAX_SPECIES);
     expect(speciesForLevel(500)).toBe(MAX_SPECIES); // was 52 — a 54-branch board
+  });
+
+  test('on an iPad, neighbouring branches get real air — never at the birds\' expense', () => {
+    // Robert on the iPad: rows read as one tangle, heads brushing the perch above.
+    expect(fitGrid(7, 820, 1180).rowGap).toBeGreaterThanOrEqual(10);
+    // Gaps only spend leftover room: bird size is what it was before gaps existed.
+    const before: [number, number, number, number][] = [
+      [820, 1180, 7, 92], [820, 1180, 9, 81], [1180, 820, 9, 89],
+      [390, 844, 5, 71], [390, 844, 7, 57], [375, 667, 5, 61],
+    ];
+    for (const [w, h, n, slot] of before) expect(fitGrid(n, w, h).slot).toBe(slot);
   });
 });

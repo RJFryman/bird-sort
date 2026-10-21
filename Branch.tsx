@@ -40,6 +40,7 @@ export function Branch({
   margin,
   handH,
   touchMin,
+  rowGap,
 }: {
   birds: number[];
   collection: CollectionId;
@@ -59,6 +60,8 @@ export function Branch({
   handH: number;
   /** Hitbox floor fitGrid solved at — must match or the cells won't wrap right. */
   touchMin: number;
+  /** Leftover height fitGrid hands out between rows. */
+  rowGap: number;
 }) {
   const wig = useRef(new Animated.Value(0)).current; // -1..1 shake
   const pop = useRef(new Animated.Value(0)).current; // 0..1 lock burst
@@ -169,7 +172,7 @@ export function Branch({
       onPress={onPress}
       onPressIn={squash}
       onPressOut={unsquash}
-      style={{ width: touchW, alignItems: 'center', marginHorizontal: margin, paddingVertical: 10 }}
+      style={{ width: touchW, alignItems: 'center', marginHorizontal: margin, paddingVertical: 10 + rowGap / 2 }}
       hitSlop={12}
     >
       {/* Bouncing hand hint (visual twin of the demo/idle re-invite). Drawn as an
