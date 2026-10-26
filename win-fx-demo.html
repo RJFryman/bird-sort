@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bird Sort — Win Effect A/B demo</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: linear-gradient(180deg, #bfe3ff 0%, #e8f6ff 55%, #fff 100%);
+    min-height: 100vh; color: #234;
+  }
+  header { text-align: center; padding: 22px 16px 6px; }
+  header h1 { margin: 0 0 4px; font-size: 22px; }
+  header p { margin: 0; font-size: 14px; color: #567; }
+  .stage-wrap { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center; padding: 18px; }
+  .card {
+    background: #fff; border-radius: 22px; width: 380px; max-width: 92vw;
+    box-shadow: 0 10px 30px rgba(30,80,140,.16); padding: 16px; text-align: center;
+  }
+  .card h2 { margin: 2px 0 2px; font-size: 18px; }
+  .card .sub { font-size: 13px; color: #789; min-height: 34px; margin: 0 0 10px; }
+  /* the "win screen" mini stage each effect plays over */
+  .stage {
+    position: relative; height: 300px; border-radius: 16px; overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 20%, #fff7e0 0%, #ffeebf 40%, #ffe08a 100%);
+    display: flex; align-items: center; justify-content: center; user-select: none;
+  }
+  .trophy { font-size: 96px; filter: drop-shadow(0 6px 10px rgba(120,80,0,.25)); transition: transform .18s; }
+  .trophy.pop { transform: scale(1.24); }
+  button.go {
+    margin-top: 12px; width: 100%; padding: 16px; font-size: 18px; font-weight: 700;
+    border: none; border-radius: 16px; color: #fff; cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,.14); transition: transform .06s, box-shadow .06s;
+  }
+  button.go:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.14); }
+  .a button.go { background: linear-gradient(180deg,#7dd3fc,#38bdf8); }
+  .b button.go { background: linear-gradient(180deg,#fca5f1,#f472b6); }
+  /* Effect A: sparkle + ring, matches Branch.tsx */
+  .ring {
+    position: absolute; width: 120px; height: 120px; border-radius: 50%;
+    border: 6px solid #ffd54a; opacity: 0; pointer-events: none;
+  }
+  .spark { position: absolute; font-size: 34px; opacity: 0; pointer-events: none; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  footer { text-align: center; font-size: 12px; color: #789; padding: 6px 16px 30px; }
+  kbd { background:#eef4fb; border:1px solid #cdd9e6; border-radius:6px; padding:1px 6px; font-size:12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐦 Bird Sort — Win Effect: A vs B</h1>
+  <p>Click each button (or press <kbd>A</kbd> / <kbd>B</kbd>) to play the win moment. Pick the one that feels right.</p>
+</header>
+
+<div class="stage-wrap">
+  <!-- EFFECT A -->
+  <div class="card a">
+    <h2>Effect A — current</h2>
+    <p class="sub">Sparkle-burst + expanding ring + warm fanfare (what ships today)</p>
+    <div class="stage" id="stageA">
+      <div class="trophy" id="trophyA">🏆</div>
+    </div>
+    <button class="go" onclick="playA()">▶ Play Effect A</button>
+  </div>
+
+  <!-- EFFECT B -->
+  <div class="card b">
+    <h2>Effect B — party-popper</h2>
+    <p class="sub">Literal popper: confetti cannon burst + poppier chime</p>
+    <div class="stage" id="stageB">
+      <canvas id="canvasB"></canvas>
+      <div class="trophy" id="trophyB">🏆</div>
+    </div>
+    <button class="go" onclick="playB()">▶ Play Effect B</button>
+  </div>
+</div>
+
+<footer>Self-contained demo · opens locally, no network, no deploy · Effect A synth notes + sparkles mirror <code>bird-sort/Branch.tsx</code> &amp; <code>assets/sfx/gen-sfx.mjs</code></footer>
+
+<script>
+// ---- WebAudio: one context, unlocked on first click ----
+let AC;
+function ac(){ if(!AC) AC = new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==='suspended') AC.resume(); return AC; }
+// short envelope tone (click-free), t in seconds
+function toneAt(freq, start, dur, {amp=0.3, type='triangle'}={}) {
+  const c = ac(), o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.value = freq;
+  const t0 = c.currentTime + start;
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(amp, t0 + 0.006);      // 6ms attack
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur); // soft decay
+  o.connect(g).connect(c.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+
+// ===== EFFECT A =====
+// Fanfare = ascending run C5 E5 G5 C6 into shining C6+E6+G6 chord + twinkles
+// (mirrors gen-sfx.mjs `win`). Sparkles ✨⭐🌟 fly out + ring expands (Branch.tsx).
+function fanfareA() {
+  const run = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+  run.forEach((f,i)=> toneAt(f, i*0.13, 0.16, {amp:0.3, type:'triangle'}));
+  const t = run.length*0.13;
+  toneAt(1046.5, t, 0.55, {amp:0.26}); // C6
+  toneAt(1318.51,t, 0.55, {amp:0.18}); // E6
+  toneAt(1567.98,t, 0.55, {amp:0.14, type:'sine'}); // G6
+  toneAt(2093,   t+0.06, 0.14, {amp:0.10, type:'sine'}); // twinkle
+  toneAt(2637.02,t+0.18, 0.16, {amp:0.08, type:'sine'});
+}
+const SPARKS = [
+  {e:'✨',dx:-1,dy:-0.9},{e:'⭐',dx:1,dy:-1},{e:'✨',dx:-1.2,dy:0.2},
+  {e:'🌟',dx:1.2,dy:0.1},{e:'✨',dx:0,dy:-1.3}
+];
+function playA(){
+  fanfareA();
+  const stage = document.getElementById('stageA');
+  const cx = stage.clientWidth/2, cy = stage.clientHeight/2;
+  // trophy pop (1 -> 1.24, spring-ish)
+  const tr = document.getElementById('trophyA');
+  tr.classList.add('pop'); setTimeout(()=>tr.classList.remove('pop'), 200);
+  // expanding ring: scale 0.2 -> 1.8, opacity 0.85 -> 0, 620ms ease-out
+  const ring = document.createElement('div'); ring.className='ring';
+  ring.style.left=(cx-60)+'px'; ring.style.top=(cy-60)+'px';
+  stage.appendChild(ring);
+  ring.animate([
+    {transform:'scale(0.2)', opacity:0.85},
+    {transform:'scale(1.8)', opacity:0}
+  ], {duration:620, easing:'cubic-bezier(0.16,1,0.3,1)'});
+  setTimeout(()=>ring.remove(), 640);
+  // sparkles fly outward ~1.3x half-width
+  const burst = stage.clientWidth*0.32;
+  SPARKS.forEach((sp,i)=>{
+    const el = document.createElement('div'); el.className='spark'; el.textContent=sp.e;
+    el.style.left=(cx-17)+'px'; el.style.top=(cy-17)+'px';
+    stage.appendChild(el);
+    el.animate([
+      {transform:'translate(0,0) scale(0.4)', opacity:1},
+      {transform:`translate(${sp.dx*burst}px, ${sp.dy*burst}px) scale(1.3)`, opacity:0}
+    ], {duration:620, delay:i*20, easing:'cubic-bezier(0.16,1,0.3,1)'});
+    setTimeout(()=>el.remove(), 700);
+  });
+}
+
+// ===== EFFECT B =====
+// Party-popper: two confetti cannons fire up-and-out + a bright rising popper chime.
+function popperSound(){
+  // bright "pop" transient then quick ascending sparkle
+  toneAt(880, 0, 0.05, {amp:0.35, type:'square'});
+  [1047,1319,1568,2093].forEach((f,i)=> toneAt(f, 0.03+i*0.05, 0.14, {amp:0.22, type:'triangle'}));
+}
+const COLORS = ['#f472b6','#fca5f1','#7dd3fc','#fde047','#86efac','#fb923c','#a78bfa'];
+let confetti = [], rafB = null;
+function playB(){
+  popperSound();
+  const canvas = document.getElementById('canvasB');
+  const W = canvas.width = canvas.clientWidth, H = canvas.height = canvas.clientHeight;
+  const tr = document.getElementById('trophyB');
+  tr.classList.add('pop'); setTimeout(()=>tr.classList.remove('pop'), 200);
+  // two cannons: bottom-left firing up-right, bottom-right firing up-left
+  const cannons = [
+    {x:24, y:H-16, ang:-Math.PI/3.1},   // up & right
+    {x:W-24, y:H-16, ang:-Math.PI+Math.PI/3.1} // up & left
+  ];
+  cannons.forEach(c=>{
+    for(let i=0;i<50;i++){
+      const spread = (Math.random()-0.5)*0.8;
+      const speed = 8 + Math.random()*8;
+      const a = c.ang + spread;
+      confetti.push({
+        x:c.x, y:c.y,
+        vx:Math.cos(a)*speed, vy:Math.sin(a)*speed,
+        w:6+Math.random()*6, h:8+Math.random()*8,
+        rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.4,
+        color:COLORS[(Math.random()*COLORS.length)|0], life:1
+      });
+    }
+  });
+  if(!rafB) tickB();
+}
+function tickB(){
+  const canvas = document.getElementById('canvasB'), ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  confetti = confetti.filter(p=>p.life>0 && p.y < H+30);
+  for(const p of confetti){
+    p.vy += 0.28;        // gravity
+    p.vx *= 0.99; p.vy *= 0.99;
+    p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+    p.life -= 0.006;
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+    ctx.globalAlpha = Math.max(0, Math.min(1, p.life));
+    ctx.fillStyle = p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+    ctx.restore();
+  }
+  if(confetti.length){ rafB = requestAnimationFrame(tickB); }
+  else { ctx.clearRect(0,0,W,H); rafB = null; }
+}
+
+// keyboard: A / B
+addEventListener('keydown', e=>{
+  if(e.key==='a'||e.key==='A') playA();
+  if(e.key==='b'||e.key==='B') playB();
+});
+</script>
+</body>
+</html>
