@@ -29,6 +29,8 @@ export function Branch({
   collection,
   capacity,
   selected,
+  destination,
+  branchNumber,
   done,
   hint,
   wiggleNonce,
@@ -46,6 +48,8 @@ export function Branch({
   collection: CollectionId;
   capacity: number;
   selected: boolean;
+  destination: boolean;
+  branchNumber: number;
   done: boolean;
   hint: boolean;
   wiggleNonce: number;
@@ -169,12 +173,16 @@ export function Branch({
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Branch ${branchNumber}, ${birds.length} of ${capacity}${selected ? ', selected' : destination ? ', move here' : done ? ', complete' : ''}`}
+      accessibilityState={{ selected }}
       onPress={onPress}
       onPressIn={squash}
       onPressOut={unsquash}
-      style={{ width: touchW, alignItems: 'center', marginHorizontal: margin, paddingVertical: 10 + rowGap / 2 }}
+      style={{ width: touchW, alignItems: 'center', marginHorizontal: margin, paddingVertical: 8 + rowGap / 2, borderRadius: 18, backgroundColor: selected ? '#f8df92' : destination ? '#d6eaca' : 'transparent', borderWidth: 2, borderColor: selected ? '#a76c15' : destination ? '#64905a' : 'transparent' }}
       hitSlop={12}
     >
+      {(selected || destination || done) && <Text pointerEvents="none" style={{ position: 'absolute', right: 6, top: 0, color: '#31523b', fontSize: 14, fontWeight: '900' }}>{done ? '✓' : destination ? '↓' : '↑'}</Text>}
       {/* Bouncing hand hint (visual twin of the demo/idle re-invite). Drawn as an
           overlay rather than a reserved row: a row cost height on every branch
           whether or not a hint was showing, and absolute means branches still
@@ -245,7 +253,8 @@ export function Branch({
         <View style={{ flexDirection: 'row', alignItems: 'flex-end' }}>
           {Array.from({ length: capacity }).map((_, i) => (
             <View key={i} style={{ width: slotW, height: slotH, alignItems: 'center', justifyContent: 'flex-end' }}>
-              {i < birds.length && <Bird species={birds[i]} collection={collection} dancing={done} delay={i * 100} scale={birdScale} />}
+              {i >= birds.length && <View style={{ position: 'absolute', bottom: 3, width: 8, height: 4, borderRadius: 4, backgroundColor: destination ? '#64905a' : '#c6cbb6' }} />}
+              {i < birds.length && <View style={{ transform: [{ translateY: collection === 'birds' ? 4 + slotW * 0.134 : 0 }] }}><Bird species={birds[i]} collection={collection} dancing={done} delay={i * 100} scale={birdScale} /></View>}
             </View>
           ))}
         </View>
@@ -259,6 +268,7 @@ export function Branch({
             Total height stays 10 and total width stays perchW — layout.ts's
             CELL_CHROME and perchWidth() both assume that. */}
         <View style={{ flexDirection: 'row', alignItems: 'center', height: 10, marginTop: 4 }}>
+          <View pointerEvents="none" style={{ position: 'absolute', left: 4, bottom: 2, width: 21, height: 10, borderTopLeftRadius: 18, borderBottomRightRadius: 18, backgroundColor: done ? '#75a159' : '#75905c', transform: [{ rotate: '-32deg' }] }} />
           <View style={{ width: TIP_W, height: 10, borderRadius: 5, backgroundColor: tip }} />
           <View
             style={{

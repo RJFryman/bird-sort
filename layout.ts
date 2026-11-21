@@ -65,7 +65,7 @@ export type Grid = {
 };
 
 /** Chrome outside the board: title, grown-ups chip, bottom buttons. */
-export const verticalChrome = (height: number) => Math.min(220, Math.round(height * 0.3));
+export const verticalChrome = (height: number) => Math.min(250, Math.round(height * 0.52));
 
 function bestGrid(
   n: number,

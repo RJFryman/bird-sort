@@ -104,14 +104,11 @@ export default function UpdateBanner() {
 
 const styles = StyleSheet.create({
   wrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
+    alignSelf: 'stretch',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingTop: 12,
-    zIndex: 60,
+
   },
   card: {
     flexDirection: 'row',
@@ -131,8 +128,8 @@ const styles = StyleSheet.create({
   text: { fontSize: 18, fontWeight: '800', color: '#e65100' },
   close: {
     marginLeft: 12,
-    width: 34,
-    height: 34,
+    width: 44,
+    height: 44,
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',

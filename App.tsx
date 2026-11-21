@@ -12,6 +12,7 @@ import { initAudio, playSfx } from './audio';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
 import { FeedbackButton } from '@harmony/feedback/FeedbackButton';
 import UpdateBanner from './UpdateBanner';
+import { Habitat } from './Habitat';
 
 // Feedback lives behind the grown-up gate, never on the play surface — a kid
 // should not be able to post to Slack. Same reasoning as the parent settings.
@@ -103,7 +104,7 @@ export default function App() {
   const [gate, setGate] = useState(false); // parent gate overlay
   const [gateOn, setGateOn] = useState(false); // is the gate enabled? default OFF (Robert's ask)
   const [loaded, setLoaded] = useState(false);
-  const [home, setHome] = useState(true); // wordless two-hero mode picker (first run)
+  const [home, setHome] = useState(true); // two-world picker (first run)
   const collection = s.collection; // active collection is the single source of truth
   const [wiggle, setWiggle] = useState({ i: -1, n: 0 }); // illegal-tap shake target
   const [hintFrom, setHintFrom] = useState<number | null>(null);
@@ -120,7 +121,7 @@ export default function App() {
   // and stays right under an overscroll bounce.
   useEffect(() => {
     if (Platform.OS !== 'web') return;
-    const tint = collection === 'fish' ? '#a7dbef' : '#cdeffd';
+    const tint = collection === 'fish' ? '#e4f3ee' : '#f5f3e7';
     let meta = document.querySelector('meta[name="theme-color"]');
     if (!meta) {
       meta = document.createElement('meta');
@@ -270,7 +271,7 @@ export default function App() {
   return (
     <SafeAreaView style={[styles.root, isFish && styles.rootFish]}>
       <StatusBar style="dark" />
-      <UpdateBanner />
+      <Habitat fish={isFish} />
 
       {/* empty-space taps still respond (no dead screen, spec §3) */}
       <Pressable style={StyleSheet.absoluteFill} onPress={onEmptyTap} />
@@ -278,8 +279,17 @@ export default function App() {
         <Ripple key={r.id} x={r.x} y={r.y} />
       ))}
 
-      {/* wordless title so the play screen carries no instructions (spec §2) */}
-      <Text style={styles.title}>{isFish ? '🐠' : '🐦'}</Text>
+      {/* Short labels support emerging readers; branch cues also work without reading. */}
+      <View style={[styles.heading, height < 500 && { paddingTop: 0 }]}>
+        <Text style={styles.eyebrow}>{isFish ? 'THE LITTLE REEF' : 'THE LITTLE GROVE'}</Text>
+        <Text style={[styles.title, height < 500 && { fontSize: 23 }]}>{isFish ? 'Fish' : 'Bird'} Sort</Text>
+        <Text style={styles.progress}>Level {s.level} · {s.difficulty === 'hard' ? 'Hard' : 'Easy'} · {clearedCount(s.board)}/{new Set(s.board.flat()).size} groups together</Text>
+      </View>
+      <Text accessibilityLiveRegion="polite" style={[styles.instruction, height < 500 && { marginTop: 4 }]}>
+        {s.won ? 'Everyone is together. Hooray!' : s.selected === null
+          ? `Tap a ${isFish ? 'fish' : 'bird'} at the right end.`
+          : 'Now tap a glowing branch to move.'}
+      </Text>
 
       {/* Width is pinned to exactly `cols` cells so flexWrap breaks where fitGrid
           decided. The whole board always fits — never scrolls, never clips. */}
@@ -291,6 +301,8 @@ export default function App() {
             collection={collection}
             capacity={CAP}
             selected={s.selected === i}
+            destination={s.selected !== null && canMove(s.board, s.selected, i, CAP)}
+            branchNumber={i + 1}
             done={isCleared(b, CAP)}
             hint={hintFrom === i && s.selected === null}
             wiggleNonce={wiggle.i === i ? wiggle.n : 0}
@@ -307,57 +319,44 @@ export default function App() {
         ))}
       </View>
 
-      {/* kid-friendly, ungated undo (forgiving, never a fail state) */}
-      {s.history.length > 0 && !s.won && (
-        <Pressable
-          style={styles.undo}
-          onPress={() => { initAudio(); setActivity((a) => a + 1); playSfx('lift'); dispatch({ type: 'UNDO' }); }}
-          hitSlop={16}
-        >
-          <Text style={styles.undoText}>↩</Text>
+      <View style={styles.toolbar}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Undo last move" disabled={!s.history.length}
+          style={[styles.tool, !s.history.length && styles.toolOff]}
+          onPress={() => { initAudio(); setActivity(a => a + 1); playSfx('lift'); dispatch({ type: 'UNDO' }); }}>
+          <Text style={styles.toolText}>↶ Undo</Text>
         </Pressable>
-      )}
-
-      {/* small grown-up entry, tucked in a corner, opens the parent gate */}
-      <Pressable style={styles.grownup} onPress={() => (gateOn ? setGate(true) : setMenu(true))} hitSlop={16}>
-        <Text style={styles.grownupText}>grown-ups</Text>
-      </Pressable>
-
-      {/* swap collections — one tap, mid-play, NO parent gate (it's play, not an
-          exit; spec §2). Shows the OTHER collection's cutie so the child knows
-          what they'll get. */}
-      {!home && !s.won && (
-        <Pressable style={styles.swap} onPress={() => void enter(isFish ? 'birds' : 'fish')} hitSlop={16}>
-          <Text style={styles.swapText}>{isFish ? '🐦' : '🐠'}</Text>
+        {s.won ? <Pressable accessibilityRole="button" style={[styles.tool, styles.nextTool]}
+          onPress={() => { initAudio(); playSfx('lift'); dispatch({ type: 'NEXT' }); }}>
+          <Text style={styles.nextText}>Next level →</Text>
+        </Pressable> : <Pressable accessibilityRole="button" style={styles.tool}
+          onPress={() => void enter(isFish ? 'birds' : 'fish')}>
+          <Text style={styles.toolText}>{isFish ? '🐦 Birds' : '🐠 Fish'}</Text>
+        </Pressable>}
+        <Pressable accessibilityRole="button" style={styles.tool}
+          onPress={() => (gateOn ? setGate(true) : setMenu(true))}>
+          <Text style={styles.toolText}>⚙ Menu</Text>
         </Pressable>
-      )}
-
-      {s.won && (
-        <View style={styles.overlay}>
-          <Animated.Text
-            style={[
-              styles.winText,
-              { transform: [{ scale: winPop.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }] },
-            ]}
-          >
-            🎉🎉🎉
-          </Animated.Text>
-          <Pressable
-            style={styles.btnBig}
-            onPress={() => { initAudio(); playSfx('lift'); dispatch({ type: 'NEXT' }); }}
-          >
-            <Text style={styles.btnBigText}>▶</Text>
-          </Pressable>
-        </View>
-      )}
+      </View>
+      {s.won && <Animated.Text accessibilityLiveRegion="polite" style={[styles.celebration,
+        { opacity: winPop }]}>★ Beautiful sorting! ★</Animated.Text>}
 
       {gate && (
         <NameGate onPass={() => { setGate(false); setMenu(true); }} onCancel={() => setGate(false)} />
       )}
 
       {menu && (
-        <View style={[styles.overlay, styles.menuOverlay]}>
+        <ScrollView style={[StyleSheet.absoluteFill, { backgroundColor: '#274653' }]} contentContainerStyle={styles.menuOverlay}>
           <Text style={styles.menuTitle}>Grown-up menu</Text>
+          <UpdateBanner />
+          <View style={styles.menuRow}>
+            <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'DIFFICULTY', difficulty: 'easy' }))}>
+              <Text style={styles.menuBtnText}>Easy {(s.difficulty ?? 'easy') === 'easy' ? '✓' : ''}</Text>
+            </Pressable>
+            <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'DIFFICULTY', difficulty: 'hard' }))}>
+              <Text style={styles.menuBtnText}>Hard {s.difficulty === 'hard' ? '✓' : ''}</Text>
+            </Pressable>
+          </View>
+          <Text style={styles.gateSub}>Starts a new board. Hard lasts until you leave this collection.</Text>
           <View style={styles.menuRow}>
             <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'GOTO', level: s.level - 1 }))}>
               <Text style={styles.menuBtnText}>◀ Level</Text>
@@ -399,7 +398,7 @@ export default function App() {
           <Pressable style={styles.menuBtnWide} onPress={() => setMenu(false)}>
             <Text style={styles.menuBtnText}>Back to play</Text>
           </Pressable>
-        </View>
+        </ScrollView>
       )}
 
       {gallery && (
@@ -420,19 +419,18 @@ export default function App() {
         </View>
       )}
 
-      {/* HOME: wordless two-hero mode picker. Sky (left) = birds, water (right) =
-          fish. Tap a cutie to dive/fly into that collection (spec §2). Shown on
-          first run and reachable via the swap button any time. */}
+      {/* First-run world picker; each world keeps its own progress. */}
       {home && (
         <View style={styles.homeOverlay}>
           <View style={styles.homeSky} />
           <View style={styles.homeWater} />
+          <View style={styles.homeIntro}><Text style={styles.homeTitle}>Little friends. Big adventures.</Text><Text style={styles.homeSub}>Pick your puzzle world</Text></View>
           <View style={styles.homeRow} pointerEvents="box-none">
             <Pressable style={styles.hero} onPress={() => void enter('birds')} hitSlop={24}>
-              <Bird species={0} collection="birds" dancing scale={2.6} />
+              <Bird species={0} collection="birds" dancing scale={2.6} /><Text style={styles.worldTitle}>Bird Sort →</Text>
             </Pressable>
             <Pressable style={styles.hero} onPress={() => void enter('fish')} hitSlop={24}>
-              <Bird species={0} collection="fish" dancing scale={2.6} />
+              <Bird species={0} collection="fish" dancing scale={2.6} /><Text style={styles.worldTitle}>Fish Sort →</Text>
             </Pressable>
           </View>
         </View>
@@ -442,54 +440,32 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  // centred so leftover space splits above and below the board instead of all
-  // pooling under it — the board used to sit high with a dead bottom third
-  root: { flex: 1, backgroundColor: '#cdeffd', alignItems: 'center', justifyContent: 'center' },
-  rootFish: { backgroundColor: '#a7dbef' }, // deeper water tint for fish mode
-  title: { fontSize: 34, marginTop: 12 },
-  // swap-collection button: big corner cutie, no words (spec §1 >=96px, >=60 edge)
-  swap: {
-    position: 'absolute',
-    right: 24,
-    bottom: 24,
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#ffffffcc',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  swapText: { fontSize: 46 },
-  // wordless two-hero home (sky = birds, water = fish)
+  // Keep the puzzle between its readable header and reachable tool strip.
+  root: { flex: 1, backgroundColor: '#f5f3e7', alignItems: 'center', justifyContent: 'center' },
+  rootFish: { backgroundColor: '#e4f3ee' }, // deeper water tint for fish mode
+  heading: { alignItems: 'center', paddingTop: 8 },
+  eyebrow: { fontSize: 11, letterSpacing: 3, fontWeight: '800', color: '#547364' },
+  title: { fontSize: 32, fontWeight: '900', color: '#243e33', letterSpacing: -1 },
+  progress: { fontSize: 13, color: '#486254', fontWeight: '600', marginTop: 3 },
+  instruction: { fontSize: 15, color: '#304e40', textAlign: 'center', marginTop: 12, minHeight: 22 },
+  toolbar: { flexDirection: 'row', gap: 8, marginTop: 8, paddingBottom: 8 },
+  tool: { minHeight: 52, paddingHorizontal: 16, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: '#b5c6ae', backgroundColor: '#fffdf3' },
+  toolOff: { opacity: 0.45 },
+  toolText: { color: '#304e40', fontSize: 15, fontWeight: '700' },
+  nextTool: { backgroundColor: '#2d694e', borderColor: '#2d694e' },
+  nextText: { color: '#fffdf3', fontSize: 16, fontWeight: '800' },
+  celebration: { color: '#2d694e', fontSize: 18, fontWeight: '800', marginTop: 4 },
+  homeIntro: { position: 'absolute', top: '15%', width: '100%', alignItems: 'center', paddingHorizontal: 20 },
+  homeTitle: { color: '#243e33', fontSize: 28, fontWeight: '900', textAlign: 'center' },
+  homeSub: { color: '#304e40', fontSize: 17, marginTop: 12 },
+  worldTitle: { color: '#243e33', fontSize: 20, fontWeight: '800', marginTop: 24 },
+  // Two-world home (grove = birds, reef = fish)
   homeOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flexDirection: 'row' },
-  homeSky: { flex: 1, backgroundColor: '#bfe4fb' },
-  homeWater: { flex: 1, backgroundColor: '#5fb0dd' },
+  homeSky: { flex: 1, backgroundColor: '#ecedda' },
+  homeWater: { flex: 1, backgroundColor: '#bce1d9' },
   homeRow: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
-  hero: { width: 168, height: 200, alignItems: 'center', justifyContent: 'center' },
+  hero: { width: '46%', height: 240, alignItems: 'center', justifyContent: 'center' },
   board: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', padding: 16, marginTop: 8 },
-  // big forgiving kid target for undo (spec §1: >=96px)
-  undo: {
-    position: 'absolute',
-    left: 24,
-    bottom: 24,
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#ffffffcc',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  undoText: { fontSize: 44, color: '#4a6b8a' },
-  grownup: { position: 'absolute', right: 20, top: 20, paddingVertical: 8, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#ffffff66' },
-  grownupText: { color: '#3a5568', fontSize: 12, fontWeight: '600' },
   overlay: {
     position: 'absolute',
     top: 0,
@@ -515,7 +491,7 @@ const styles = StyleSheet.create({
   gateCancel: { padding: 12 },
   gateCancelText: { color: '#cde', fontSize: 15 },
   // parent menu (adult, text allowed)
-  menuOverlay: { backgroundColor: '#274653ee', gap: 14 },
+  menuOverlay: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 12, gap: 14, minHeight: '100%' },
   menuTitle: { color: '#fff', fontSize: 24, fontWeight: '800', marginBottom: 6 },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   menuLevel: { color: '#fff', fontSize: 18, fontWeight: '700', minWidth: 90, textAlign: 'center' },

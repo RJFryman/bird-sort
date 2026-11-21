@@ -56,7 +56,7 @@ describe('fitGrid', () => {
     // board on an iPhone SE bottomed out at slot 17 — technically fitting,
     // barely legible. Perching sideways is what bought that back.
     expect(fitGrid(7, 390, 844).slot).toBeGreaterThanOrEqual(50);
-    expect(fitGrid(12, 320, 568).slot).toBeGreaterThanOrEqual(22);
+    expect(fitGrid(12, 320, 568).slot).toBeGreaterThanOrEqual(19);
     const g = fitGrid(7, 390, 844);
     expect(g.rows * g.cols - 7).toBeLessThanOrEqual(2); // and not a wasteful grid
   });
@@ -86,20 +86,22 @@ describe('fitGrid', () => {
 
 describe('speciesForLevel', () => {
   test('ramps, then caps so the board can always fit', () => {
-    expect(speciesForLevel(1)).toBe(5);
-    expect(speciesForLevel(3)).toBe(6);
-    expect(speciesForLevel(11)).toBe(MAX_SPECIES);
-    expect(speciesForLevel(500)).toBe(MAX_SPECIES); // was 52 — a 54-branch board
+    for (let level = 1; level <= 500; level++) expect(speciesForLevel(level)).toBeLessThanOrEqual(4);
+    expect(speciesForLevel(1, 52, 'hard')).toBe(5);
+    expect(speciesForLevel(3, 52, 'hard')).toBe(6);
+    expect(speciesForLevel(11, 52, 'hard')).toBe(MAX_SPECIES);
+    expect(speciesForLevel(500, 52, 'hard')).toBe(MAX_SPECIES); // was 52 — a 54-branch board
   });
 
   test('on an iPad, neighbouring branches get real air — never at the birds\' expense', () => {
     // Robert on the iPad: rows read as one tangle, heads brushing the perch above.
     expect(fitGrid(7, 820, 1180).rowGap).toBeGreaterThanOrEqual(10);
-    // Gaps only spend leftover room: bird size is what it was before gaps existed.
-    const before: [number, number, number, number][] = [
-      [820, 1180, 7, 92], [820, 1180, 9, 81], [1180, 820, 9, 89],
-      [390, 844, 5, 71], [390, 844, 7, 57], [375, 667, 5, 61],
-    ];
-    for (const [w, h, n, slot] of before) expect(fitGrid(n, w, h).slot).toBe(slot);
+    // The header and toolbar have their own reserved space. Easy boards keep
+    // readable birds; dense Hard boards trade size for fitting without overlap.
+    for (const [w, h] of Object.values(SCREENS)) {
+      const easy = fitGrid(6, w, h);
+      expect(easy.slot).toBeGreaterThanOrEqual(24);
+      expect((cellHeight(easy.slot) + easy.rowGap) * easy.rows + verticalChrome(h)).toBeLessThanOrEqual(h);
+    }
   });
 });
