@@ -5,7 +5,7 @@ import { Branch } from './Branch';
 import { Bird } from './Bird';
 import { COLLECTIONS, CollectionId } from './roster';
 import { isCleared, canMove, applyMove, isWon, Board } from './game';
-import { reducer, init, CAP } from './state';
+import { reducer, init, CAP, type Difficulty } from './state';
 import { fitPlayGrid, verticalChrome, isBranchVisible, hintScrollTarget, marginFor, handFor, perchWidth } from './layout';
 import { loadGame, saveGame, loadLastCollection, saveLastCollection } from './storage';
 import { initAudio, playSfx } from './audio';
@@ -291,7 +291,7 @@ export default function App() {
   const n = s.board.length;
   // Pick the grid first, then size to it. Sizing off `boardW / n` assumed one
   // row of n branches, which stopped being true as soon as the board wrapped.
-  const { slot, boardW, touchMin, rowGap, colGap, scroll } = fitPlayGrid(n, width, height, CAP, boardViewport || undefined);
+  const { slot, boardW, touchMin, rowGap, colGap, scroll } = fitPlayGrid(n, width, height, CAP, boardViewport || undefined, collection === 'fish' && s.difficulty !== 'easy' ? 40 : 32);
   const slotH = slot * 0.96;
   const perchW = perchWidth(slot, CAP);
   const birdScale = slot / 48;
@@ -325,7 +325,7 @@ export default function App() {
       <View style={[styles.heading, height < 500 && { paddingTop: 0 }]}>
         <Text style={styles.eyebrow}>{isFish ? 'THE LITTLE REEF' : 'THE LITTLE GROVE'}</Text>
         <Text style={[styles.title, height < 500 && { fontSize: 23 }]}>{isFish ? 'Fish' : 'Bird'} Sort</Text>
-        <Text style={styles.progress}>Level {s.level} · {s.difficulty === 'hard' ? 'Hard' : 'Easy'} · {clearedCount(s.board)}/{new Set(s.board.flat()).size} groups together</Text>
+        <Text style={styles.progress}>Level {s.level} · {s.difficulty === 'hard' ? 'Hard' : s.difficulty === 'medium' ? 'Medium' : 'Easy'} · {clearedCount(s.board)}/{new Set(s.board.flat()).size} groups together</Text>
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel="Open discovery journal" onPress={() => setGallery(true)} style={{ minHeight: 44, justifyContent: 'center' }}>
         <Text style={{ color: '#617b47', fontWeight: '700' }}>★ {earned.length} discoveries · My journal</Text>
@@ -405,14 +405,15 @@ export default function App() {
         <ScrollView style={[StyleSheet.absoluteFill, { backgroundColor: '#274653' }]} contentContainerStyle={styles.menuOverlay}>
           <Text style={styles.menuTitle}>Menu</Text>
           <UpdateBanner />
-          <View style={styles.menuRow}>
-            <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'DIFFICULTY', difficulty: 'easy' }))}>
-              <Text style={styles.menuBtnText}>Easy {(s.difficulty ?? 'easy') === 'easy' ? '✓' : ''}</Text>
-            </Pressable>
-            <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'DIFFICULTY', difficulty: 'hard' }))}>
-              <Text style={styles.menuBtnText}>Hard {s.difficulty === 'hard' ? '✓' : ''}</Text>
-            </Pressable>
+          <View style={[styles.menuRow, { gap: 6, width: '100%', maxWidth: 360 }]}>
+            {(['easy', 'medium', 'hard'] as Difficulty[]).map(difficulty => <Pressable key={difficulty}
+              accessibilityRole="button" accessibilityState={{ selected: (s.difficulty ?? 'easy') === difficulty }}
+              style={[styles.modeBtn, (s.difficulty ?? 'easy') === difficulty && { backgroundColor: '#467454', borderColor: '#c8d6a7' }]}
+              onPress={() => guard(() => dispatch({ type: 'DIFFICULTY', difficulty }))}>
+              <Text style={[styles.menuBtnText, { fontSize: 15 }]}>{difficulty[0].toUpperCase() + difficulty.slice(1)}{(s.difficulty ?? 'easy') === difficulty ? ' ✓' : ''}</Text>
+            </Pressable>)}
           </View>
+          <Text style={[styles.menuSub, { textAlign: 'center' }]}>Easy stays gentle. Medium grows a little at a time. Hard is a bigger challenge.</Text>
           <Text style={styles.menuSub}>Changing difficulty starts a new board. Your choice is saved.</Text>
           <View style={styles.menuRow}>
             <Pressable disabled={s.level <= 1} style={[styles.menuBtn, s.level <= 1 && { opacity: .45 }]} onPress={() => guard(() => dispatch({ type: 'GOTO', level: s.level - 1 }))}>
@@ -537,6 +538,7 @@ const styles = StyleSheet.create({
   menuTitle: { color: '#fff', fontSize: 24, fontWeight: '800', marginBottom: 6 },
   menuRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   menuLevel: { color: '#fff', fontSize: 18, fontWeight: '700', minWidth: 90, textAlign: 'center' },
+  modeBtn: { flex: 1, minHeight: 56, borderRadius: 14, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#6a9bd8', backgroundColor: '#527fab' },
   menuBtn: { backgroundColor: '#6a9bd8', paddingVertical: 16, paddingHorizontal: 20, borderRadius: 14, minHeight: 56, justifyContent: 'center' },
   menuBtnWide: { backgroundColor: '#6a9bd8', paddingVertical: 18, paddingHorizontal: 28, borderRadius: 14, minWidth: 260, alignItems: 'center' },
   menuBtnText: { color: '#fff', fontWeight: '700', fontSize: 17 },

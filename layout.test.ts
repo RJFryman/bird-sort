@@ -137,3 +137,13 @@ test('fitted play rows include board padding inside the measured viewport',()=>{
     if(!grid.scroll)expect((cellHeight(grid.slot)+grid.rowGap)*grid.rows+40).toBeLessThanOrEqual(viewport);
   }
 });
+
+
+test('dense fish challenges can retain40px illustrations without pushing controls away',()=>{
+  for(const [w,h]of Object.values(SCREENS)){
+    const g=fitPlayGrid(12,w,h,CAP,h-verticalChrome(h),40);
+    expect(g.slot).toBeGreaterThanOrEqual(40);
+    expect(g.boardW).toBeLessThanOrEqual(Math.min(w,1000)-48);
+    expect(g.rows*g.cols).toBeGreaterThanOrEqual(12);
+  }
+});

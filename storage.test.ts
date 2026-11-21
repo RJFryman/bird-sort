@@ -307,3 +307,13 @@ test('damaged board still retains trustworthy unlock progress even without a bac
   expect(recovered!.maxLevel).toBe(24);
   expect(recovered!.board.flat().length).toBeGreaterThan(0);
 });
+
+
+test('Medium survives save reload with its exact deal and starting board',async()=>{
+  const state=fullState(mid,{difficulty:'medium',initialBoard:mid});
+  await saveGame(state);
+  const resumed=await loadGame('birds');
+  expect(resumed!.difficulty).toBe('medium');
+  expect(resumed!.board).toEqual(mid);
+  expect(resumed!.initialBoard).toEqual(mid);
+});

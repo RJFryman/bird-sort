@@ -128,3 +128,9 @@ test('Hard-size lookalike pairs from the independent review are excluded',()=>{
   for(const [a,b,c] of [["Hahn's Macaw",'Rainbow Lorikeet','birds'],['Kea','Military Macaw','birds'],['Parakeet','Lovebird','birds'],['Rainbow Trout','Sturgeon','fish']] as const)
     expect(speciesConflict(index(a,c),index(b,c),c)).toBe(true);
 });
+
+
+test('reviewed green-parrot and open-water blue lookalikes cannot share new deals',()=>{
+  for(const [a,b,c]of [['Lovebird','Amazon','birds'],['Macaw','Lovebird','birds'],['Atlantic Bluefin Tuna','Sailfish','fish'],['Flying Fish','Neon Tetra','fish'],['Flying Fish','Guppy','fish']]as const)
+    expect(speciesConflict(index(a,c),index(b,c),c)).toBe(true);
+});

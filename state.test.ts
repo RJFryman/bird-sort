@@ -143,7 +143,7 @@ test('init retains its exact level-start board through moves, undo, and Restart'
 });
 
 test('reselecting the active difficulty preserves the exact state and current attempt', () => {
-  for (const difficulty of ['easy', 'hard'] as const) {
+  for (const difficulty of ['easy', 'medium', 'hard'] as const) {
     const s = init(1, 12, 'fish', difficulty);
     expect(reducer(s, { type: 'DIFFICULTY', difficulty })).toBe(s);
   }
@@ -158,4 +158,15 @@ test('a legacy resumed solved board without its original deal gets a playable fr
   expect(restarted.board).not.toEqual(s.board);
   expect(restarted.initialBoard).toBe(restarted.board);
   expect(restarted.maxLevel).toBe(20);
+});
+
+
+test('Medium offers a gradual middle rung without changing Easy',()=>{
+  expect([1,5,9,13].map(level=>speciesForLevel(level,52,'medium'))).toEqual([4,5,6,6]);
+  expect(speciesForLevel(12,52,'medium')).toBe(5);
+  expect(speciesForLevel(99,52,'easy')).toBeLessThanOrEqual(4);
+  const state=init(5,9,'fish','medium');
+  expect(new Set(state.board.flat()).size).toBe(5);
+  expect(reducer(state,{type:'NEXT'}).difficulty).toBe('medium');
+  expect(reducer(state,{type:'DIFFICULTY',difficulty:'medium'})).toBe(state);
 });

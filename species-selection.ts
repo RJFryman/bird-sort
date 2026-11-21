@@ -19,6 +19,7 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     ['Kea', 'Kakapo', 'Military Macaw'],
     ["Hahn's Macaw", 'Rainbow Lorikeet'],
     ['Parakeet', 'Lovebird', 'Budgie'],
+    ['Lovebird', 'Amazon', 'Macaw'],
     ['Canary', 'Goldfinch'],
     ['Dove', 'Seagull', 'Swan', 'Pelican', 'Cockatoo'],
     ['Galah', 'Flamingo', 'Eclectus Female'],
@@ -34,6 +35,8 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     ['Manta Ray', 'Spotted Eagle Ray'],
     ['Rainbow Trout', 'Sturgeon', 'Hammerhead Shark'],
     ['Blue Tang', 'Royal Blue Discus'],
+    ['Atlantic Bluefin Tuna', 'Sailfish'],
+    ['Flying Fish', 'Guppy', 'Neon Tetra'],
   ],
 };
 

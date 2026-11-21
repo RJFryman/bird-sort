@@ -86,3 +86,14 @@ test('stretch levels offer more sorting effort than the introductory boards', ()
   expect(effort(4)).toBeGreaterThan(effort(1));
   expect(effort(5)).toBeLessThan(effort(4));
 });
+
+
+test('Medium stays solvable at each middle-rung milestone and breather',()=>{
+  for(const level of [1,5,9,12,30])for(let seed=1;seed<=20;seed++){
+    const count=speciesForLevel(level,52,'medium');
+    const b=generateGentleLevel(count,CAP,EXTRA,scrambleForLevel(level,'medium'),seeded(seed));
+    expect(isWon(b,CAP)).toBe(false);
+    expect(isSolvable(b,CAP)).toBe(true);
+    expect(new Set(b.flat()).size).toBe(count);
+  }
+});

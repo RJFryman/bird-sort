@@ -27,7 +27,7 @@ flowchart LR
 | `roster.ts` | Stable bird/fish indices and species definitions |
 | `Bird.tsx` | Creature dimensions, animation and illustration dispatch |
 | `FishArt.tsx`, `ReefFishArt.tsx`, `OpenWaterFishArt.tsx`, `ReefPerch.tsx` |32 stable fish silhouettes, reef/open-water groups and reef ledges |
-| `fish-knowledge.ts` | Short primary-sourced facts for every real fish |
+| `bird-knowledge.ts`, `fish-knowledge.ts` | Short primary-sourced discoveries for all52birds and32fish, fantasy entries explicitly identified |
 | `Habitat.tsx` | Quiet grove scenery and underwater reef atmosphere |
 | `audio.ts`, `cardinal-recording.ts` | Procedural feedback and credited CC0 cardinal song |
 | `ParrotArt.tsx` | Parrot and cockatoo silhouettes and markings |
@@ -76,3 +76,10 @@ Scrollable coaching measures branch rows and the board viewport. Explicit Hint
 requests center the source, then the destination after selection; repeating Hint
 recenters after manual scrolling. Hand cues render only when their complete row
 is visible, so off-screen cues cannot impersonate another row.
+
+Medium is an optional middle rung:4→5→6species with breathers and bounded
+reversible scrambles. Easy is unchanged. Difficulty remains a v2 save fact, now
+accepting Medium alongside existing Easy/Hard; legacy saves keep their boards.
+Dense fish challenges use40px minimum slots and scroll-aware hints. When changed
+SVG geometry invalidates earlier coloring, the next write retains the earlier
+paint record at the per-species `:previous` key before replacing it.

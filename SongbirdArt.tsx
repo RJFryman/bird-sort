@@ -35,14 +35,14 @@ export function SongbirdArt({ bird }: { bird: BirdDef }) {
         <Path d="M45 69Q58 75 68 65Q62 78 48 77L38 73Z" fill="#fff4dd" stroke="none" />
         <Path d="m73 31 13 5-14 5Z" fill="#4c5660" />
         <Path d="M30 44Q44 39 54 50Q55 60 30 70Q23 61 26 51Q27 46 30 44Z" fill="#2564ac" />
-        <Path d="M32 49q9-3 15 4m-12 3 10 3m-12 5 8-3" fill="none" stroke="#83bdf0" strokeWidth={1.7} />
+        <Path d="M31 50Q40 48 46 54M33 61L43 59" fill="none" stroke="#83bdf0" strokeWidth={1.7} />
         {eye(64, 31)}
       </>;
       break;
     case 'Canary':
       art = <>
         <Path d="m34 58-16 9 5 9 23-11Z" fill="#d9b43d" />
-        {feet(45, '#bc8a5e')}
+        <Path d="M46 74L44 84L39 86M44 84L49 86M57 73L60 79L65 79L64 82" fill="none" stroke="#bc8a5e" strokeWidth={2.6} />
         <Path d="M29 47Q34 41 45 41Q43 27 55 22Q69 17 75 29Q79 37 72 45Q77 60 65 72Q52 82 38 74Q24 69 25 57Q25 51 29 47Z" fill="#f4d64d" />
         <Path d="M60 47Q71 47 69 61Q65 73 53 75Q60 63 56 53Z" fill="#fff0a1" stroke="none" />
         <Path d="m75 29 10 4-10 6Z" fill="#e6a26a" />
@@ -56,14 +56,13 @@ export function SongbirdArt({ bird }: { bird: BirdDef }) {
       art = <>
         <Path d="M34 53 7 69 13 76 40 67Z" fill="#303642" />
         <Path d="m14 70 16-9" fill="none" stroke="#646c7c" />
-        {feet(47, '#535963')}
+        <Path d="M46 74L44 83L38 86M44 83L50 86M60 74L63 83L69 85M63 83L58 86" fill="none" stroke="#535963" strokeWidth={2.8} />
         <Path d="M23 46Q31 37 43 38Q40 27 51 21Q64 15 73 25L76 40Q82 53 72 66Q61 78 42 76Q23 74 20 61Q18 53 23 46Z" fill="#343c49" />
         <Path d="M73 27Q83 26 90 37L76 40 71 34Z" fill="#454b56" />
         <Path d="m77 36 10 1" fill="none" strokeWidth={1.4} />
         <Path d="M61 44Q78 46 72 62Q67 72 56 75L62 61Z" fill="#45515e" stroke="none" />
         <Path d="M28 43Q45 38 58 50Q59 62 29 70Q38 61 31 57Q23 51 28 43Z" fill="#262d39" />
-        <Path d="M31 48Q40 45 49 52M35 56l13 3m-16 6 12-4" fill="none" stroke="#657185" strokeWidth={1.7} />
-        <Path d="m46 38 4 5 4-2 3 6" fill="none" stroke="#657185" strokeWidth={1.5} />
+        <Path d="M30 49Q40 46 49 52M34 62L46 58" fill="none" stroke="#657185" strokeWidth={1.7} />
         <Path d="M48 27q7-5 14-3" fill="none" stroke="#717b8a" strokeWidth={2.1} />
         {eye(65, 31, 3.5)}
       </>;
@@ -96,7 +95,6 @@ export function SongbirdArt({ bird }: { bird: BirdDef }) {
         <Path d="m74 34 11 5-12 5Z" fill="#bd9971" />
         <Path d="M31 45Q44 43 52 54Q52 63 31 70Q25 61 28 51Q29 47 31 45Z" fill="#8e6848" />
         <Path d="m33 49 10 4m-8 3 10 4m-9 5 8-2" fill="none" stroke="#edcca1" strokeWidth={2.1} />
-        <Path d="m49 60 1 3m6-6 1 4m-7 7 1 2" fill="none" stroke="#a68a63" strokeWidth={1.5} />
         {eye(65, 36, 3.25)}
       </>;
       break;
@@ -169,8 +167,8 @@ export function SongbirdArt({ bird }: { bird: BirdDef }) {
         <Path d="m21 75 14-12" fill="none" stroke="#75ba9d" />
         <Path d="M35 45Q39 38 49 40Q49 30 58 29Q68 28 70 37Q72 43 65 48Q70 59 60 68Q47 76 36 67Q27 59 35 45Z" fill="#3ba58b" />
         <Path d="M60 45Q67 49 65 58Q60 69 48 70L44 63Q57 59 60 45Z" fill="#ecede0" stroke="none" />
-        <Path d="m62 44 6 2-5 13-8-4 1-8Z" fill="#c94161" stroke="none" />
-        <Path d="m59 48 3 2-2 5" fill="none" stroke="#f18491" strokeWidth={1.6} />
+        <Path d="M59 43Q64 47 68 44L65 56L58 61L53 55Z" fill="#c94161" stroke="none" />
+        <Path d="M58 48L62 50L60 55" fill="none" stroke="#f18491" strokeWidth={1.6} />
         <Path d="m70 37 20-1-20 4Z" fill="#45505b" strokeWidth={1.5} />
         <Path d="M43 49Q21 46 10 26Q28 27 51 45Q55 51 49 55Z" fill="#63b79f" />
         <Path d="M17 31q14 7 27 18m-20-9 19 12" fill="none" stroke="#b4d7c6" strokeWidth={1.6} />

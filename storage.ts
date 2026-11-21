@@ -63,7 +63,7 @@ export function deserialize(raw: string | null | undefined, collection: Collecti
   if (!Number.isSafeInteger(o.level) || !Number.isSafeInteger(o.maxLevel)) return null;
   if (!isBoard(o.board, collection)) return null;
   if (o.v === 1) return { v: 1, level: o.level, maxLevel: o.maxLevel, board: o.board };
-  if (o.difficulty !== 'easy' && o.difficulty !== 'hard') return null;
+  if (o.difficulty !== 'easy' && o.difficulty !== 'medium' && o.difficulty !== 'hard') return null;
   if (o.initialBoard !== null &&
     (!isBoard(o.initialBoard, collection) || !samePieces(o.board, o.initialBoard))) return null;
   return {

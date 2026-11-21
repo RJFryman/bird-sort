@@ -10,12 +10,16 @@ export const EXTRA = 2;
 
 // Easy stays small forever, with a breather after each stretch level.
 // Hard is opt-in; both the choice and the original deal survive reloads.
-export type Difficulty = 'easy' | 'hard';
+export type Difficulty = 'easy' | 'medium' | 'hard';
 export const MAX_SPECIES = 10;
 export const speciesForLevel = (l: number, rosterLen = COLLECTIONS.birds.length, difficulty: Difficulty = 'easy') =>
-  Math.min(difficulty === 'hard' ? 5 + Math.floor((l - 1) / 2) : l <= 3 ? 2 : l % 4 === 0 ? 4 : 3,
+  Math.min(difficulty === 'hard' ? 5 + Math.floor((l - 1) / 2)
+    : difficulty === 'medium' ? Math.max(4, Math.min(6, 4 + Math.floor((l - 1) / 4)) - (l % 4 === 0 ? 1 : 0))
+    : l <= 3 ? 2 : l % 4 === 0 ? 4 : 3,
     rosterLen, MAX_SPECIES);
-export const scrambleForLevel = (level: number) => level <= 3 ? 4 : level % 4 === 0 ? 12 : 7;
+export const scrambleForLevel = (level: number, difficulty: Difficulty = 'easy') =>
+  difficulty === 'medium' ? (level % 4 === 0 ? 10 : Math.min(20, 12 + Math.floor((level - 1) / 4) * 4))
+    : level <= 3 ? 4 : level % 4 === 0 ? 12 : 7;
 
 // pick `count` distinct random species indices from a roster of `rosterLen` (so
 // every level shows a different mix). Index-based — collection-agnostic.
@@ -51,7 +55,7 @@ export function init(level: number, maxLevel = level, collection: CollectionId =
   // generate with sequential ids 0..count-1, then remap to random roster indices
   const generated = difficulty === 'hard'
     ? generateLevel(count, CAP, EXTRA)
-    : generateGentleLevel(count, CAP, EXTRA, scrambleForLevel(level));
+    : generateGentleLevel(count, CAP, EXTRA, scrambleForLevel(level, difficulty));
   const board = generated.map((br) => br.map((id) => pick[id]));
   return {
     difficulty,

@@ -120,12 +120,15 @@ test('wrong species, unknown regions, invalid colors and non-object fills cannot
 test('queued saves snapshot input and a reopened page waits for the newest write', async () => {
   const outline = simple(), id = outline.regions[0];
   let release!: () => void;
+  let began!: () => void;
+  const started = new Promise<void>(resolve => { began = resolve; });
   const original = (AsyncStorage.setItem as jest.Mock).getMockImplementation()!;
   (AsyncStorage.setItem as jest.Mock).mockImplementationOnce((key, value) => new Promise<void>(resolve => {
     release = () => { original(key, value); resolve(); };
+    began();
   }));
   const first = saveColoring('birds', 0, outline, { [id]: red });
-  await Promise.resolve(); await Promise.resolve();
+  await started;
   const latest: Paint = { [id]: PALETTE[1].color };
   const second = saveColoring('birds', 0, outline, latest);
   latest[id] = red;
@@ -141,4 +144,15 @@ test('storage failures propagate for honest status and later writes recover', as
   await expect(saveColoring('birds', 0, outline, {})).resolves.toBeUndefined();
   (AsyncStorage.getItem as jest.Mock).mockRejectedValueOnce(new Error('blocked'));
   await expect(loadColoring('birds', 0, outline)).rejects.toThrow('blocked');
+});
+
+
+test('redesigned outlines retain earlier paint data before the first new save',async()=>{
+  const first=simple(), id=first.regions[0];
+  await saveColoring('birds',0,first,{[id]:red});
+  const raw=await AsyncStorage.getItem(coloringKey('birds',0));
+  const next={...first,signature:'new-outline'};
+  await saveColoring('birds',0,next,{[id]:PALETTE[1].color});
+  expect(await AsyncStorage.getItem(coloringKey('birds',0)+':previous')).toBe(raw);
+  expect(await loadColoring('birds',0,next)).toEqual({[id]:PALETTE[1].color});
 });

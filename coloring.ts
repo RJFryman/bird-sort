@@ -112,7 +112,17 @@ export async function loadColoring(collection: CollectionId, species: number, ou
 export async function saveColoring(collection: CollectionId, species: number, outline: Outline, fills: Paint): Promise<void> {
   const key = coloringKey(collection, species);
   const snapshot = JSON.stringify({ v: 1, collection, species, signature: outline.signature, fills });
-  const write = (pending.get(key) ?? Promise.resolve()).catch(() => {}).then(() => AsyncStorage.setItem(key, snapshot));
+  const write = (pending.get(key) ?? Promise.resolve()).catch(() => {}).then(async () => {
+    const previous = await AsyncStorage.getItem(key);
+    let data: any;
+    try { data = previous ? JSON.parse(previous) : null; } catch { data = null; }
+    // An art revision must not silently destroy the child's earlier paint data.
+    if (data?.v === 1 && data.collection === collection && data.species === species &&
+      typeof data.signature === 'string' && data.signature !== outline.signature && previous) {
+      await AsyncStorage.setItem(`${key}:previous`, previous);
+    }
+    await AsyncStorage.setItem(key, snapshot);
+  });
   pending.set(key, write);
   try { await write; } finally { if (pending.get(key) === write) pending.delete(key); }
 }
