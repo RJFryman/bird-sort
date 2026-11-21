@@ -33,11 +33,7 @@ export function isWon(board: Board, capacity: number): boolean {
   return board.every((b) => b.length === 0 || isCleared(b, capacity));
 }
 
-// Exhaustive solvability check. Depth-first over every legal move, with a
-// visited set keyed on the board's canonical form — branch order is irrelevant,
-// so sorting the branches collapses most of the search tree. Boards top out at
-// 10 species x 4 birds in 12 branches, small enough that this returns in well
-// under a millisecond.
+// Canonical branch order collapses equivalent positions during solver search.
 const canonical = (b: Board) => b.map((br) => br.join(',')).sort().join('|');
 
 export function isSolvable(board: Board, capacity: number): boolean {
@@ -61,17 +57,9 @@ export function isSolvable(board: Board, capacity: number): boolean {
   return walk(board.map((br) => br.slice()));
 }
 
-// Build a solved board and shuffle it, then keep the result only if it can
-// actually be finished.
-//
-// The shuffle moves single birds between branches ignoring colour, which is NOT
-// the reverse of a legal move — it can and does land on dead boards (measured
-// 0.5% at level 1, up to 6% at level 15). A kid can't tell "I'm stuck" from
-// "this one was never winnable", so the board is solver-checked before it ships.
-// Rejection sampling rather than a correct reverse-walk: the check costs well
-// under a millisecond and the shuffle already produces good boards 94%+ of the
-// time, so the loop almost never runs twice.
-// rng injectable for deterministic tests.
+// Hard-mode random shuffle: colour-ignoring moves need solver validation.
+// Retry exhaustion falls back to a proven reversible scramble, never to a
+// rejected board. rng is injectable for reproducible tests.
 export function generateLevel(
   species: number,
   capacity: number,
@@ -98,5 +86,44 @@ export function generateLevel(
   let b = build();
   let guard = 0;
   while ((isWon(b, capacity) || !isSolvable(b, capacity)) && guard++ < 50) b = build();
+  // Never return the last rejected candidate when random retries run out.
+  if (isWon(b, capacity) || !isSolvable(b, capacity)) {
+    return generateGentleLevel(species, capacity, extra, 6, rng);
+  }
   return b;
+}
+
+
+// Reverse only moves that the real rules can undo exactly. Each accepted step
+// prepends a legal move to a solution, so scrambleSteps bounds winning effort.
+// Cleared branches are locked in play; testing the inverse includes that rule.
+export function generateGentleLevel(
+  species: number,
+  capacity: number,
+  extra: number,
+  scrambleSteps: number,
+  rng: () => number = Math.random,
+): Board {
+  let board: Board = Array.from({ length: species }, (_, id) => Array(capacity).fill(id));
+  board.push(...Array.from({ length: extra }, () => []));
+  const seen = new Set([canonical(board)]);
+  for (let step = 0; step < scrambleSteps; step++) {
+    const candidates: Board[] = [];
+    for (let from = 0; from < board.length; from++) {
+      for (let to = 0; to < board.length; to++) {
+        if (from === to) continue;
+        for (let n = 1; n <= Math.min(topGroup(board[from]), capacity - board[to].length); n++) {
+          const next = board.map((br) => br.slice());
+          next[to].push(...next[from].splice(-n));
+          if (seen.has(canonical(next)) || !canMove(next, to, from, capacity)) continue;
+          if (JSON.stringify(applyMove(next, to, from, capacity)) !== JSON.stringify(board)) continue;
+          candidates.push(next);
+        }
+      }
+    }
+    if (!candidates.length) break;
+    board = candidates[Math.floor(rng() * candidates.length)];
+    seen.add(canonical(board));
+  }
+  return board;
 }

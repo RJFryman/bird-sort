@@ -1,25 +1,20 @@
 // Pure game-state layer: reducer + level setup, no React, no storage, no UI.
 // Owned by the reliability track. This is the STABLE public API the UI (App.tsx)
 // and persistence (storage.ts) build on — keep signatures steady.
-import { generateLevel, canMove, applyMove, isWon, isCleared, Board } from './game';
+import { generateLevel, generateGentleLevel, canMove, applyMove, isWon, isCleared, Board } from './game';
 import { COLLECTIONS, CollectionId } from './roster';
 
 export const CAP = 4;
 export const EXTRA = 2;
 
-/**
- * Most branches a board may ever have is MAX_SPECIES + EXTRA = 12. Above that
- * the birds have to shrink past the point a toddler can tell them apart on a
- * phone, and the board stops fitting on screen at all. Difficulty past level 12
- * comes from the shuffle, not from more branches — `pickBirds` still draws a
- * different mix from the full 52-bird roster every level, so variety is intact.
- */
+// Easy stays small forever, with a breather after each stretch level.
+// Hard is opt-in for this session; saves intentionally keep their existing shape.
+export type Difficulty = 'easy' | 'hard';
 export const MAX_SPECIES = 10;
-
-// Level ramp is relative to whichever collection is active (roster length is the
-// species cap). Defaults to the birds count so old call sites keep working.
-export const speciesForLevel = (l: number, rosterLen = COLLECTIONS.birds.length) =>
-  Math.min(5 + Math.floor((l - 1) / 2), rosterLen, MAX_SPECIES);
+export const speciesForLevel = (l: number, rosterLen = COLLECTIONS.birds.length, difficulty: Difficulty = 'easy') =>
+  Math.min(difficulty === 'hard' ? 5 + Math.floor((l - 1) / 2) : l <= 3 ? 2 : l % 4 === 0 ? 4 : 3,
+    rosterLen, MAX_SPECIES);
+export const scrambleForLevel = (level: number) => level <= 3 ? 4 : level % 4 === 0 ? 12 : 7;
 
 // pick `count` distinct random species indices from a roster of `rosterLen` (so
 // every level shows a different mix). Index-based — collection-agnostic.
@@ -37,6 +32,7 @@ export function pickBirds(
 }
 
 export type State = {
+  difficulty?: Difficulty; // absent on legacy saves means easy progression
   level: number;
   maxLevel: number; // highest level ever reached -> unlocks
   collection: CollectionId; // which collection this game is playing
@@ -46,13 +42,17 @@ export type State = {
   won: boolean;
 };
 
-export function init(level: number, maxLevel = level, collection: CollectionId = 'birds'): State {
+export function init(level: number, maxLevel = level, collection: CollectionId = 'birds', difficulty: Difficulty = 'easy'): State {
   const rosterLen = COLLECTIONS[collection].length;
-  const count = speciesForLevel(level, rosterLen);
+  const count = speciesForLevel(level, rosterLen, difficulty);
   const pick = pickBirds(count, rosterLen);
   // generate with sequential ids 0..count-1, then remap to random roster indices
-  const board = generateLevel(count, CAP, EXTRA).map((br) => br.map((id) => pick[id]));
+  const generated = difficulty === 'hard'
+    ? generateLevel(count, CAP, EXTRA)
+    : generateGentleLevel(count, CAP, EXTRA, scrambleForLevel(level));
+  const board = generated.map((br) => br.map((id) => pick[id]));
   return {
+    difficulty,
     level,
     maxLevel: Math.max(maxLevel, level),
     collection,
@@ -68,6 +68,7 @@ export type Action =
   | { type: 'UNDO' }
   | { type: 'RESTART' }
   | { type: 'NEXT' }
+  | { type: 'DIFFICULTY'; difficulty: Difficulty }
   | { type: 'GOTO'; level: number }
   | { type: 'RESTORE'; state: State };
 
@@ -104,9 +105,11 @@ export function reducer(s: State, a: Action): State {
       };
     case 'RESTART':
       return { ...s, board: s.history[0] ?? s.board, history: [], selected: null, won: false };
+    case 'DIFFICULTY':
+      return init(s.level, s.maxLevel, s.collection, a.difficulty);
     case 'NEXT':
-      return init(s.level + 1, s.maxLevel, s.collection);
+      return init(s.level + 1, s.maxLevel, s.collection, s.difficulty);
     case 'GOTO':
-      return init(Math.max(1, a.level), s.maxLevel, s.collection);
+      return init(Math.max(1, a.level), s.maxLevel, s.collection, s.difficulty);
   }
 }
