@@ -3,6 +3,9 @@ const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
 
+// app.json disables runtime tsconfig aliases: those paths locate declarations
+// for the linked package; runtime modules resolve from this app below.
+
 // @harmony/feedback is symlinked in from the harmony repo and has its own
 // node_modules (it needs react installed to typecheck itself). Without this,
 // Metro bundles that second copy of React and every hook in the module throws

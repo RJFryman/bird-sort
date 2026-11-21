@@ -28,6 +28,12 @@ npm test           # pure game logic (game.test.ts)
 | `Branch.tsx` | One branch row, tap to select/move. |
 | `App.tsx` | `useReducer` game state, history (undo), chrome, win overlay. |
 
+## Architecture and artwork
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the code map. To inspect every current
+bird at large and game size, run `node scripts/render-bird-gallery.cjs`; it writes
+an offline contact sheet to `/tmp/bird-sort-art/gallery.html`.
+
 ## Add a bird
 
 Append one row to `ROSTER` in `roster.ts`:
@@ -36,5 +42,6 @@ Append one row to `ROSTER` in `roster.ts`:
 { name: 'Puffin', color: '#222831' },
 ```
 
-Levels scale species count automatically. Distinct silhouettes per species can
-be added later by branching on `species` in `Bird.tsx`.
+Append a matching illustration in the appropriate `*Art.tsx` family. Existing
+roster positions are persisted save data: never reorder or remove them. Easy
+progression stays small; Hard is an explicit choice in the game menu.

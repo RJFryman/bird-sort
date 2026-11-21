@@ -22,7 +22,8 @@
       "favicon": "./assets/favicon.png"
     },
     "experiments": {
-      "baseUrl": ""
+      "baseUrl": "",
+      "tsconfigPaths": false
     },
     "plugins": [
       "expo-audio"
