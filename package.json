@@ -28,7 +28,7 @@
     "web": "expo start --web",
     "test": "jest",
     "build": "expo export -p web && node scripts/stamp-version.mjs",
-    "deploy": "npm run build && wrangler pages deploy dist --project-name bird-sort --branch main"
+    "deploy": "npm run build && node scripts/deploy-pages.mjs"
   },
   "jest": {
     "preset": "jest-expo",

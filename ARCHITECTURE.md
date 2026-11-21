@@ -1,7 +1,7 @@
 # Bird Sort
 
 A small Expo/React Native sorting puzzle for birds and fish. The web build is a
-static site. Run `npm ci`, `npm run web`; verify with `npm test -- --runInBand`
+static site at https://rjfryman.github.io/bird-sort/, served from `gh-pages`. Run `npm ci`, `npm run web`; verify with `npm test -- --runInBand`
 and `npx tsc --noEmit`; produce the web release with `npm run build`.
 
 ```mermaid
@@ -38,4 +38,7 @@ second hand-maintained copy of the art.
 
 The shared feedback package is consumed through its existing package contract.
 No credentials belong in the frontend. Keep release operations separate from
-art generation; deployment must use the configured host and correct base path.
+art generation. `npm run deploy` builds with `/bird-sort/` asset paths and runs
+`scripts/deploy-pages.mjs`, which publishes only the static export to the existing
+`gh-pages` branch. It never switches the source checkout. Update checks use an
+app-relative version URL so the project prefix is preserved.

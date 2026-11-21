@@ -15,7 +15,8 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 // Reusable: web-guarded, SSR-safe, no app-specific logic beyond palette styling.
 // Drop <UpdateBanner /> once near the root of any Pages app.
 
-const VERSION_URL = '/version.json';
+// Relative to the app directory so GitHub Pages' /bird-sort/ prefix is retained.
+const VERSION_URL = './version.json';
 const CHECK_INTERVAL_MS = 150_000; // ~2.5 min
 
 const isWeb =
