@@ -1,111 +1,146 @@
-// Persistence layer. Owns the save-key and the on-disk shape. Defensive by
-// design: a corrupt/partial/old blob must NEVER throw and NEVER pretend the
-// child's progress "just isn't there" beyond what's truly unrecoverable.
-//
-// Root cause of the progress-loss bug this fixes:
-//  1. The old code stored the WHOLE reducer state (incl. transient `won`,
-//     `selected`, and an unbounded `history`). On reload it forced `won:false`
-//     but kept the *solved* board -> no win overlay, no Next button -> a
-//     dead-ended, "started over"-feeling board.
-//  2. A partial write (tab closed mid-save) left invalid JSON; the loader's
-//     catch swallowed it and silently reset to level 1.
-//
-// Fix: persist only the resumable facts (level, maxLevel, board). Rebuild the
-// transient bits on resume, RECOMPUTING `won` from the board so a saved win
-// resumes to the celebration, not a dead board.
+// Persistence owns versioned resumable saves and a last-good backup per collection.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Board, isWon } from './game';
-import { State, CAP } from './state';
-import { CollectionId } from './roster';
+import { State, CAP, EXTRA, Difficulty, init } from './state';
+import { CollectionId, COLLECTIONS } from './roster';
 
-// Base key. Each collection gets its own slot (`${SAVE_KEY}:birds` / `:fish`) so
-// birds and fish progress never clobber each other. The bare SAVE_KEY is the
-// pre-Fish-Mode save — still read once for birds so no child loses progress.
+// Keep the existing keys: changing the payload version must not strand progress.
 export const SAVE_KEY = 'bird-sort-save-v1';
 export const saveKey = (c: CollectionId) => `${SAVE_KEY}:${c}`;
+export const backupKey = (c: CollectionId) => `${saveKey(c)}:backup`;
 
-// Only the facts needed to resume. Versioned so future shape changes are safe.
-export type SaveData = {
-  v: 1;
+type LegacySave = { v: 1; level: number; maxLevel: number; board: Board };
+type CurrentSave = {
+  v: 2;
   level: number;
   maxLevel: number;
   board: Board;
+  initialBoard: Board | null;
+  difficulty: Difficulty;
 };
+export type SaveData = LegacySave | CurrentSave;
+type PersistableState = Pick<State, 'level' | 'maxLevel' | 'board'> &
+  Partial<Pick<State, 'difficulty' | 'initialBoard'>>;
 
-/** Reduce full game state down to the persistable facts. */
-export function toSave(s: Pick<State, 'level' | 'maxLevel' | 'board'>): SaveData {
-  return { v: 1, level: s.level, maxLevel: s.maxLevel, board: s.board };
-}
+const inferDifficulty = (board: Board): Difficulty =>
+  new Set(board.flat()).size > 4 ? 'hard' : 'easy';
 
-/** Serialize for storage. */
-export function serialize(s: Pick<State, 'level' | 'maxLevel' | 'board'>): string {
-  return JSON.stringify(toSave(s));
-}
-
-/** True if x is a well-formed board (array of arrays of numbers). */
-function isBoard(x: unknown): x is Board {
-  return (
-    Array.isArray(x) &&
-    x.every((br) => Array.isArray(br) && br.every((c) => typeof c === 'number'))
-  );
-}
-
-/**
- * Parse a stored blob into SaveData, or null if missing/corrupt/unknown-version.
- * NEVER throws — bad data degrades to "no save", not a crash.
- */
-export function deserialize(raw: string | null | undefined): SaveData | null {
-  if (!raw) return null;
-  let o: any;
-  try {
-    o = JSON.parse(raw);
-  } catch {
-    return null; // partial/corrupt write
-  }
-  if (!o || o.v !== 1) return null;
-  if (typeof o.level !== 'number' || typeof o.maxLevel !== 'number') return null;
-  if (!isBoard(o.board)) return null;
-  return { v: 1, level: o.level, maxLevel: o.maxLevel, board: o.board };
-}
-
-/**
- * Rebuild resumable game state from a save. Transient fields are reconstructed;
- * `won` is RECOMPUTED from the board so a saved win resumes to the win overlay
- * (the dead-end-board fix). Returns null if the save is unusable.
- */
-export function toResumeState(save: SaveData | null, collection: CollectionId = 'birds'): State | null {
-  if (!save) return null;
+/** Only resumable facts belong on disk; null honestly marks an unknown old deal. */
+export function toSave(s: PersistableState): CurrentSave {
   return {
-    level: Math.max(1, save.level),
-    maxLevel: Math.max(save.maxLevel, save.level, 1),
-    collection,
-    board: save.board,
-    history: [],
-    selected: null,
-    won: isWon(save.board, CAP),
+    v: 2, level: s.level, maxLevel: Math.max(s.maxLevel, s.level, 1), board: s.board,
+    initialBoard: s.initialBoard ?? null,
+    difficulty: s.difficulty ?? inferDifficulty(s.board),
   };
 }
 
-/** Load + rebuild resume state for a collection. Never throws. */
-export async function loadGame(collection: CollectionId = 'birds'): Promise<State | null> {
-  try {
-    let raw = await AsyncStorage.getItem(saveKey(collection));
-    // migrate the pre-Fish-Mode single save into the birds slot (once)
-    if (raw == null && collection === 'birds') raw = await AsyncStorage.getItem(SAVE_KEY);
-    return toResumeState(deserialize(raw), collection);
-  } catch (e) {
-    console.warn('[storage] load failed:', (e as Error)?.message ?? e);
-    return null;
-  }
+export function serialize(s: PersistableState): string {
+  return JSON.stringify(toSave(s));
 }
 
-/** Persist the resumable facts under the game's collection slot. Never throws. */
-export async function saveGame(s: Pick<State, 'level' | 'maxLevel' | 'board' | 'collection'>): Promise<void> {
-  try {
-    await AsyncStorage.setItem(saveKey(s.collection), serialize(s));
-  } catch (e) {
-    console.warn('[storage] save failed:', (e as Error)?.message ?? e);
-  }
+function parse(raw: string | null | undefined): any {
+  try { return raw ? JSON.parse(raw) : null; } catch { return null; }
+}
+
+function isBoard(x: unknown, collection: CollectionId): x is Board {
+  const rosterLen = COLLECTIONS[collection].length;
+  return Array.isArray(x) && x.length >= 2 && x.length <= rosterLen + EXTRA &&
+    x.every(br => Array.isArray(br) && br.length <= CAP &&
+      br.every(id => Number.isSafeInteger(id) && id >= 0 && id < rosterLen)) &&
+    x.some(br => br.length > 0);
+}
+
+function samePieces(a: Board, b: Board): boolean {
+  if (a.length !== b.length) return false;
+  const pieces = (board: Board) => board.flat().sort((x, y) => x - y);
+  return JSON.stringify(pieces(a)) === JSON.stringify(pieces(b));
+}
+
+/** Read both supported versions without mutating the saved board or roster IDs. */
+export function deserialize(raw: string | null | undefined, collection: CollectionId = 'birds'): SaveData | null {
+  const o = parse(raw);
+  if (!o || (o.v !== 1 && o.v !== 2)) return null;
+  if (!Number.isSafeInteger(o.level) || !Number.isSafeInteger(o.maxLevel)) return null;
+  if (!isBoard(o.board, collection)) return null;
+  if (o.v === 1) return { v: 1, level: o.level, maxLevel: o.maxLevel, board: o.board };
+  if (o.difficulty !== 'easy' && o.difficulty !== 'hard') return null;
+  if (o.initialBoard !== null &&
+    (!isBoard(o.initialBoard, collection) || !samePieces(o.board, o.initialBoard))) return null;
+  return {
+    v: 2, level: o.level, maxLevel: o.maxLevel, board: o.board,
+    initialBoard: o.initialBoard, difficulty: o.difficulty,
+  };
+}
+
+/** Transient fields are rebuilt, including won, even when resuming a solved save. */
+export function toResumeState(save: SaveData | null, collection: CollectionId = 'birds'): State | null {
+  // Keep this public boundary defensive too; callers may supply parsed objects.
+  const valid = save && deserialize(JSON.stringify(save), collection);
+  if (!valid) return null;
+  return {
+    level: Math.max(1, valid.level), maxLevel: Math.max(valid.maxLevel, valid.level, 1),
+    collection, board: valid.board,
+    initialBoard: valid.v === 2 ? valid.initialBoard ?? undefined : undefined,
+    difficulty: valid.v === 2 ? valid.difficulty : inferDifficulty(valid.board),
+    history: [], selected: null, won: isWon(valid.board, CAP),
+  };
+}
+
+// A damaged board can still retain trustworthy unlock metadata. Never use a
+// partial JSON fragment or an unsupported version as a source of progress.
+function savedMax(raw: string | null): number {
+  const o = parse(raw);
+  if (!o || (o.v !== 1 && o.v !== 2)) return 1;
+  return Math.max(1, Number.isSafeInteger(o.maxLevel) ? o.maxLevel : 1,
+    Number.isSafeInteger(o.level) ? o.level : 1);
+}
+
+async function readSaves(collection: CollectionId): Promise<(string | null)[]> {
+  return Promise.all([saveKey(collection), backupKey(collection),
+    ...(collection === 'birds' ? [SAVE_KEY] : [])].map(async key => {
+    try { return await AsyncStorage.getItem(key); } catch { return null; }
+  }));
+}
+
+/** Primary first, then last-good backup, then the pre-collection birds save. */
+export async function loadGame(collection: CollectionId = 'birds'): Promise<State | null> {
+  // A collection switch/reload in this process sees all already-requested saves.
+  await pendingSaves[collection];
+  const raws = await readSaves(collection);
+  const save = raws.map(raw => deserialize(raw, collection)).find(Boolean) ?? null;
+  const resumed = toResumeState(save, collection);
+  const recoveredMax = Math.max(1, ...raws.map(savedMax));
+  if (resumed) return { ...resumed, maxLevel: Math.max(resumed.maxLevel, recoveredMax) };
+  // If a board is lost but its versioned unlock metadata survives, retain it.
+  return recoveredMax > 1 ? init(1, recoveredMax, collection) : null;
+}
+
+const pendingSaves: Partial<Record<CollectionId, Promise<void>>> = {};
+
+/** Snapshot immediately and serialize writes so an older save cannot finish last. */
+export async function saveGame(s: PersistableState & Pick<State, 'collection'>): Promise<void> {
+  const collection = s.collection;
+  const snapshot = serialize(s);
+  const write = async () => {
+    try {
+      const next = deserialize(snapshot, collection);
+      if (!next) return; // Never replace a good save with invalid runtime state.
+      const raws = await readSaves(collection);
+      const maxLevel = Math.max(next.maxLevel, next.level, ...raws.map(savedMax));
+      const previous = raws.map(raw => deserialize(raw, collection)).find(Boolean);
+      // Write a recoverable board BEFORE risking the primary. On first save the
+      // new snapshot is also the backup; later writes retain the previous board.
+      const backup = previous ?? next;
+      await AsyncStorage.setItem(backupKey(collection), JSON.stringify({ ...backup, maxLevel }));
+      await AsyncStorage.setItem(saveKey(collection), JSON.stringify({ ...next, maxLevel }));
+    } catch (e) {
+      console.warn('[storage] save failed:', (e as Error)?.message ?? e);
+    }
+  };
+  const pending = (pendingSaves[collection] ?? Promise.resolve()).then(write);
+  pendingSaves[collection] = pending;
+  await pending;
+  if (pendingSaves[collection] === pending) delete pendingSaves[collection];
 }
 
 // --- Last-played collection, so we open straight into it (spec §5 "<=1 tap to
@@ -126,28 +161,5 @@ export async function saveLastCollection(c: CollectionId): Promise<void> {
     await AsyncStorage.setItem(LAST_KEY, c);
   } catch {
     /* non-critical */
-  }
-}
-
-// --- Parent-gate setting (Robert's ask: a SETTING, default OFF, name-gated). ---
-// Kept here because storage.ts owns on-disk keys. Single boolean, own key so it
-// can't corrupt or be corrupted by the game save. Never throws.
-export const GATE_KEY = 'bird-sort-gate-v1';
-
-/** Is the "ask a grown-up first" gate enabled? Default OFF (Robert's ask). */
-export async function loadGateOn(): Promise<boolean> {
-  try {
-    return (await AsyncStorage.getItem(GATE_KEY)) === '1';
-  } catch {
-    return false;
-  }
-}
-
-/** Persist the gate on/off setting. Never throws. */
-export async function saveGateOn(on: boolean): Promise<void> {
-  try {
-    await AsyncStorage.setItem(GATE_KEY, on ? '1' : '0');
-  } catch {
-    /* setting is non-critical; ignore write failure */
   }
 }

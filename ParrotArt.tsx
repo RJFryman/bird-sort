@@ -32,37 +32,63 @@ const macaws: Record<string, MacawColors> = {
   'Military Macaw': { body: '#76964c', breast: '#a4b764', wing: '#537c4d', flights: '#398899', tail: '#527e87' },
   'Hyacinth Macaw': { body: '#5062be', breast: '#6579d0', wing: '#3e4c9f', flights: '#354786', tail: '#3f4b98' },
   'Blue-throated Macaw': { body: '#32a4c3', breast: '#f9ca51', wing: '#348bab', flights: '#326c9c', tail: '#2f87a7' },
-  "Hahn's Macaw": { body: '#50aa65', breast: '#83bd75', wing: '#38885e', flights: '#34817e', tail: '#30745b', head: '#45878e' },
 };
 
 function Macaw({ name }: { name: string }) {
-  const c = macaws[name], hyacinth = name === 'Hyacinth Macaw', hahn = name === "Hahn's Macaw";
+  const c = macaws[name], hyacinth = name === 'Hyacinth Macaw';
   const blueGold = name === 'Blue-and-Gold Macaw', throat = name === 'Blue-throated Macaw';
+  const military = name === 'Military Macaw';
   return <G>
-    <P d={hahn ? 'M34 62L19 84Q30 82 43 67Z' : 'M35 54Q24 69 16 87Q29 84 43 64Z'} fill={c.tail} />
-    <P d={hahn ? 'M39 65L29 86L48 68Z' : 'M42 54L28 88Q42 81 49 61Z'} fill={c.flights} />
+    <P d={throat ? 'M36 56Q26 73 23 88Q35 83 45 64Z' : military ? 'M34 54L13 85Q29 84 44 65Z' : 'M35 54Q24 69 16 87Q29 84 43 64Z'} fill={c.tail} />
+    <P d={throat ? 'M43 56L35 88Q45 79 49 63Z' : 'M42 54L28 88Q42 81 49 61Z'} fill={c.flights} />
     <Lines d="M35 67L24 82M42 69L35 82" color="#b5d3dc" w={1} />
     <BirdFeet x={43} y={77} color="#7b7d83" />
-    <P d={hahn ? 'M34 39C23 45 25 67 36 75C49 84 66 73 68 55L68 38Z' : 'M39 32C25 39 23 62 35 74C49 86 67 71 69 52L69 34Z'} fill={c.body} />
-    <P d="M51 40C43 46 45 70 51 75Q66 71 67 55L65 38Z" fill={c.breast} stroke={c.breast} w={0} />
-    <P d="M35 41C23 48 28 68 34 73Q48 68 52 54Q47 39 35 41Z" fill={c.flights} />
-    <P d="M34 40Q24 44 29 59Q38 64 49 54Q49 42 34 40Z" fill={c.wing} />
-    <Lines d="M32 54Q36 58 42 56M33 61Q39 64 44 60M34 68L42 65" color="#c5e0bb" w={1.1} />
-    {(hahn || name === 'Macaw') && <P d="M32 40Q40 38 45 44L40 49L31 47Z" fill={hahn ? '#e65a46' : '#eac14a'} w={1.2} />}
-    <P d={hahn ? 'M46 42C35 36 37 21 48 18C61 13 74 23 74 35Q72 47 59 48Z' : 'M46 42C34 36 36 19 48 15C63 10 78 20 77 34Q75 49 61 48Z'} fill={c.head ?? c.body} />
-    {blueGold && <P d="M38 29Q36 15 52 14Q68 11 75 25L65 28Q50 20 38 29Z" fill="#49934c" w={0} />}
-    {name === 'Military Macaw' && <P d="M62 16Q71 17 75 25L63 25L58 20Z" fill="#cf4d41" w={1.1} />}
-    {blueGold && <P d="M55 35L74 35Q73 56 61 58L51 45Z" fill="#263c4e" w={0} />}
-    {throat && <P d="M53 35L74 35Q72 66 57 64L49 47Z" fill="#247eab" w={0} />}
+    <P d={throat ? 'M41 32C30 40 27 65 38 75Q55 85 67 64Q72 53 68 30Z' : military ? 'M35 31C19 40 21 64 35 76Q57 86 70 62L71 34Z' : 'M39 32C25 39 23 62 35 74C49 86 67 71 69 52L69 34Z'} fill={c.body} />
+    <P d={throat ? 'M54 43Q43 57 49 76Q63 73 67 59L66 43Z' : 'M51 40C43 46 45 70 51 75Q66 71 67 55L65 38Z'} fill={c.breast} w={0} />
+    <P d={throat ? 'M40 35C25 22 12 24 8 39Q18 54 36 58L49 51Z' : military ? 'M31 39C19 46 26 68 33 74Q48 68 53 53Q46 36 31 39Z' : 'M35 41C23 48 28 68 34 73Q48 68 52 54Q47 39 35 41Z'} fill={c.flights} />
+    <P d={throat ? 'M38 33Q20 24 11 34Q10 45 30 53L46 50Q48 40 38 33Z' : military ? 'M31 38Q20 42 26 58Q39 65 49 53Q47 39 31 38Z' : 'M34 40Q24 44 29 59Q38 64 49 54Q49 42 34 40Z'} fill={c.wing} />
+    <Lines d={throat ? "M17 35Q23 44 34 47M17 45L29 52" : "M32 54Q36 58 42 56M34 64L43 62"} color="#c5e0bb" w={1.3} />
+    {name === 'Macaw' && <P d="M32 40Q40 38 45 44L40 49L31 47Z" fill="#eac14a" w={1.2} />}
+    <G transform={throat ? 'rotate(-8 58 37)' : military ? 'rotate(4 57 37)' : undefined}>
+    <P d={military ? 'M43 42C31 35 34 19 45 14L58 13Q75 14 78 29Q80 43 65 48L51 47Z' : throat ? 'M48 43C37 35 40 19 51 15Q69 9 77 24Q81 40 67 48L57 48Z' : 'M46 42C34 36 36 19 48 15C63 10 78 20 77 34Q75 49 61 48Z'} fill={c.head ?? c.body} />
+    {blueGold && <P d="M38 30Q34 17 48 14Q65 8 75 24L68 29Q51 21 38 30Z" fill="#4b9a50" w={0} />}
+    {military && <P d="M57 14Q71 13 77 25L64 28L55 21Z" fill="#db5147" w={1.1} />}
+    {blueGold && <P d="M52 36L75 35Q74 51 65 59L57 56L49 45Z" fill="#263846" w={0} />}
+    {throat && <P d="M50 34L76 32Q76 51 63 59L54 55L47 45Z" fill="#167b9e" w={0} />}
     {!hyacinth && <>
-      <P d={hahn ? 'M59 23Q71 20 74 29L71 38Q62 43 56 35Z' : 'M58 21Q71 18 76 28L72 39Q61 45 54 35Z'} fill={paper} w={1.25} />
-      <Lines d={name === 'Green-winged Macaw' ? 'M57 31L61 32M58 35L66 37M62 39L69 40' : 'M56 31L60 32M58 35L65 37M63 39L69 40'} color={name === 'Green-winged Macaw' ? '#ba4e4c' : '#566976'} w={1.1} />
+      <P d={military ? 'M61 25Q72 22 77 31L72 41Q60 47 55 37Z' : throat ? 'M60 20Q71 18 76 26L73 36Q64 42 57 34Z' : 'M58 21Q71 18 76 28L72 39Q61 45 54 35Z'} fill={paper} w={1.25} />
+      <Lines d={name === 'Green-winged Macaw' ? 'M57 31L63 33M61 38L69 40' : 'M56 31L62 33M61 38L69 40'} color={name === 'Green-winged Macaw' ? '#ba4e4c' : '#566976'} w={1.1} />
     </>}
     {hyacinth && <P d="M69 29Q75 27 77 31L75 39L68 40Q73 35 69 29Z" fill="#efca4d" w={1.1} />}
-    <Hook x={hahn ? 72 : 75} y={29} color={name === 'Scarlet Macaw' || name === 'Green-winged Macaw' ? '#edd6ad' : '#3e4653'} small={hahn} />
+    <Hook x={75} y={29} color={name === 'Scarlet Macaw' || name === 'Green-winged Macaw' ? '#edd6ad' : '#3e4653'} />
     {hyacinth && <Circle cx={64} cy={28} r={6.2} fill="#f4ce48" />}
-    <BirdEye x={hahn ? 64 : 65} y={28} r={hyacinth ? 3.6 : 3.7} />
+    <BirdEye x={65} y={28} r={hyacinth ? 3.6 : 3.7} />
     <Lines d="M45 23Q48 18 54 18" color={hyacinth ? '#8d9ee5' : '#fff3d6'} w={1.7} />
+    </G>
+  </G>;
+}
+
+// A mini-macaw: the short tail, small bill and low, round build carry its size
+// difference before the red shoulder is visible.
+function HahnsMacaw() {
+  return <G>
+    <P d="M36 62L24 81Q35 84 47 69Z" fill="#30745b" />
+    <P d="M40 66L34 83L51 69Z" fill="#34817e" />
+    <BirdFeet x={43} y={77} color="#7b7d83" />
+    <P d="M36 42C24 48 27 69 39 76Q58 84 68 65Q74 53 64 43Z" fill="#50aa65" />
+    <P d="M54 49Q47 60 51 76Q66 72 67 58Z" fill="#8bc17b" w={0} />
+    <P d="M34 46C24 49 29 66 37 71Q49 66 53 55Q48 43 34 46Z" fill="#34817e" />
+    <P d="M33 45Q27 49 31 58Q40 63 49 55Q48 45 33 45Z" fill="#38885e" />
+    <P d="M33 45Q40 43 46 48L43 54Q36 56 31 52Z" fill="#df5a49" w={1.2} />
+    <Lines d="M34 61Q39 65 45 60M37 68L43 65" color="#b7d5a6" w={1.3} />
+    <G transform="rotate(7 59 42)">
+      <P d="M46 48C36 42 39 28 50 25Q66 21 74 34Q78 47 65 53L55 53Z" fill="#50aa65" />
+      <P d="M41 37Q40 27 51 25Q63 22 70 31L62 35Q51 30 41 37Z" fill="#45878e" w={0} />
+      <P d="M61 32Q70 29 75 36L72 45Q65 49 58 42Z" fill={paper} w={1.2} />
+      <Hook x={73} y={37} small />
+      <BirdEye x={66} y={36} r={3.6} />
+      <Lines d="M47 30L52 28" color="#b6d7b9" w={1.6} />
+    </G>
   </G>;
 }
 
@@ -78,6 +104,7 @@ function Cockatoo({ name }: { name: string }) {
     <P d="M35 41C24 46 29 68 35 73Q49 67 52 53Q47 40 35 41Z" fill={wing} />
     <P d={tiel ? 'M35 45Q31 50 34 63L43 60L47 50Z' : 'M34 44Q28 51 34 65Q42 63 46 55Q42 44 34 44Z'} fill={tiel ? '#fff6e9' : galah ? '#bec6cf' : '#fffbf0'} w={0} />
     <Lines d="M35 66L43 62M35 70L41 67" color={galah || tiel ? '#596c7c' : '#9da5a5'} />
+    <G transform={galah ? 'rotate(-7 58 36)' : undefined}>
     {galah ? <P d="M39 27Q32 15 42 12Q46 8 51 12Q57 9 62 16L65 25Z" fill="#f8d5dd" /> : tiel ?
       <P d="M45 27Q30 16 33 6Q40 15 45 17Q39 7 45 6L54 20Q53 9 59 9L60 26Z" fill="#f7d463" /> :
       <P d="M44 26Q25 15 30 8Q38 16 43 16Q33 6 39 6L53 17Q46 5 53 7Q61 14 63 24Z" fill="#f3cf4d" />}
@@ -87,6 +114,7 @@ function Cockatoo({ name }: { name: string }) {
     <Hook x={71} y={31} color={galah ? '#d8c2ae' : '#596674'} small />
     <BirdEye x={63} y={28} r={3.8} />
     {!tiel && <Lines d="M45 29Q43 24 49 21" color="#fffdf5" w={1.9} />}
+    </G>
   </G>;
 }
 
@@ -101,7 +129,7 @@ function Kakapo() {
     <P d="M51 21Q65 17 72 28L74 40Q67 51 55 47Q46 45 43 36Q43 25 51 21Z" fill="#e8dfb6" w={1.3} />
     <P d="M68 31Q79 29 83 35Q81 42 74 43L75 36L68 35Z" fill="#d8c6a0" w={1.6} />
     <BirdEye x={63} y={30} r={4.1} />
-    <Lines d="M48 26l3-2M46 33l3-1M48 40l3 1M54 45l2 1M57 20l2 1M40 22l2 2M37 29l2 2M53 60l1 3M60 65l1 3M47 68l1 3M61 55l1 3" color="#596b40" w={1.6} />
+    <Lines d="M47 27l4-2M47 38l4 2M56 45l3 1M39 25l3 3M54 61l2 4M61 69l2 3" color="#596b40" w={1.6} />
     <Lines d="M70 38l-5 1M70 41l-5 2" color="#9a906d" w={1} />
   </G>;
 }
@@ -119,7 +147,7 @@ function Kea() {
     <P d="M72 27C87 29 89 42 80 51Q82 39 73 37L68 34Z" fill="#687176" />
     <Lines d="M77 31Q84 36 82 42" color="#bac0b6" />
     <BirdEye x={63} y={29} r={3.5} />
-    <Lines d="M47 23l3 2M43 30l3 2M45 37l3 2M51 43l3 2M57 48l3 2M58 20l2 2M60 56l2 2M57 63l2 2M52 70l2 2" color="#697449" w={1.6} />
+    <Lines d="M46 25l4 3M44 36l4 3M53 45l4 3M60 57l3 3M54 69l3 2" color="#697449" w={1.6} />
   </G>;
 }
 
@@ -149,11 +177,13 @@ function Lovebird() {
     <P d="M35 35C19 43 23 68 37 76C53 85 72 71 71 51L62 35Z" fill="#79bc6b" />
     <P d="M34 43C22 47 27 66 35 71Q49 66 52 53Q46 40 34 43Z" fill="#3c966b" />
     <Lines d="M32 53Q38 58 46 54M34 61L42 60M35 67L40 65" color="#9ccb85" />
+    <G transform="rotate(6 59 38)">
     <P d="M44 44C31 36 36 18 51 16Q73 13 77 33Q77 49 61 52Z" fill="#f09b7f" />
     <P d="M48 21Q63 16 73 27L71 35Q62 30 50 35Q42 31 48 21Z" fill="#f5b18b" w={0} />
     <P d="M53 46Q65 48 70 40Q69 56 59 59L49 50Z" fill="#efc77c" w={0} />
     <Hook x={73} y={31} color="#ead7b3" small />
     <BirdEye x={65} y={29} r={3.9} />
+    </G>
   </G>;
 }
 
@@ -175,6 +205,7 @@ function SmallParrot({ name }: { name: string }) {
   const c = smallParrots[name], grey = name === 'African Grey', rosella = name === 'Rosella';
   const lorikeet = name === 'Rainbow Lorikeet', female = name === 'Eclectus Female';
   const purple = name === 'Purple Parrot';
+  const amazon = name === 'Amazon';
   const short = grey || name.startsWith('Eclectus') || name === 'Amazon' || purple;
   const eclectus = name.startsWith('Eclectus'), ringneck = name === 'Parakeet';
   const bodyShape = purple ? 'M31 38C14 43 18 70 35 78Q61 87 75 64L70 40Z'
@@ -189,18 +220,22 @@ function SmallParrot({ name }: { name: string }) {
     : name === 'Amazon' ? 'M38 45Q29 36 32 23L39 14Q58 9 72 19L78 30Q80 48 60 50Z'
     : 'M46 44C33 38 35 20 49 16C63 11 77 21 77 34Q75 49 61 50Z';
   return <G>
-    <P d={short ? 'M33 61L23 77L37 81L47 66Z' : 'M34 57L17 87L29 83L46 63Z'} fill={c.tail} />
+    <P d={ringneck ? 'M40 57C28 70 14 81 11 88Q26 89 49 64Z' : amazon ? 'M30 62L24 73Q34 79 45 70L45 64Z' : short ? 'M33 61L23 77L37 81L47 66Z' : 'M34 57L17 87L29 83L46 63Z'} fill={c.tail} />
     {!short && <P d="M40 61L29 87L49 66Z" fill={c.wing} />}
     <BirdFeet x={43} y={77} color="#8c8582" />
     <P d={bodyShape} fill={c.body} />
     <P d="M51 39Q42 56 49 74Q65 71 67 54L63 38Z" fill={c.breast} w={0} />
     {lorikeet && <Lines d="M51 51L64 53M49 57L65 59M49 64L62 66" color="#e5bc54" w={2.5} />}
-    <P d="M34 40C22 45 28 64 35 71Q49 65 53 51Q47 39 34 40Z" fill={c.wing} />
+    <P d={amazon ? 'M28 38C15 43 18 68 29 73Q45 68 50 49Q43 37 28 38Z'
+      : eclectus ? 'M42 37C33 42 33 64 40 72Q51 64 55 47Q51 36 42 37Z'
+      : ringneck ? 'M39 40C30 44 31 63 38 70Q49 62 54 48Q48 39 39 40Z'
+      : 'M34 40C22 45 28 64 35 71Q49 65 53 51Q47 39 34 40Z'} fill={c.wing} />
     {rosella ? <>
       <P d="M34 42L29 48L34 52L40 46L44 51L48 47L44 42Z" fill="#e9cf76" w={1.2} />
       <P d="M30 55L36 60L47 53L48 59L36 68L33 64Z" fill="#4297ba" w={1.2} />
-    </> : <Lines d="M31 49Q36 54 44 51M32 57Q38 61 46 56M35 65L43 61" color={grey ? '#d7dcd4' : '#b2d1a0'} w={1.4} />}
-    {(name === 'King Parrot' || name === 'Amazon' || name === 'Eclectus') && <P d="M30 44L38 42L44 47L37 51L30 49Z" fill={name === 'King Parrot' ? '#9bd09b' : '#dd6754'} w={0} />}
+    </> : <Lines d={amazon ? "M26 48Q33 56 42 51M27 59L38 62" : eclectus ? "M39 47L47 53M40 56L46 60" : ringneck ? "M36 48L44 53M37 57L43 61" : "M31 49Q36 54 44 51M34 60L43 62"} color={grey ? '#d7dcd4' : '#b2d1a0'} w={1.4} />}
+    {(name === 'King Parrot' || name === 'Amazon' || name === 'Eclectus') && <P d={name === 'Eclectus' ? "M40 44Q46 42 49 47L44 51Q41 51 40 49Z" : "M30 44L38 42L44 47L37 51L30 49Z"} fill={name === 'King Parrot' ? '#9bd09b' : '#dd6754'} w={0} />}
+    <G transform={purple ? 'rotate(-6 58 36)' : grey ? 'rotate(5 58 36)' : undefined}>
     <P d={headShape} fill={c.head} />
     {(grey || rosella) && <P d={grey ? 'M57 22Q70 19 75 29L72 41Q62 47 53 37Z' : 'M56 33Q65 28 73 34L70 44Q60 48 54 39Z'} fill={paper} w={1.1} />}
     {name === 'Amazon' && <P d="M34 24L40 15Q61 9 73 22L72 32Q57 27 49 28Z" fill="#f0cf64" w={0} />}
@@ -208,15 +243,17 @@ function SmallParrot({ name }: { name: string }) {
     {name === 'Sun Conure' && <P d="M60 24Q72 23 75 34L70 45L60 48L54 40Z" fill="#f4a04f" w={0} />}
     {lorikeet && <P d="M46 41Q52 46 57 45L54 51L46 48Z" fill="#b2c866" w={0} />}
     {name === 'Purple Parrot' && <P d="M53 32Q63 27 72 32L70 43Q60 48 53 40Z" fill="#d9b8e9" w={0} />}
-    {grey && <Lines d="M42 24l4 2M40 31l4 2M43 39l3 2M54 57l3 2M54 64l3 2M53 70l3 2" color="#8999a2" />}
+    {grey && <Lines d="M42 27l5 3M43 37l4 2M54 59l4 3M53 68l4 2" color="#8999a2" />}
     <Hook x={74} y={30} color={name === 'Eclectus' ? '#f3a53b' : lorikeet ? '#ec8a47' : ringneck ? '#cf6360' : name === 'King Parrot' ? '#e2a16c' : female ? '#3c4551' : rosella ? '#d9c2ac' : '#566270'} small={!eclectus} />
     <BirdEye x={65} y={28} r={3.7} />
     <Lines d="M44 24Q46 20 52 19" color={female ? '#f4a2a0' : lorikeet ? '#8499d5' : '#e4e5bd'} w={1.6} />
+    </G>
   </G>;
 }
 
 export function ParrotArt({ bird }: { bird: BirdDef }) {
   if (bird.shape !== 'parrot' && bird.shape !== 'cockatoo') return null;
+  if (bird.name === "Hahn's Macaw") return <HahnsMacaw />;
   if (macaws[bird.name]) return <Macaw name={bird.name} />;
   if (bird.shape === 'cockatoo') return <Cockatoo name={bird.name} />;
   if (bird.name === 'Kakapo') return <Kakapo />;

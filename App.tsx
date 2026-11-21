@@ -1,21 +1,25 @@
 import React, { useReducer, useState, useEffect, useRef } from 'react';
-import { SafeAreaView, View, Text, Pressable, TextInput, StyleSheet, ScrollView, Animated, Easing, useWindowDimensions, Platform } from 'react-native';
+import { SafeAreaView, View, Text, Pressable, StyleSheet, ScrollView, Animated, Easing, useWindowDimensions, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Branch } from './Branch';
 import { Bird } from './Bird';
 import { COLLECTIONS, CollectionId } from './roster';
 import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
-import { fitGrid, marginFor, handFor, perchWidth } from './layout';
-import { loadGame, saveGame, loadGateOn, saveGateOn, loadLastCollection, saveLastCollection } from './storage';
+import { fitPlayGrid, verticalChrome, marginFor, handFor, perchWidth } from './layout';
+import { loadGame, saveGame, loadLastCollection, saveLastCollection } from './storage';
 import { initAudio, playSfx } from './audio';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
 import { FeedbackButton } from '@harmony/feedback/FeedbackButton';
 import UpdateBanner from './UpdateBanner';
 import { Habitat } from './Habitat';
+import { DiscoveryJournal } from './DiscoveryJournal';
+import { loadDiscoveries, recordDiscoveries } from './journal';
+import { WinCelebration } from './WinCelebration';
+import { useReducedMotion } from './motion';
+import { winningMove, tutorialSeen, rememberTutorial, say, CoachingMove } from './coaching';
 
-// Feedback lives behind the grown-up gate, never on the play surface — a kid
-// should not be able to post to Slack. Same reasoning as the parent settings.
+// Feedback remains in the menu, away from the puzzle surface.
 configureFeedback({
   endpoint:
     process.env.EXPO_PUBLIC_FEEDBACK_URL ?? 'https://harmony-feedback.fly.dev/api/entries',
@@ -25,11 +29,6 @@ configureFeedback({
 });
 
 const IDLE_MS = 3500; // idle re-invite / level-start demo delay (spec §5)
-// Word a grown-up types to pass the gate. Reading+typing beats a pre-reader 5yo
-// (hold-to-continue did not — Robert's flag, msg 011).
-// ponytail: fixed word, not configurable. Add a per-parent word only if asked.
-const GATE_WORD = 'grown-up';
-
 const clearedCount = (board: Board) => board.filter((b) => isCleared(b, CAP)).length;
 
 // first source branch that has any legal move — used to demo/hint the child
@@ -38,38 +37,6 @@ function findHint(board: Board): number | null {
     for (let to = 0; to < board.length; to++)
       if (canMove(board, from, to, CAP)) return from;
   return null;
-}
-
-// ---- Parent gate: type a word to pass (the one place text is allowed, §4).
-// Name-gated, not hold-to-continue: a pre-reader 5yo can't read+type the word,
-// but hold-to-continue they just... hold (Robert's flag, msg 011). ----
-function NameGate({ onPass, onCancel }: { onPass: () => void; onCancel: () => void }) {
-  const [val, setVal] = useState('');
-  const ok = val.trim().toLowerCase() === GATE_WORD;
-  return (
-    <View style={styles.overlay}>
-      <Text style={styles.gateTitle}>Ask a grown-up</Text>
-      <Text style={styles.gateSub}>Type “{GATE_WORD}” to continue</Text>
-      <TextInput
-        style={styles.gateInput}
-        value={val}
-        onChangeText={setVal}
-        onSubmitEditing={() => ok && onPass()}
-        autoFocus
-        autoCapitalize="none"
-        autoCorrect={false}
-        placeholder={GATE_WORD}
-        placeholderTextColor="#8fb3c8"
-        returnKeyType="go"
-      />
-      <Pressable onPress={() => ok && onPass()} disabled={!ok} style={[styles.gateBtn, !ok && styles.gateBtnOff]}>
-        <Text style={styles.gateBtnText}>Enter</Text>
-      </Pressable>
-      <Pressable onPress={onCancel} style={styles.gateCancel} hitSlop={16}>
-        <Text style={styles.gateCancelText}>← back to play</Text>
-      </Pressable>
-    </View>
-  );
 }
 
 // expanding ripple at an empty-tap point (visual twin of the soft tap sound)
@@ -100,10 +67,15 @@ function Ripple({ x, y }: { x: number; y: number }) {
 export default function App() {
   const [s, dispatch] = useReducer(reducer, 1, init);
   const [gallery, setGallery] = useState(false);
-  const [menu, setMenu] = useState(false); // parent panel (after gate)
-  const [gate, setGate] = useState(false); // parent gate overlay
-  const [gateOn, setGateOn] = useState(false); // is the gate enabled? default OFF (Robert's ask)
+  const [menu, setMenu] = useState(false); // ordinary game menu
   const [loaded, setLoaded] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [earned, setEarned] = useState<number[]>([]);
+  const [newCount, setNewCount] = useState(0);
+  const [celebrate, setCelebrate] = useState(false);
+  const [tutorial, setTutorial] = useState(false);
+  const [coach, setCoach] = useState<CoachingMove | null>(null);
+  const [coachNotice, setCoachNotice] = useState('');
   const [home, setHome] = useState(true); // two-world picker (first run)
   const collection = s.collection; // active collection is the single source of truth
   const [wiggle, setWiggle] = useState({ i: -1, n: 0 }); // illegal-tap shake target
@@ -111,6 +83,7 @@ export default function App() {
   const [activity, setActivity] = useState(0); // bumps on every interaction
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
   const rid = useRef(0);
+  const enterEpoch = useRef(0);
   const winPop = useRef(new Animated.Value(0)).current;
 
   // Added to the home screen, iOS runs this standalone and paints the status-bar
@@ -155,10 +128,12 @@ export default function App() {
   // Enter a collection: remember it, resume its own save (or start fresh), leave
   // the home picker. Used by the two heroes and the mid-play swap button.
   const enter = async (c: CollectionId) => {
+    const epoch = ++enterEpoch.current;
     initAudio();
     playSfx('lift');
     void saveLastCollection(c);
     const resumed = await loadGame(c);
+    if (epoch !== enterEpoch.current) return;
     dispatch({ type: 'RESTORE', state: resumed ?? init(1, 1, c) });
     setHome(false);
   };
@@ -170,27 +145,61 @@ export default function App() {
   }, [s, loaded]);
   // --- end save wiring ---
 
-  // load the parent-gate setting once (default OFF if unset/unreadable)
   useEffect(() => {
-    loadGateOn().then(setGateOn).catch(() => {});
-  }, []);
+    let live = true;
+    setEarned([]);
+    loadDiscoveries(collection).then(ids => live && setEarned(ids));
+    return () => { live = false; };
+  }, [collection]);
+
+  useEffect(() => {
+    if (home || !loaded) return;
+    let live = true;
+    tutorialSeen().then(seen => live && !seen && setTutorial(true));
+    return () => { live = false; };
+  }, [home, loaded]);
+
+  useEffect(() => {
+    setCoach(null);
+    setCoachNotice('');
+    if (!s.won || home || !loaded) { setCelebrate(false); return; }
+    let live = true;
+    const ids = [...new Set(s.board.flat())];
+    loadDiscoveries(collection).then(async before => {
+      const all = await recordDiscoveries(collection, ids);
+      if (!live) return;
+      setEarned(all);
+      setNewCount(all.filter(id => !before.includes(id)).length);
+      setCelebrate(true);
+    });
+    return () => { live = false; };
+  }, [s.won, s.board, collection, loaded, home]);
+
+  const showCoach = () => {
+    const move = winningMove(s.board);
+    setCoach(move);
+    if (move) {
+      setCoachNotice(`Tap branch ${move.from + 1}, then branch ${move.to + 1}. ${s.board[move.to].length ? 'Put matching friends together.' : 'Use an empty space to reach the friends behind.'}`);
+      setHintFrom(move.from);
+    } else setCoachNotice('Try Undo or Restart for a fresh way forward.');
+  };
 
   // onboarding demo + idle re-invite: after quiet time, point at a legal move.
   // Re-arms on every interaction and whenever the board changes (level start).
   useEffect(() => {
     setHintFrom(null);
-    if (s.won || menu || gate || gallery) return;
+    if (s.won || home || menu || gallery || tutorial || coach) return;
     const t = setTimeout(() => setHintFrom(findHint(s.board)), IDLE_MS);
     return () => clearTimeout(t);
-  }, [s.board, s.selected, activity, s.won, menu, gate, gallery]);
+  }, [s.board, s.selected, activity, s.won, home, menu, gallery, tutorial, coach]);
 
   // juicy win pop-in
   useEffect(() => {
-    if (s.won) {
+    if (s.won && !reducedMotion) {
       winPop.setValue(0);
       Animated.spring(winPop, { toValue: 1, friction: 5, tension: 90, useNativeDriver: true }).start();
-    }
-  }, [s.won, winPop]);
+    } else winPop.setValue(1);
+  }, [s.won, winPop, reducedMotion]);
 
   // Send anything captured while offline. Safe on every start — the collector
   // dedupes on ref, so a re-send costs nothing.
@@ -216,8 +225,10 @@ export default function App() {
       const won = isWon(next, CAP);
       const locked = clearedCount(next) > clearedCount(board);
       playSfx('drop');
-      if (won) playSfx('win');
-      else if (locked) playSfx('chirp');
+      const cardinalLock = locked && collection === 'birds' && next[i][0] === 0;
+      if (won && !cardinalLock) playSfx('win');
+      if (cardinalLock) playSfx('cardinal');
+      else if (locked && !won) playSfx('chirp');
       dispatch({ type: 'TAP', i });
       return;
     }
@@ -233,6 +244,7 @@ export default function App() {
     playSfx('tap');
     const { locationX: x, locationY: y } = e.nativeEvent;
     const id = rid.current++;
+    if (reducedMotion) return;
     setRipples((r) => [...r, { id, x, y }]);
     setTimeout(() => setRipples((r) => r.filter((p) => p.id !== id)), 500);
   };
@@ -247,10 +259,9 @@ export default function App() {
     window.location.replace(u.toString());
   };
 
-  // run a parent-gated action, closing the gate/menu
+  // Close the ordinary menu before acting.
   const guard = (action: () => void) => {
     setMenu(false);
-    setGate(false);
     action();
   };
 
@@ -259,7 +270,7 @@ export default function App() {
   const n = s.board.length;
   // Pick the grid first, then size to it. Sizing off `boardW / n` assumed one
   // row of n branches, which stopped being true as soon as the board wrapped.
-  const { slot, boardW, touchMin, rowGap, colGap } = fitGrid(n, width, height, CAP);
+  const { slot, boardW, touchMin, rowGap, colGap, scroll } = fitPlayGrid(n, width, height, CAP);
   const slotH = slot * 0.96;
   const perchW = perchWidth(slot, CAP);
   const birdScale = slot / 48;
@@ -285,14 +296,20 @@ export default function App() {
         <Text style={[styles.title, height < 500 && { fontSize: 23 }]}>{isFish ? 'Fish' : 'Bird'} Sort</Text>
         <Text style={styles.progress}>Level {s.level} · {s.difficulty === 'hard' ? 'Hard' : 'Easy'} · {clearedCount(s.board)}/{new Set(s.board.flat()).size} groups together</Text>
       </View>
+      <Pressable accessibilityRole="button" accessibilityLabel="Open discovery journal" onPress={() => setGallery(true)} style={{ minHeight: 44, justifyContent: 'center' }}>
+        <Text style={{ color: '#617b47', fontWeight: '700' }}>★ {earned.length} discoveries · My journal</Text>
+      </Pressable>
       <Text accessibilityLiveRegion="polite" style={[styles.instruction, height < 500 && { marginTop: 4 }]}>
-        {s.won ? 'Everyone is together. Hooray!' : s.selected === null
+        {coachNotice || (s.won ? 'Everyone is together. Hooray!' : s.selected === null
           ? `Tap a ${isFish ? 'fish' : 'bird'} at the right end.`
-          : 'Now tap a glowing branch to move.'}
+          : 'Now tap a glowing branch to move.')}
       </Text>
 
       {/* Width is pinned to exactly `cols` cells so flexWrap breaks where fitGrid
           decided. The whole board always fits — never scrolls, never clips. */}
+      {scroll && <Text style={{ color: '#486254', fontSize: 12 }}>↕ Scroll to see all {n} groups · larger friends</Text>}
+      <ScrollView scrollEnabled={scroll} style={{ flexGrow: 0, maxHeight: height - verticalChrome(height) }}
+        contentContainerStyle={{ alignItems: 'center' }} accessibilityLabel={scroll ? 'Scrollable puzzle board' : 'Puzzle board'}>
       <View style={[styles.board, { width: boardW + 32 }]} pointerEvents="box-none">
         {s.board.map((b, i) => (
           <Branch
@@ -304,7 +321,9 @@ export default function App() {
             destination={s.selected !== null && canMove(s.board, s.selected, i, CAP)}
             branchNumber={i + 1}
             done={isCleared(b, CAP)}
-            hint={hintFrom === i && s.selected === null}
+            hint={(coach?.from ?? hintFrom) === i && s.selected === null}
+            reducedMotion={reducedMotion}
+            coachedTarget={coach?.to === i && s.selected === coach.from}
             wiggleNonce={wiggle.i === i ? wiggle.n : 0}
             onPress={() => onTap(i)}
             slotW={slot}
@@ -318,8 +337,10 @@ export default function App() {
           />
         ))}
       </View>
+      </ScrollView>
 
       <View style={styles.toolbar}>
+        {!s.won && <Pressable accessibilityRole="button" accessibilityLabel="Show a winning move hint" style={styles.tool} onPress={showCoach}><Text style={styles.toolText}>💡 Hint</Text></Pressable>}
         <Pressable accessibilityRole="button" accessibilityLabel="Undo last move" disabled={!s.history.length}
           style={[styles.tool, !s.history.length && styles.toolOff]}
           onPress={() => { initAudio(); setActivity(a => a + 1); playSfx('lift'); dispatch({ type: 'UNDO' }); }}>
@@ -333,20 +354,16 @@ export default function App() {
           <Text style={styles.toolText}>{isFish ? '🐦 Birds' : '🐠 Fish'}</Text>
         </Pressable>}
         <Pressable accessibilityRole="button" style={styles.tool}
-          onPress={() => (gateOn ? setGate(true) : setMenu(true))}>
+          onPress={() => setMenu(true)}>
           <Text style={styles.toolText}>⚙ Menu</Text>
         </Pressable>
       </View>
       {s.won && <Animated.Text accessibilityLiveRegion="polite" style={[styles.celebration,
         { opacity: winPop }]}>★ Beautiful sorting! ★</Animated.Text>}
 
-      {gate && (
-        <NameGate onPass={() => { setGate(false); setMenu(true); }} onCancel={() => setGate(false)} />
-      )}
-
       {menu && (
         <ScrollView style={[StyleSheet.absoluteFill, { backgroundColor: '#274653' }]} contentContainerStyle={styles.menuOverlay}>
-          <Text style={styles.menuTitle}>Grown-up menu</Text>
+          <Text style={styles.menuTitle}>Menu</Text>
           <UpdateBanner />
           <View style={styles.menuRow}>
             <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'DIFFICULTY', difficulty: 'easy' }))}>
@@ -356,7 +373,7 @@ export default function App() {
               <Text style={styles.menuBtnText}>Hard {s.difficulty === 'hard' ? '✓' : ''}</Text>
             </Pressable>
           </View>
-          <Text style={styles.gateSub}>Starts a new board. Hard lasts until you leave this collection.</Text>
+          <Text style={styles.menuSub}>Changing difficulty starts a new board. Your choice is saved.</Text>
           <View style={styles.menuRow}>
             <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'GOTO', level: s.level - 1 }))}>
               <Text style={styles.menuBtnText}>◀ Level</Text>
@@ -370,17 +387,11 @@ export default function App() {
             <Text style={styles.menuBtnText}>Restart this level</Text>
           </Pressable>
           <Pressable style={styles.menuBtnWide} onPress={() => { setMenu(false); setGallery(true); }}>
-            <Text style={styles.menuBtnText}>Bird gallery</Text>
-          </Pressable>
-          <Pressable
-            style={styles.menuBtnWide}
-            onPress={() => { const nv = !gateOn; setGateOn(nv); void saveGateOn(nv); }}
-          >
-            <Text style={styles.menuBtnText}>Ask a grown-up first: {gateOn ? 'ON' : 'OFF'}</Text>
+            <Text style={styles.menuBtnText}>{isFish ? 'Fish gallery & journal' : 'Bird gallery & journal'}</Text>
           </Pressable>
           <FeedbackButton
             kinds={['idea', 'bug', 'praise']}
-            context={{ level: s.level, collection, species: COLLECTIONS[collection].length, gateOn }}
+            context={{ level: s.level, collection, species: COLLECTIONS[collection].length }}
             who="robert"
           >
             {/* onPress={open} only — no setMenu(false). The sheet is a Modal and
@@ -401,23 +412,23 @@ export default function App() {
         </ScrollView>
       )}
 
-      {gallery && (
-        <View style={[styles.overlay, styles.galleryOverlay]}>
-          {/* wordless header — the collection's own cutie, not a title (spec §2) */}
-          <Text style={styles.galleryTitle}>{isFish ? '🐠' : '🐦'}</Text>
-          <ScrollView contentContainerStyle={styles.gallery}>
-            {COLLECTIONS[collection].map((d, i) => (
-              <View key={i} style={styles.card}>
-                <Bird species={i} collection={collection} dancing delay={i * 60} />
-                <Text style={styles.cardName}>{d.name}</Text>
-              </View>
-            ))}
-          </ScrollView>
-          <Pressable style={styles.btnBig} onPress={() => setGallery(false)}>
-            <Text style={styles.btnBigText}>✕</Text>
-          </Pressable>
-        </View>
-      )}
+      {gallery && <DiscoveryJournal collection={collection} earned={earned} reducedMotion={reducedMotion} onClose={() => setGallery(false)} />}
+      {celebrate && !gallery && !home && <WinCelebration collection={collection} species={[...new Set(s.board.flat())]}
+        newCount={newCount} total={earned.length} reducedMotion={reducedMotion}
+        onNext={() => { setCelebrate(false); dispatch({ type: 'NEXT' }); }}
+        onJournal={() => { setCelebrate(false); setGallery(true); }} onClose={() => setCelebrate(false)}
+        onRest={() => { setCelebrate(false); setHome(true); }} />}
+      {tutorial && !home && <View style={[styles.overlay, { backgroundColor: 'rgba(29,59,46,.8)', padding: 20 }]}>
+        <ScrollView style={{ backgroundColor: '#fffdf3', borderRadius: 26, maxWidth: 400, width: '100%', maxHeight: '95%', flexGrow: 0 }} contentContainerStyle={{ padding: 24, gap: 16, alignItems: 'center' }}>
+          <Text style={{ fontSize: 26, color: '#244b39', fontWeight: '900' }}>Let’s sort together</Text>
+          <Text style={{ fontSize: 32 }}>👆 → ↓ → ★</Text>
+          <Text style={{ fontSize: 18, color: '#304e40', textAlign: 'center' }}>Tap a friend at the right end. Then tap a matching group or an empty space.</Text>
+          <Text style={{ fontSize: 16, color: '#304e40', textAlign: 'center' }}>Bring every group together. You can always undo or ask for a hint.</Text>
+          <Pressable accessibilityRole="button" style={styles.tool} onPress={() => { say('Tap a friend at the right end. Then tap a matching group or an empty space. Bring every group together.'); }}><Text style={styles.toolText}>🔊 Hear how to play</Text></Pressable>
+          <Pressable accessibilityRole="button" style={[styles.tool, styles.nextTool]} onPress={() => { void rememberTutorial(); setTutorial(false); showCoach(); }}><Text style={styles.nextText}>Show my first move →</Text></Pressable>
+          <Pressable accessibilityRole="button" style={styles.tool} onPress={() => { void rememberTutorial(); setTutorial(false); }}><Text style={styles.toolText}>I’m ready to play</Text></Pressable>
+        </ScrollView>
+      </View>}
 
       {/* First-run world picker; each world keeps its own progress. */}
       {home && (
@@ -427,10 +438,10 @@ export default function App() {
           <View style={styles.homeIntro}><Text style={styles.homeTitle}>Little friends. Big adventures.</Text><Text style={styles.homeSub}>Pick your puzzle world</Text></View>
           <View style={styles.homeRow} pointerEvents="box-none">
             <Pressable style={styles.hero} onPress={() => void enter('birds')} hitSlop={24}>
-              <Bird species={0} collection="birds" dancing scale={2.6} /><Text style={styles.worldTitle}>Bird Sort →</Text>
+              <Bird species={0} collection="birds" dancing={!reducedMotion} scale={2.6} /><Text style={styles.worldTitle}>Bird Sort →</Text>
             </Pressable>
             <Pressable style={styles.hero} onPress={() => void enter('fish')} hitSlop={24}>
-              <Bird species={0} collection="fish" dancing scale={2.6} /><Text style={styles.worldTitle}>Fish Sort →</Text>
+              <Bird species={0} collection="fish" dancing={!reducedMotion} scale={2.6} /><Text style={styles.worldTitle}>Fish Sort →</Text>
             </Pressable>
           </View>
         </View>
@@ -447,11 +458,11 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, letterSpacing: 3, fontWeight: '800', color: '#547364' },
   title: { fontSize: 32, fontWeight: '900', color: '#243e33', letterSpacing: -1 },
   progress: { fontSize: 13, color: '#486254', fontWeight: '600', marginTop: 3 },
-  instruction: { fontSize: 15, color: '#304e40', textAlign: 'center', marginTop: 12, minHeight: 22 },
-  toolbar: { flexDirection: 'row', gap: 8, marginTop: 8, paddingBottom: 8 },
-  tool: { minHeight: 52, paddingHorizontal: 16, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: '#b5c6ae', backgroundColor: '#fffdf3' },
+  instruction: { paddingHorizontal: 16, maxWidth: 560, fontSize: 15, color: '#304e40', textAlign: 'center', marginTop: 12, minHeight: 22 },
+  toolbar: { flexDirection: 'row', maxWidth: '100%', paddingHorizontal: 8, gap: 6, marginTop: 8, paddingBottom: 8 },
+  tool: { minHeight: 52, paddingHorizontal: 8, flexShrink: 1, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: '#b5c6ae', backgroundColor: '#fffdf3' },
   toolOff: { opacity: 0.45 },
-  toolText: { color: '#304e40', fontSize: 15, fontWeight: '700' },
+  toolText: { color: '#304e40', fontSize: 14, fontWeight: '700' },
   nextTool: { backgroundColor: '#2d694e', borderColor: '#2d694e' },
   nextText: { color: '#fffdf3', fontSize: 16, fontWeight: '800' },
   celebration: { color: '#2d694e', fontSize: 18, fontWeight: '800', marginTop: 4 },
@@ -477,19 +488,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 20,
   },
-  winText: { fontSize: 72 },
   // huge primary "keep playing" target (spec §1: hero button 140+)
   btnBig: { backgroundColor: '#44aa77', width: 140, height: 140, borderRadius: 70, alignItems: 'center', justifyContent: 'center' },
   btnBigText: { color: '#fff', fontSize: 56, fontWeight: '800' },
-  // parent gate
-  gateTitle: { color: '#fff', fontSize: 30, fontWeight: '800' },
-  gateSub: { color: '#dfe', fontSize: 16 },
-  gateBtn: { width: 220, height: 96, borderRadius: 20, backgroundColor: '#44aa77', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  gateBtnOff: { backgroundColor: '#33506a', opacity: 0.6 },
-  gateBtnText: { color: '#fff', fontSize: 24, fontWeight: '800' },
-  gateInput: { width: 260, height: 72, borderRadius: 16, backgroundColor: '#fff', color: '#123', fontSize: 26, fontWeight: '700', textAlign: 'center', paddingHorizontal: 16 },
-  gateCancel: { padding: 12 },
-  gateCancelText: { color: '#cde', fontSize: 15 },
+  menuSub: { color: '#dfe', fontSize: 16 },
   // parent menu (adult, text allowed)
   menuOverlay: { alignItems: 'center', paddingVertical: 28, paddingHorizontal: 12, gap: 14, minHeight: '100%' },
   menuTitle: { color: '#fff', fontSize: 24, fontWeight: '800', marginBottom: 6 },
@@ -498,9 +500,4 @@ const styles = StyleSheet.create({
   menuBtn: { backgroundColor: '#6a9bd8', paddingVertical: 16, paddingHorizontal: 20, borderRadius: 14, minHeight: 56, justifyContent: 'center' },
   menuBtnWide: { backgroundColor: '#6a9bd8', paddingVertical: 18, paddingHorizontal: 28, borderRadius: 14, minWidth: 260, alignItems: 'center' },
   menuBtnText: { color: '#fff', fontWeight: '700', fontSize: 17 },
-  galleryOverlay: { backgroundColor: '#274653', paddingTop: 30, paddingBottom: 20 },
-  galleryTitle: { fontSize: 44, marginBottom: 8 },
-  gallery: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10, paddingHorizontal: 16, maxWidth: 520 },
-  card: { width: 92, alignItems: 'center', backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 12, paddingVertical: 10 },
-  cardName: { color: '#fff', fontSize: 13, fontWeight: '600', marginTop: 4 },
 });

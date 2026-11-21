@@ -1,5 +1,5 @@
 import { reducer, init, State, CAP, speciesForLevel } from './state';
-import { Board } from './game';
+import { Board, canMove } from './game';
 
 // Build a deterministic State (no rng) so transitions are exact.
 function make(board: Board, over: Partial<State> = {}): State {
@@ -123,4 +123,39 @@ test('legacy saves retain their exact board and unlocks, then advance gently', (
   expect(next.maxLevel).toBe(50);
   expect(next.difficulty).toBe('easy');
   expect(next.board.length).toBe(5);
+});
+
+test('init retains its exact level-start board through moves, undo, and Restart', () => {
+  const s = init(1);
+  const start = s.initialBoard;
+  expect(start).toEqual(s.board);
+  const moves = s.board.flatMap((_, from) => s.board.map((__, to) => [from, to]));
+  const [from, to] = moves.find(([from, to]) => canMove(s.board, from, to, CAP))!;
+  const moved = reducer(reducer(s, { type: 'TAP', i: from }), { type: 'TAP', i: to });
+  expect(moved.board).not.toEqual(start);
+  expect(moved.initialBoard).toEqual(start);
+  const undone = reducer(moved, { type: 'UNDO' });
+  expect(undone.board).toEqual(start);
+  const restarted = reducer(moved, { type: 'RESTART' });
+  expect(restarted.board).toEqual(start);
+  expect(restarted.initialBoard).toEqual(start);
+  expect(restarted.selected).toBeNull();
+});
+
+test('reselecting the active difficulty preserves the exact state and current attempt', () => {
+  for (const difficulty of ['easy', 'hard'] as const) {
+    const s = init(1, 12, 'fish', difficulty);
+    expect(reducer(s, { type: 'DIFFICULTY', difficulty })).toBe(s);
+  }
+  const legacy = make([[0, 1], [1, 0], []]);
+  expect(reducer(legacy, { type: 'DIFFICULTY', difficulty: 'easy' })).toBe(legacy);
+});
+
+test('a legacy resumed solved board without its original deal gets a playable fresh Restart', () => {
+  const s = make([[0, 0, 0, 0], [], []], { won: true, level: 1, maxLevel: 20 });
+  const restarted = reducer(s, { type: 'RESTART' });
+  expect(restarted.won).toBe(false);
+  expect(restarted.board).not.toEqual(s.board);
+  expect(restarted.initialBoard).toBe(restarted.board);
+  expect(restarted.maxLevel).toBe(20);
 });

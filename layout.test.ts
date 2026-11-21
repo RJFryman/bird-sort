@@ -105,3 +105,15 @@ describe('speciesForLevel', () => {
     }
   });
 });
+
+import { fitPlayGrid } from './layout';
+test('dense Hard boards offer readable 36px creatures in a scrollable board instead of tiny thumbnails', () => {
+  for (const [w,h] of Object.values(SCREENS)) {
+    const grid = fitPlayGrid(12,w,h);
+    expect(grid.slot).toBeGreaterThanOrEqual(32);
+    expect(grid.boardW).toBeLessThanOrEqual(Math.min(w,1000)-48);
+    expect(grid.cols * grid.rows).toBeGreaterThanOrEqual(12);
+  }
+  expect(fitPlayGrid(12,320,568).scroll).toBe(true);
+  expect(fitPlayGrid(4,390,844).scroll).toBe(false);
+});

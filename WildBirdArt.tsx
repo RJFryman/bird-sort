@@ -61,11 +61,10 @@ export function WildBirdArt({ bird }: { bird: BirdDef }) {
       {/* The fanned train is an actual scalloped silhouette, behind the bird. */}
       <Path d="M45 72C27 78 10 67 9 56 3 48 6 38 13 34 6 23 14 14 24 16 25 5 37 4 43 12 50 3 61 7 63 16 74 11 83 20 80 30 90 33 92 45 85 51 89 64 72 77 55 74Z" fill="#438d60" />
       <Path d="M48 67 18 28m30 39-17-46m17 46 3-49m-3 49 20-42m-20 42 31-26M48 67 19 53m29 14 22-8" fill="none" stroke="#89b767" strokeWidth={2.5} />
-      {[[18,29,-34],[31,20,-17],[51,18,3],[69,26,25],[80,42,48],[20,53,-60],[72,59,65]].map(([x,y,a]) =>
+      {[[18,31,-34],[32,19,-17],[70,23,25],[80,44,48],[20,56,-60],[72,62,65]].map(([x,y,a]) =>
         <G key={`${x}`} transform={`rotate(${a} ${x} ${y})`} strokeWidth={1.4}>
           <Ellipse cx={x} cy={y} rx={6.4} ry={9.4} fill="#b8be57" />
-          <Ellipse cx={x} cy={y-1} rx={4.2} ry={5.9} fill="#258f92" />
-          <Ellipse cx={x} cy={y-1} rx={2.1} ry={3.2} fill="#244266" stroke="none" />
+          <Ellipse cx={x} cy={y-1} rx={3.5} ry={5.3} fill="#244266" stroke="none" />
         </G>)}
       <BirdFeet x={42} y={76} color="#a78257" />
       <Path d="M35 63c1-10 8-14 13-15l5-14c-5-3-6-10-1-14 7-5 16-1 16 7 0 5-4 8-7 8l-1 21c7 3 9 9 5 16-7 12-31 9-30-9Z" fill="#1876a7" />
@@ -82,25 +81,28 @@ export function WildBirdArt({ bird }: { bird: BirdDef }) {
       <Path d="M29 35c-13 10-16 29-6 39 11 11 37 8 43-6 5-10 0-26-8-30Z" fill="#6b503c" />
       <Path d="M28 39c-10 9-11 23-4 31 11 5 22 2 30-5L42 46Z" fill="#493e35" />
       <Path d="m26 49 13 13m-16-5 11 10m-5-24 15 14" fill="none" stroke="#8a6b4c" strokeWidth={1.8} />
-      <Path d="M38 36c-5-13 0-24 13-25 13-2 22 7 21 18l-5 10-4 10-7-4-4 7-4-7-7 2Z" fill="#fbf4df" />
-      <Path d="M68 25c11-2 19 3 19 10 0 5-4 7-8 8l1-8-12-1Z" fill="#edba43" />
-      <Path d="m68 31 12 1" fill="none" stroke="#aa792e" strokeWidth={1.3} />
-      <Eye x={59} y={25} r={3.6}/>
-      <Path d="m53 18 11 3" fill="none" stroke="#c5bfae" strokeWidth={1.7} />
+      <Path d="M38 35c-4-10-1-21 11-23l13 1 10 8-1 12-5 8-3 10-7-5-4 7-5-7-7 2Z" fill="#fbf4df" />
+      <Path d="M68 26c12-3 20 2 20 10 0 6-5 10-10 11l2-10-13-2Z" fill="#edba43" />
+      <Path d="M68 32q10-2 15 3" fill="none" stroke="#aa792e" strokeWidth={1.3} />
+      <Eye x={60} y={27} r={3.4}/>
+      <Path d="M53 22q7 3 13 1" fill="none" stroke="#7d827d" strokeWidth={2.3} />
+      <Path d="m43 33 2 7m8-2 2 5" fill="none" stroke="#d5ceba" strokeWidth={1.4} />
     </G>;
     case 'Hawk': return <G {...edge}>
       <BirdFeet x={42} y={76} color="#d5a13e" />
       <Path d="m30 61-13 17 18 2 11-17" fill="#b75f3d" />
       <Path d="m21 75 17 1m-12-8 14 2" fill="none" stroke="#6c4935" strokeWidth={2.3} />
-      <Path d="M27 39c-12 12-12 30 0 38 13 8 33 1 37-11 3-9 0-19-6-24l5-5c9-10 4-24-9-26-12-2-23 10-20 22Z" fill="#a17c54" />
+      <Path d="M27 39c-12 12-12 30 0 38 13 8 33 1 37-11 3-9 0-19-6-24l6-6c7-9 3-22-9-24-13-3-25 8-21 21Z" fill="#a17c54" />
       <Path d="M49 35c10 3 16 15 15 28-1 13-15 19-24 14-6-5-8-16-5-26Z" fill="#f0dfb9" />
       <Path d="m48 49-2 7m9-2-2 7m-9 1-2 6m12-1-2 5" fill="none" stroke="#9e6845" strokeWidth={2.3} />
-      <Path d="M29 40c-11 9-12 24-4 31 13 0 23-7 26-15-3-8-12-15-22-16Z" fill="#785b45" />
+      <Path d="M29 40c-11 9-12 24-4 33l5-3 1 3c10-4 17-10 20-17-3-8-12-15-22-16Z" fill="#785b45" />
       <Path d="m29 47 13 10m-16-3 12 9m-13-3 7 6" fill="none" stroke="#b7976a" strokeWidth={1.7}/>
       <Path d="m63 26 16 4c2 4-1 8-5 10l-1-7-11-1Z" fill="#d6a344" />
       <Path d="m71 28 8 2c2 4-1 8-5 10l-1-7" fill="#414347" />
-      <Path d="M40 24q9-8 20-2" fill="none" stroke="#e9d1a3" strokeWidth={3}/>
-      <Eye x={55} y={27} r={3.2}/>
+      <Path d="M41 24q9-7 21 0l-4 10-6 7-7-3 6-8Z" fill="#cfb68d" stroke="none" />
+      <Eye x={56} y={27} r={3.2}/>
+      <Path d="M47 22q8 0 14 3" fill="none" stroke="#efe1bb" strokeWidth={2.7}/>
+      <Path d="m47 37 4 2" fill="none" stroke="#80613f" strokeWidth={1.6}/>
     </G>;
     case 'Falcon': return <G {...edge}>
       <BirdFeet x={43} y={76} color="#d1a338" />
@@ -110,10 +112,11 @@ export function WildBirdArt({ bird }: { bird: BirdDef }) {
       <Path d="m47 52 12 2m-15 5 15 2m-14 5 12 2m-9 4 7 1" fill="none" stroke="#8a7d6c" strokeWidth={1.6} />
       <Path d="M32 36c-15 12-13 30-11 40 19-9 26-20 28-29Z" fill="#43576d" />
       <Path d="m30 46-5 19m10-15-6 15" fill="none" stroke="#8da2b3" strokeWidth={1.6} />
-      <Path d="M41 18c10-11 28-3 27 10l-8 3-1 18-8-5-1-16-12-1Z" fill="#354556" />
+      <Path d="M39 20c5-11 22-11 28 0l1 8-7 5-2 16-8-5-1-16-12-1Z" fill="#354556" />
       <Path d="m66 27 12 4c1 4-1 6-5 8l-1-6-7-1Z" fill="#e3b746" />
       <Path d="m73 29 5 2c1 4-1 6-5 8l-1-6" fill="#39434b" />
       <Eye x={59} y={25} r={3}/>
+      <Path d="m53 20 11 2" fill="none" stroke="#8193a1" strokeWidth={2}/>
     </G>;
     case 'Pelican': return <G {...edge}>
       <Path d="m36 74-1 9-10 3h18l-2-11m14-1 1 9-6 3h17l-5-5-1-8" fill="#d5a263" />

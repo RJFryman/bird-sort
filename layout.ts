@@ -136,3 +136,14 @@ export function fitGrid(n: number, width: number, height: number, cap = CAP): Gr
     colGap: 0,
   };
 }
+
+// Dense optional Hard boards scroll instead of reducing creatures to thumbnails.
+// Easy keeps the fitted whole-board layout. The UI labels the scrollable board.
+export function fitPlayGrid(n: number, width: number, height: number, cap = CAP): Grid & { scroll: boolean } {
+  const fitted = fitGrid(n, width, height, cap);
+  if (fitted.slot >= 32 || n <= 6) return { ...fitted, scroll: false };
+  const usableW = Math.max(200, Math.min(width, 1000) - 48);
+  const slot = 36;
+  const cols = Math.max(1, Math.min(n, Math.floor(usableW / cellWidth(slot, cap, 96))));
+  return { slot, cols, rows: Math.ceil(n / cols), boardW: cols * cellWidth(slot, cap, 96), touchMin: 96, rowGap: 8, colGap: 0, scroll: true };
+}

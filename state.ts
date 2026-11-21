@@ -3,12 +3,13 @@
 // and persistence (storage.ts) build on — keep signatures steady.
 import { generateLevel, generateGentleLevel, canMove, applyMove, isWon, isCleared, Board } from './game';
 import { COLLECTIONS, CollectionId } from './roster';
+import { pickDistinctSpecies } from './species-selection';
 
 export const CAP = 4;
 export const EXTRA = 2;
 
 // Easy stays small forever, with a breather after each stretch level.
-// Hard is opt-in for this session; saves intentionally keep their existing shape.
+// Hard is opt-in; both the choice and the original deal survive reloads.
 export type Difficulty = 'easy' | 'hard';
 export const MAX_SPECIES = 10;
 export const speciesForLevel = (l: number, rosterLen = COLLECTIONS.birds.length, difficulty: Difficulty = 'easy') =>
@@ -32,7 +33,8 @@ export function pickBirds(
 }
 
 export type State = {
-  difficulty?: Difficulty; // absent on legacy saves means easy progression
+  difficulty?: Difficulty; // absent on hand-built/legacy states means easy
+  initialBoard?: Board; // absent only when an old save did not retain its deal
   level: number;
   maxLevel: number; // highest level ever reached -> unlocks
   collection: CollectionId; // which collection this game is playing
@@ -45,7 +47,7 @@ export type State = {
 export function init(level: number, maxLevel = level, collection: CollectionId = 'birds', difficulty: Difficulty = 'easy'): State {
   const rosterLen = COLLECTIONS[collection].length;
   const count = speciesForLevel(level, rosterLen, difficulty);
-  const pick = pickBirds(count, rosterLen);
+  const pick = pickDistinctSpecies(count, collection);
   // generate with sequential ids 0..count-1, then remap to random roster indices
   const generated = difficulty === 'hard'
     ? generateLevel(count, CAP, EXTRA)
@@ -57,6 +59,7 @@ export function init(level: number, maxLevel = level, collection: CollectionId =
     maxLevel: Math.max(maxLevel, level),
     collection,
     board,
+    initialBoard: board,
     history: [],
     selected: null,
     won: false,
@@ -103,10 +106,17 @@ export function reducer(s: State, a: Action): State {
         selected: null,
         won: false,
       };
-    case 'RESTART':
-      return { ...s, board: s.history[0] ?? s.board, history: [], selected: null, won: false };
+    case 'RESTART': {
+      const board = s.initialBoard ?? s.history[0];
+      // A legacy reload has no original deal. Only an explicit restart replaces
+      // that resumed position; it must never leave a solved board marked unwon.
+      if (!board) return init(s.level, s.maxLevel, s.collection, s.difficulty);
+      return { ...s, initialBoard: board, board, history: [], selected: null, won: isWon(board, CAP) };
+    }
     case 'DIFFICULTY':
-      return init(s.level, s.maxLevel, s.collection, a.difficulty);
+      return (s.difficulty ?? 'easy') === a.difficulty
+        ? s
+        : init(s.level, s.maxLevel, s.collection, a.difficulty);
     case 'NEXT':
       return init(s.level + 1, s.maxLevel, s.collection, s.difficulty);
     case 'GOTO':

@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, Text, View } from 'react-native';
 import { Bird } from './Bird';
 import { CollectionId } from './roster';
+import { ReefPerch } from './ReefPerch';
 
 // Length of the dark knob capping each end of a perch. Fixed, not scaled with
 // slot: it only has to read as "the branch stops here", and at small slots a
@@ -43,6 +44,8 @@ export function Branch({
   handH,
   touchMin,
   rowGap,
+  reducedMotion = false,
+  coachedTarget = false,
 }: {
   birds: number[];
   collection: CollectionId;
@@ -66,6 +69,8 @@ export function Branch({
   touchMin: number;
   /** Leftover height fitGrid hands out between rows. */
   rowGap: number;
+  reducedMotion?: boolean;
+  coachedTarget?: boolean;
 }) {
   const wig = useRef(new Animated.Value(0)).current; // -1..1 shake
   const pop = useRef(new Animated.Value(0)).current; // 0..1 lock burst
@@ -79,7 +84,7 @@ export function Branch({
 
   // nope wiggle
   useEffect(() => {
-    if (!wiggleNonce) return;
+    if (reducedMotion || !wiggleNonce) { wig.setValue(0); return; }
     wig.setValue(0);
     Animated.sequence([
       Animated.timing(wig, { toValue: 1, duration: 55, useNativeDriver: true }),
@@ -87,12 +92,13 @@ export function Branch({
       Animated.timing(wig, { toValue: 0.6, duration: 80, useNativeDriver: true }),
       Animated.timing(wig, { toValue: 0, duration: 70, useNativeDriver: true }),
     ]).start();
-  }, [wiggleNonce, wig]);
+  }, [wiggleNonce, wig, reducedMotion]);
 
   // lock celebration: pop + sparkle fly-out + expanding ring when a branch solves
   const wasDone = useRef(done);
   useEffect(() => {
-    if (done && !wasDone.current) {
+    if (reducedMotion) { pop.setValue(0); spark.setValue(0); ring.setValue(1); }
+    if (!reducedMotion && done && !wasDone.current) {
       pop.setValue(0);
       spark.setValue(0);
       ring.setValue(0);
@@ -104,11 +110,12 @@ export function Branch({
       ]).start();
     }
     wasDone.current = done;
-  }, [done, pop, spark, ring]);
+  }, [done, pop, spark, ring, reducedMotion]);
 
   // held-idle float: while a branch is selected, bob gently so the lifted birds
   // feel picked-up-and-alive rather than stuck mid-air
   useEffect(() => {
+    if (reducedMotion) { lift.setValue(selected ? -8 : 0); bob.setValue(0); return; }
     Animated.spring(lift, { toValue: selected ? -12 : 0, friction: 6, tension: 140, useNativeDriver: true }).start();
     if (!selected) {
       bob.stopAnimation(() => bob.setValue(0));
@@ -122,11 +129,11 @@ export function Branch({
     );
     b.start();
     return () => b.stop();
-  }, [selected, bob, lift]);
+  }, [selected, bob, lift, reducedMotion]);
 
   // hint: gentle continuous pulse + hand bounce; stop when hint clears
   useEffect(() => {
-    if (!hint) {
+    if (!hint || reducedMotion) {
       pulse.stopAnimation(() => pulse.setValue(0));
       hand.stopAnimation(() => hand.setValue(0));
       return;
@@ -146,7 +153,7 @@ export function Branch({
     p.start();
     h.start();
     return () => { p.stop(); h.stop(); };
-  }, [hint, pulse, hand]);
+  }, [hint, pulse, hand, reducedMotion]);
 
   const translateX = wig.interpolate({ inputRange: [-1, 1], outputRange: [-10, 10] });
   const bobY = bob.interpolate({ inputRange: [-1, 1], outputRange: [-3.5, 3.5] });
@@ -177,9 +184,9 @@ export function Branch({
       accessibilityLabel={`Branch ${branchNumber}, ${birds.length} of ${capacity}${selected ? ', selected' : destination ? ', move here' : done ? ', complete' : ''}`}
       accessibilityState={{ selected }}
       onPress={onPress}
-      onPressIn={squash}
-      onPressOut={unsquash}
-      style={{ width: touchW, alignItems: 'center', marginHorizontal: margin, paddingVertical: 8 + rowGap / 2, borderRadius: 18, backgroundColor: selected ? '#f8df92' : destination ? '#d6eaca' : 'transparent', borderWidth: 2, borderColor: selected ? '#a76c15' : destination ? '#64905a' : 'transparent' }}
+      onPressIn={reducedMotion ? undefined : squash}
+      onPressOut={reducedMotion ? undefined : unsquash}
+      style={{ width: touchW, alignItems: 'center', marginHorizontal: margin, paddingVertical: 8 + rowGap / 2, borderRadius: 18, backgroundColor: selected ? '#f8df92' : coachedTarget ? '#b5dfda' : destination ? '#d6eaca' : 'transparent', borderWidth: 2, borderColor: selected ? '#a76c15' : coachedTarget ? '#246c72' : destination ? '#64905a' : 'transparent' }}
       hitSlop={12}
     >
       {(selected || destination || done) && <Text pointerEvents="none" style={{ position: 'absolute', right: 6, top: 0, color: '#31523b', fontSize: 14, fontWeight: '900' }}>{done ? '✓' : destination ? '↓' : '↑'}</Text>}
@@ -254,7 +261,7 @@ export function Branch({
           {Array.from({ length: capacity }).map((_, i) => (
             <View key={i} style={{ width: slotW, height: slotH, alignItems: 'center', justifyContent: 'flex-end' }}>
               {i >= birds.length && <View style={{ position: 'absolute', bottom: 3, width: 8, height: 4, borderRadius: 4, backgroundColor: destination ? '#64905a' : '#c6cbb6' }} />}
-              {i < birds.length && <View style={{ transform: [{ translateY: collection === 'birds' ? 4 + slotW * 0.134 : 0 }] }}><Bird species={birds[i]} collection={collection} dancing={done} delay={i * 100} scale={birdScale} /></View>}
+              {i < birds.length && <View style={{ transform: [{ translateY: collection === 'birds' ? 4 + slotW * 0.134 : 0 }] }}><Bird species={birds[i]} collection={collection} dancing={done && !reducedMotion} delay={i * 100} scale={birdScale} /></View>}
             </View>
           ))}
         </View>
@@ -267,6 +274,7 @@ export function Branch({
             rather than a painted line.
             Total height stays 10 and total width stays perchW — layout.ts's
             CELL_CHROME and perchWidth() both assume that. */}
+        {collection === 'fish' ? <View style={{ marginTop: 4 }}><ReefPerch width={perchW} done={done} /></View> : (
         <View style={{ flexDirection: 'row', alignItems: 'center', height: 10, marginTop: 4 }}>
           <View pointerEvents="none" style={{ position: 'absolute', left: 4, bottom: 2, width: 21, height: 10, borderTopLeftRadius: 18, borderBottomRightRadius: 18, backgroundColor: done ? '#75a159' : '#75905c', transform: [{ rotate: '-32deg' }] }} />
           <View style={{ width: TIP_W, height: 10, borderRadius: 5, backgroundColor: tip }} />
@@ -282,6 +290,7 @@ export function Branch({
           />
           <View style={{ width: TIP_W, height: 10, borderRadius: 5, backgroundColor: tip }} />
         </View>
+        )}
       </Animated.View>
     </Pressable>
   );

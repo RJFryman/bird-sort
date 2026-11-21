@@ -34,7 +34,11 @@
     "preset": "jest-expo",
     "testMatch": [
       "**/*.test.ts"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^react$": "<rootDir>/node_modules/react",
+      "^react/(.*)$": "<rootDir>/node_modules/react/$1"
+    }
   },
   "private": true
 }

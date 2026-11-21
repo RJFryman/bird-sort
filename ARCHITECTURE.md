@@ -12,16 +12,23 @@ flowchart LR
   Branch --> Bird
   Bird --> Art[ParrotArt / SongbirdArt / WildBirdArt]
   Bird --> Fish[inline fish artwork]
-  State --> Storage[storage.ts]
+  App --> Storage[storage.ts]
 ```
 
 | File | Responsibility |
 | --- | --- |
 | `App.tsx`, `Branch.tsx`, `layout.ts`, `Habitat.tsx` | Screen, tap targets, responsive board and decorative habitat |
 | `state.ts`, `game.ts` | Progression, moves, undo and solvable level generation |
-| `storage.ts` | Persisted progress contract |
+| `storage.ts` | Versioned board, starting deal, difficulty and last-good backup |
+| `species-selection.ts` | Exact-count deals excluding visually confusing families |
+| `journal.ts`, `DiscoveryJournal.tsx`, `WinCelebration.tsx` | Earned stickers, sourced clues, optional spoken names and win summary |
+| `coaching.ts`, `motion.ts` | Optional winning-path help, first-play teaching and reduced-motion preference |
+| `ColoringPage.tsx`, `coloring.ts` | Interactive saved coloring from the real SVG tree, printable/downloadable on web |
 | `roster.ts` | Stable bird/fish indices and species definitions |
-| `Bird.tsx` | Creature dimensions, animation, bird dispatch and fish rendering |
+| `Bird.tsx` | Creature dimensions, animation and illustration dispatch |
+| `FishArt.tsx`, `ReefPerch.tsx` | Eleven distinct fish silhouettes and reef ledges |
+| `Habitat.tsx` | Quiet grove scenery and underwater reef atmosphere |
+| `audio.ts`, `cardinal-recording.ts` | Procedural feedback and credited CC0 cardinal song |
 | `ParrotArt.tsx` | Parrot and cockatoo silhouettes and markings |
 | `SongbirdArt.tsx` | Perching birds, dove, woodpecker and hummingbird |
 | `WildBirdArt.tsx` | Raptors, waterbirds, owl, toucan and peacock |
@@ -30,7 +37,7 @@ flowchart LR
 | `UpdateBanner.tsx`, `scripts/stamp-version.mjs` | Opt-in update notification and build stamp |
 
 Bird artwork uses a padded 96 × 96 viewBox, fitting inside the existing 48 × 56
-logical size. Fish retain their original artwork and viewBox. Species roster
+logical size. Fish now use species-specific silhouettes in the same viewBox. Species roster
 indices are saved data: never reorder or remove entries. New species append.
 Art components use solid SVG paths with no new runtime dependencies. The gallery
 script uses installed Babel and React tooling for offline review; it is not a
@@ -42,3 +49,16 @@ art generation. `npm run deploy` builds with `/bird-sort/` asset paths and runs
 `scripts/deploy-pages.mjs`, which publishes only the static export to the existing
 `gh-pages` branch. It never switches the source checkout. Update checks use an
 app-relative version URL so the project prefix is preserved.
+
+Game saves retain the original deal and difficulty, migrate existing v1 records
+without changing their boards, and retain a last-good backup before each write.
+New deals exclude conflicting visual families; saved boards are never remapped.
+Discovery stickers are earned only on won boards and never lock gallery access.
+Coloring saves are independent of puzzle progress and keyed by creature. Sound
+credits live in the corresponding journal entry; audio source and edits are
+documented in `docs/cardinal-audio.md`. The normal menu has no grown-up gate.
+
+Jest explicitly resolves React runtime modules from this app. TypeScript's
+linked-package declaration mappings are not runtime aliases: Expo tsconfigPaths
+is disabled, and Jest's mapper override prevents component tests importing types
+as runtime code. No new runtime package was added by the second pass.
