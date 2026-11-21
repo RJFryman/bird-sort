@@ -1,6 +1,6 @@
 // Owns the no-lookalike, exact-count and roster-reachability deal contract.
 import { COLLECTIONS, CollectionId, ROSTER } from './roster';
-import { pickDistinctSpecies, speciesConflict } from './species-selection';
+import { pickDistinctSpecies, speciesConflict, STARTER_SPECIES } from './species-selection';
 
 function seeded(seed: number): () => number {
   let state = seed >>> 0;
@@ -133,4 +133,22 @@ test('Hard-size lookalike pairs from the independent review are excluded',()=>{
 test('reviewed green-parrot and open-water blue lookalikes cannot share new deals',()=>{
   for(const [a,b,c]of [['Lovebird','Amazon','birds'],['Macaw','Lovebird','birds'],['Atlantic Bluefin Tuna','Sailfish','fish'],['Flying Fish','Neon Tetra','fish'],['Flying Fish','Guppy','fish']]as const)
     expect(speciesConflict(index(a,c),index(b,c),c)).toBe(true);
+});
+
+// Early gentle deals must teach clear silhouettes without reducing the later roster.
+test('starter deals stay vivid, exact and compatible for both worlds', () => {
+  for (const collection of ['birds', 'fish'] as const) for (let seed = 0; seed < 100; seed++) {
+    const deal = pickDistinctSpecies(2, collection, seeded(seed), true);
+    assertDistinct(deal, 2, collection);
+    for (const id of deal) expect(STARTER_SPECIES[collection]).toContain(COLLECTIONS[collection][id].name);
+  }
+});
+test('small-size review pairs never share a new board', () => {
+  for (const [a,b,c] of [
+    ['Whale Shark','Atlantic Bluefin Tuna','fish'],['Great White Shark','Rainbow Trout','fish'],
+    ['Great White Shark','Neon Tetra','fish'],['Parrot','Hyacinth Macaw','birds'],
+    ['Parrot','Blue Macaw','birds'],['Sun Conure','Budgie','birds'],
+    ['Sun Conure','Rosella','birds'],['Sun Conure','Lovebird','birds'],
+    ['Galah','African Grey','birds'],['African Grey','Cockatiel','birds'],
+  ] as const) expect(speciesConflict(index(a,c),index(b,c),c)).toBe(true);
 });

@@ -147,3 +147,10 @@ test('dense fish challenges can retain40px illustrations without pushing control
     expect(g.rows*g.cols).toBeGreaterThanOrEqual(12);
   }
 });
+
+test('even gentle six-perch boards respect the readability floor on narrow phones', () => {
+  const grid = fitPlayGrid(6,320,568, CAP,280,36);
+  expect(grid.slot).toBeGreaterThanOrEqual(36);
+  expect(grid.scroll).toBe(true);
+  expect(grid.boardW).toBeLessThanOrEqual(272);
+});

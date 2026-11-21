@@ -32,10 +32,11 @@ export function FishArt({ fish }: { fish: BirdDef }) {
       {eye(73, 41)}
     </G>;
     case 'Yellow Tang': return <G {...edge}>
-      <Path d="M30 37Q38 12 57 16L70 34M30 59Q39 80 58 77L70 61" fill="#f6d14a" />
+      <Path d="M30 59Q39 80 58 77L70 61Z" fill="#edc13f" />
+      <Path d="M30 37Q38 12 57 16L70 34Z" fill="#f6d14a" />
       <Path d="m29 41-17-9 3 14-3 15 17-8Z" fill="#e8b939" />
       <Path d="M28 37C36 24 56 22 67 32l7 10 12 6-12 5-6 9C57 75 37 71 29 60c-5-7-6-15-1-23Z" fill="#f6d64c" />
-      <Path d="M30 42q-4 12 5 19" fill="none" stroke="#fff0a1" strokeWidth={3} />
+      <Path d="M32 45q12 14 33 12l-5 8q-20 8-28-13Z" fill="#ffe77c" stroke="none" />
       <Path d="M58 46q-9 0-12 12 11 2 15-7Z" fill="#e9bc36" />
       <Path d="m53 50-4 5m29-7 5 0" fill="none" strokeWidth={1.5} />
       <Path d="m29 48 5 0" fill="none" stroke="#fff9d8" strokeWidth={3} />
@@ -59,7 +60,10 @@ export function FishArt({ fish }: { fish: BirdDef }) {
       <Path d="M45 40q-14 1-14 14l15-3Z" fill="#e5a0b5" />
       <Path d="M46 30q-8-7-3-15l6 2 3-8 5 8 7-3 1 7c7 1 9 5 9 9l12 4-2 8-18-5c-7 8-7 13-2 20 8 13 0 21-11 25-13 6-27 1-25-10 1-8 12-10 16-4 3 5-2 10-6 7-2-2-1-4 1-4-6-2-9 7-1 9 9 3 20-4 14-11-10-10-13-20-9-31Z" fill="#ee95b7" />
       <Path d="M57 38c-8 12-6 20 2 29l4-4c2-5-1-8-4-12-2-4-2-7 1-11Z" fill="#ffe0d4" stroke="none" />
-      <Path d="m48 44 7 3m-8 4 8 3m-5 5 8 2m-4 5 6 1m19-30 4 1" fill="none" stroke="#b96187" strokeWidth={1.5} />
+      <Path d="M46 44l10 2-1 5-10-3Z" fill="#c86f98" stroke="none" />
+      <Path d="M46 53l10 2 2 5-10-3Z" fill="#c86f98" stroke="none" />
+      <Path d="M50 62l10 2 2 5-9-2Z" fill="#c86f98" stroke="none" />
+      <Path d="m79 36 4 1" fill="none" strokeWidth={1.5} />
       <Path d="M51 36q-8 1-8-5m0 20-5 1" fill="none" strokeWidth={1.5} />
       {eye(64, 28, 3)}
     </G>;
@@ -74,12 +78,13 @@ export function FishArt({ fish }: { fish: BirdDef }) {
       {eye(71, 42, 2.8)}
     </G>;
     case 'Betta': return <G {...edge}>
+      <Path d="M40 54q-3 15 9 23 6 8 11-2 8 6 10-5 10 1 5-11l-4-8Z" fill="#a66ddb" />
       <Path d="M42 42C30 30 28 16 18 19q-9 2-5 12-9 2-4 12-6 8 4 14-6 11 5 14 5 11 13 4c13-5 19-18 15-27Z" fill="#9b65d4" />
       <Path d="M40 44 18 26M39 49 14 44M42 55 22 67" fill="none" stroke="#d9a5ec" strokeWidth={1.8} />
-      <Path d="M40 37q0-16 13-19 6-4 8 4 8-2 7 8l-4 9M40 54q-3 15 9 23 6 8 11-2 8 6 10-5 10 1 5-11l-4-8" fill="#a66ddb" />
+      <Path d="M40 37q0-16 13-19 6-4 8 4 8-2 7 8l-4 9Z" fill="#a66ddb" />
       <Path d="m45 35 10-10m-7 31 6 15m2-16 9 12" fill="none" stroke="#e0b4ed" strokeWidth={1.7} />
       <Path d="M36 43c11-9 24-11 36-7 7 3 11 8 14 12l-9 7c-14 6-28 3-41-4Z" fill="#5576d1" />
-      <Path d="M40 44q15-7 29-4" fill="none" stroke="#91d9e3" strokeWidth={2.8} />
+      <Path d="M38 44q17-9 32-5l-5 5q-13-3-27 4Z" fill="#91d9e3" stroke="none" />
       <Path d="M65 50q-9 3-10 13l11-6Z" fill="#b485df" />
       <Path d="m69 55-2 19m5-19 3 16m5-22 4-1" fill="none" strokeWidth={1.5} />
       {eye(75, 43, 2.9)}
@@ -124,7 +129,8 @@ export function FishArt({ fish }: { fish: BirdDef }) {
       <Path d="M36 49q13-9 23-5c11 4 15 7 27 3-2 10-13 16-23 15-12-2-18-11-27-11Z" fill="#d2e99e" stroke="none" />
       <Path d="M44 35q6-8 14-7l-2 9-8 7ZM60 28q7 0 12 3l-5 9-8-2Z" fill="#188d6a" stroke="none" />
       <Path d="M64 47c-12-3-15 4-14 13 9 1 16-3 18-8Z" fill="#279c72" />
-      <Path d="m54 55 7-4m-43 1 10 1-8 11m26-40 4 7M78 49q4 3 7-1" fill="none" strokeWidth={1.6} />
+      <Path d="m54 55 7-4m-43 1 10 1-8 11m26-40 4 7M74 49q6 9 12-1" fill="none" strokeWidth={1.6} />
+      <Path d="M75 52q4 5 8 0l-1 5-5 0Z" fill="#fff3d5" stroke="none" />
       {eye(76, 38, 3.6)}
     </G>;
     default: return ReefFishArt({ fish }) ?? OpenWaterFishArt({ fish });

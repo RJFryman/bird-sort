@@ -51,7 +51,7 @@ export type State = {
 export function init(level: number, maxLevel = level, collection: CollectionId = 'birds', difficulty: Difficulty = 'easy'): State {
   const rosterLen = COLLECTIONS[collection].length;
   const count = speciesForLevel(level, rosterLen, difficulty);
-  const pick = pickDistinctSpecies(count, collection);
+  const pick = pickDistinctSpecies(count, collection, Math.random, difficulty === 'easy' && level <= 3);
   // generate with sequential ids 0..count-1, then remap to random roster indices
   const generated = difficulty === 'hard'
     ? generateLevel(count, CAP, EXTRA)

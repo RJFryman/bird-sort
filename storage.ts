@@ -95,6 +95,12 @@ function savedMax(raw: string | null): number {
     Number.isSafeInteger(o.level) ? o.level : 1);
 }
 
+function savedDifficulty(raw: string | null): Difficulty | null {
+  const o = parse(raw);
+  return o?.v === 2 && (o.difficulty === 'easy' || o.difficulty === 'medium' || o.difficulty === 'hard')
+    ? o.difficulty : null;
+}
+
 async function readSaves(collection: CollectionId): Promise<(string | null)[]> {
   return Promise.all([saveKey(collection), backupKey(collection),
     ...(collection === 'birds' ? [SAVE_KEY] : [])].map(async key => {
@@ -112,7 +118,8 @@ export async function loadGame(collection: CollectionId = 'birds'): Promise<Stat
   const recoveredMax = Math.max(1, ...raws.map(savedMax));
   if (resumed) return { ...resumed, maxLevel: Math.max(resumed.maxLevel, recoveredMax) };
   // If a board is lost but its versioned unlock metadata survives, retain it.
-  return recoveredMax > 1 ? init(1, recoveredMax, collection) : null;
+  const difficulty = raws.map(savedDifficulty).find(value => value !== null);
+  return recoveredMax > 1 || difficulty ? init(1, recoveredMax, collection, difficulty ?? 'easy') : null;
 }
 
 const pendingSaves: Partial<Record<CollectionId, Promise<void>>> = {};

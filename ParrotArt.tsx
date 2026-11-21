@@ -200,7 +200,7 @@ function Budgie() {
     <P d="M34 40Q21 46 31 69Q43 66 51 52Q44 38 34 40Z" fill="#d1d995" />
     <Lines d="M30 45l5 3 7-1M28 50l7 3 8-2M29 56l7 3 9-3M31 62l6 2 6-2" color="#3b6650" w={2.1} />
     <P d="M46 45C33 37 36 19 49 16Q70 11 76 31Q78 46 62 49Z" fill="#f1df6c" />
-    <Lines d="M41 25l6 2M40 31l6 2M42 37l6 2M45 21l5 2" color="#597c47" w={1.8} />
+    <Lines d="M40 23Q48 28 53 24M39 30Q46 35 51 31M42 37L49 39" color="#3e6240" w={2.8} />
     <P d="M71 31Q80 30 81 35Q79 42 74 42L75 36L70 36Z" fill="#d6ae73" w={1.5} />
     <Ellipse cx={73} cy={31} rx={4} ry={2.3} fill="#5f8dba" />
     <P d="M57 37L64 36L61 42L56 41Z" fill="#4268b2" w={0} />
@@ -211,11 +211,11 @@ function Budgie() {
 
 function Lovebird() {
   return <G>
-    <P d="M31 65Q24 71 24 78Q34 82 44 74L46 66Z" fill="#388e83" />
+    <P d="M30 65L24 73Q30 77 40 73L43 67Z" fill="#388e83" />
     <BirdFeet x={43} y={77} color="#b2948c" />
-    <P d="M34 40C20 46 24 67 38 76C54 84 72 72 70 54Q67 40 53 37Z" fill="#82bf6b" />
+    <P d="M31 38C16 43 18 67 33 76C51 86 75 75 75 55Q75 35 53 34Z" fill="#82bf6b" />
     <P d="M50 40Q68 38 70 51Q73 64 60 70L49 63Q53 53 50 40Z" fill="#f4b075" w={0} />
-    <P d="M34 46C23 49 29 65 37 70Q49 65 51 55Q45 44 34 46Z" fill="#348f65" />
+    <P d="M28 45Q19 51 28 66Q40 70 48 58Q45 44 28 45Z" fill="#348f65" />
     <Lines d="M32 54Q38 60 45 55M36 64L43 62" color="#a4d28b" w={1.7} />
     <G transform="rotate(7 58 39)">
       <P d="M43 45C31 38 36 21 50 19Q69 15 75 31Q79 47 63 54Q51 57 43 45Z" fill="#ed9678" />
@@ -228,7 +228,7 @@ function Lovebird() {
 }
 
 const smallParrots: Record<string, { body: string; wing: string; head: string; breast: string; tail: string }> = {
-  Parrot: { body: '#6652b4', wing: '#40367e', head: '#7e65c8', breast: '#69b8d1', tail: '#484b94' },
+  Parrot: { body: '#bd469b', wing: '#85376e', head: '#d65eb4', breast: '#f2b66c', tail: '#8b417f' },
   'Purple Parrot': { body: '#9b67bd', wing: '#754795', head: '#9b67bd', breast: '#d2a1e3', tail: '#7650a5' },
   'African Grey': { body: '#a4afb5', wing: '#7d8c98', head: '#bac4c8', breast: '#cbd1cc', tail: '#d44c47' },
   Rosella: { body: '#e45145', wing: '#789954', head: '#ed5b4b', breast: '#f4d36a', tail: '#3f84a6' },
@@ -249,9 +249,10 @@ function SmallParrot({ name }: { name: string }) {
   const short = grey || name.startsWith('Eclectus') || name === 'Amazon' || purple;
   const eclectus = name.startsWith('Eclectus'), ringneck = name === 'Parakeet';
   const bodyShape = purple ? 'M31 38C14 43 18 70 35 78Q61 87 75 64L70 40Z'
-    : eclectus ? 'M43 33C30 43 29 68 43 77Q60 81 68 61L66 34Z'
+    : eclectus ? 'M40 31C26 40 24 66 39 77Q61 85 72 62L70 34Z'
     : name === 'Amazon' ? 'M30 30C17 39 21 69 35 78Q60 86 74 61L72 32Z'
-    : ringneck || lorikeet ? 'M38 34C28 42 26 62 36 73Q52 81 63 62L68 36Z'
+    : ringneck ? 'M43 31C34 39 32 60 40 73Q52 80 61 62L65 34Z'
+    : lorikeet ? 'M38 34C28 42 26 62 36 73Q52 81 63 62L68 36Z'
     : short ? 'M35 34C21 43 26 68 39 76Q58 84 69 63L68 38Z'
     : 'M35 34C22 43 26 65 38 74Q58 82 68 60L67 37Z';
   const headShape = purple ? 'M39 47C22 39 26 20 45 16C65 10 83 24 78 41Q73 57 54 54Z'
@@ -260,22 +261,23 @@ function SmallParrot({ name }: { name: string }) {
     : name === 'Amazon' ? 'M38 45Q29 36 32 23L39 14Q58 9 72 19L78 30Q80 48 60 50Z'
     : 'M46 44C33 38 35 20 49 16C63 11 77 21 77 34Q75 49 61 50Z';
   return <G>
-    <P d={ringneck ? 'M40 57C28 70 14 81 11 88Q26 89 49 64Z' : amazon ? 'M30 62L24 73Q34 79 45 70L45 64Z' : short ? 'M33 61L23 77L37 81L47 66Z' : 'M34 57L17 87L29 83L46 63Z'} fill={c.tail} />
-    {!short && <P d="M40 61L29 87L49 66Z" fill={c.wing} />}
+    <P d={ringneck ? 'M43 57L11 88L17 88L51 62Z' : amazon ? 'M29 61L24 79L43 79L49 64Z' : short ? 'M33 61L23 77L37 81L47 66Z' : 'M34 57L17 87L29 83L46 63Z'} fill={c.tail} />
+    {!short && !ringneck && <P d="M40 61L29 87L49 66Z" fill={c.wing} />}
     <BirdFeet x={43} y={77} color="#8c8582" />
     <P d={bodyShape} fill={c.body} />
     <P d="M51 39Q42 56 49 74Q65 71 67 54L63 38Z" fill={c.breast} w={0} />
     {lorikeet && <Lines d="M51 51L64 53M49 57L65 59M49 64L62 66" color="#e5bc54" w={2.5} />}
     <P d={amazon ? 'M28 38C15 43 18 68 29 73Q45 68 50 49Q43 37 28 38Z'
-      : eclectus ? 'M42 37C33 42 33 64 40 72Q51 64 55 47Q51 36 42 37Z'
+      : eclectus ? 'M41 36C22 25 10 35 9 49Q15 65 36 70L53 49Q51 36 41 36Z'
       : ringneck ? 'M39 40C30 44 31 63 38 70Q49 62 54 48Q48 39 39 40Z'
       : 'M34 40C22 45 28 64 35 71Q49 65 53 51Q47 39 34 40Z'} fill={c.wing} />
+    {eclectus && <P d="M11 49Q18 61 36 68L44 57Q26 58 20 44Z" fill={female ? '#5265a3' : '#3c83b7'} w={1.3} />}
     {rosella ? <>
       <P d="M34 42L29 48L34 52L40 46L44 51L48 47L44 42Z" fill="#e9cf76" w={1.2} />
       <P d="M30 55L36 60L47 53L48 59L36 68L33 64Z" fill="#4297ba" w={1.2} />
-    </> : <Lines d={amazon ? "M26 48Q33 56 42 51M27 59L38 62" : eclectus ? "M39 47L47 53M40 56L46 60" : ringneck ? "M36 48L44 53M37 57L43 61" : "M31 49Q36 54 44 51M34 60L43 62"} color={grey ? '#d7dcd4' : '#b2d1a0'} w={1.4} />}
+    </> : <Lines d={amazon ? "M26 48Q33 56 42 51M27 59L38 62" : eclectus ? "M15 44Q25 43 34 51M17 53L31 60M30 38L40 46" : ringneck ? "M36 48L44 53M37 57L43 61" : "M31 49Q36 54 44 51M34 60L43 62"} color={grey ? '#d7dcd4' : '#b2d1a0'} w={1.4} />}
     {(name === 'King Parrot' || name === 'Amazon' || name === 'Eclectus') && <P d={name === 'Eclectus' ? "M40 44Q46 42 49 47L44 51Q41 51 40 49Z" : "M30 44L38 42L44 47L37 51L30 49Z"} fill={name === 'King Parrot' ? '#9bd09b' : '#dd6754'} w={0} />}
-    <G transform={purple ? 'rotate(-6 58 36)' : grey ? 'rotate(5 58 36)' : undefined}>
+    <G transform={purple ? 'rotate(-6 58 36)' : grey ? 'rotate(10 58 36)' : ringneck ? 'rotate(-10 59 35)' : undefined}>
     <P d={headShape} fill={c.head} />
     {(grey || rosella) && <P d={grey ? 'M57 22Q70 19 75 29L72 41Q62 47 53 37Z' : 'M56 33Q65 28 73 34L70 44Q60 48 54 39Z'} fill={paper} w={1.1} />}
     {name === 'Amazon' && <P d="M34 24L40 15Q61 9 73 22L72 32Q57 27 49 28Z" fill="#f0cf64" w={0} />}
@@ -302,6 +304,7 @@ export function ParrotArt({ bird }: { bird: BirdDef }) {
   if (bird.name === 'Kea') return <Kea />;
   if (bird.name === 'Budgie') return <Budgie />;
   if (bird.name === 'Lovebird') return <Lovebird />;
+  if (bird.name === 'Amazon') return <G transform="translate(96 0) scale(-1 1)"><SmallParrot name={bird.name} /></G>;
   if (smallParrots[bird.name]) return <SmallParrot name={bird.name} />;
   return null;
 }

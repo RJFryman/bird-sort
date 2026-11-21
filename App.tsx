@@ -291,7 +291,7 @@ export default function App() {
   const n = s.board.length;
   // Pick the grid first, then size to it. Sizing off `boardW / n` assumed one
   // row of n branches, which stopped being true as soon as the board wrapped.
-  const { slot, boardW, touchMin, rowGap, colGap, scroll } = fitPlayGrid(n, width, height, CAP, boardViewport || undefined, collection === 'fish' && s.difficulty !== 'easy' ? 40 : 32);
+  const { slot, boardW, touchMin, rowGap, colGap, scroll } = fitPlayGrid(n, width, height, CAP, boardViewport || undefined, collection === 'fish' ? 40 : 36);
   const slotH = slot * 0.96;
   const perchW = perchWidth(slot, CAP);
   const birdScale = slot / 48;
@@ -336,7 +336,7 @@ export default function App() {
           : 'Now tap a glowing branch to move.')}
       </Text>
 
-      {/* Easy fits as a whole board. Dense Hard boards keep larger creatures
+      {/* Boards fit whole when readable. Smaller screens keep larger creatures
           and scroll inside a bounded viewport with the controls still visible. */}
       {scroll && !coachNotice && <Text style={{ color: '#486254', fontSize: 12 }}>↕ Scroll to see all {n} groups · larger friends</Text>}
       <ScrollView ref={boardScroll} scrollEnabled={scroll} scrollEventThrottle={16}
@@ -410,7 +410,10 @@ export default function App() {
               accessibilityRole="button" accessibilityState={{ selected: (s.difficulty ?? 'easy') === difficulty }}
               style={[styles.modeBtn, (s.difficulty ?? 'easy') === difficulty && { backgroundColor: '#467454', borderColor: '#c8d6a7' }]}
               onPress={() => guard(() => dispatch({ type: 'DIFFICULTY', difficulty }))}>
-              <Text style={[styles.menuBtnText, { fontSize: 15 }]}>{difficulty[0].toUpperCase() + difficulty.slice(1)}{(s.difficulty ?? 'easy') === difficulty ? ' ✓' : ''}</Text>
+              <View style={{ alignItems: 'center' }}>
+                <Text style={{ color: '#ffdc7a', fontSize: 16 }} accessibilityElementsHidden>{difficulty === 'easy' ? '★' : difficulty === 'medium' ? '★★' : '★★★'}</Text>
+                <Text style={[styles.menuBtnText, { fontSize: 15 }]}>{difficulty[0].toUpperCase() + difficulty.slice(1)}{(s.difficulty ?? 'easy') === difficulty ? ' ✓' : ''}</Text>
+              </View>
             </Pressable>)}
           </View>
           <Text style={[styles.menuSub, { textAlign: 'center' }]}>Easy stays gentle. Medium grows a little at a time. Hard is a bigger challenge.</Text>

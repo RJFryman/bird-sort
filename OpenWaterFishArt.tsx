@@ -10,38 +10,45 @@ const eye = (x: number, y: number, r = 3) => <G stroke="none"><BirdEye x={x} y={
 export function OpenWaterFishArt({ fish }: { fish: BirdDef }) {
   switch (fish.name) {
     case 'Great White Shark': return <G {...edge}>
-      <Path d="M31 44C19 39 18 27 10 21q1 18 9 27L9 65q11-1 22-13M43 38q2-17 13-24l5 24M45 57l-8 15 20-11" fill="#78949f" />
-      <Path d="M25 44C40 33 64 30 78 39l11 9q-10 15-31 16C42 63 32 56 25 51Z" fill="#8ba8b2" />
+      <Path d="M43 38q2-17 13-24l5 24Z" fill="#416c87" />
+      <Path d="M45 57l-8 15 20-11Z" fill="#416c87" />
+      <Path d="M31 44C19 39 18 27 10 21q1 18 9 27L9 65q11-1 22-13" fill="#416c87" />
+      <Path d="M25 44C40 33 64 30 78 39l11 9q-10 15-31 16C42 63 32 56 25 51Z" fill="#658fa5" />
       <Path d="M29 49c15 3 24 6 38 4l20-4C77 61 62 65 48 61Z" fill="#f5f1df" stroke="none" />
-      <Path d="M58 51q-5 14-15 18 2-11 4-19" fill="#718e9b" />
+      <Path d="M58 51q-5 14-15 18 2-11 4-19" fill="#416c87" />
       <Path d="m64 43-2 5m-3-7-2 5m18 7q5 3 9-2" fill="none" strokeWidth={1.5} />
       {eye(77, 43)}
     </G>;
     case 'Hammerhead Shark': return <G {...edge}>
-      <Path d="M31 48Q15 37 13 22q-4 16 3 28L8 66q11-1 23-10M41 41q-1-19 12-23l5 23M41 59l-7 13 20-10" fill="#659b9d" />
-      <Path d="M24 47q16-12 41-8l3-14q9-9 17-5l2 13-10 8-1 10 10 6-2 14q-10 2-17-8l-2-9q-18 10-40 1Z" fill="#83b7b3" />
-      <Path d="M29 52q18 4 38-6l4 5-1 10-4-7q-18 10-37 1Z" fill="#d7e7d7" stroke="none" />
-      <Path d="M53 51q-1 13-12 18l3-14M70 30l-3 7m-4 5-2 5m-4-4-2 5m21 8 4 2" fill="none" strokeWidth={1.5} />
+      <Path d="M41 41q-1-19 12-23l5 23Z" fill="#337e99" />
+      <Path d="M41 59l-7 13 20-10Z" fill="#337e99" />
+      <Path d="M31 48Q15 37 13 22q-4 16 3 28L8 66q11-1 23-10" fill="#337e99" />
+      <Path d="M24 47q16-12 39-8l3-18q11-11 21-5l2 14-12 10-1 11 12 7-2 17q-12 2-21-11l-2-10q-17 10-38 1Z" fill="#56a2b4" />
+      <Path d="M29 52q18 4 38-6l4 5-1 10-4-7q-18 10-37 1Z" fill="#f5f2d9" stroke="none" />
+      <Path d="M53 51q-1 13-12 18l3-14Z" fill="#337e99" />
+      <Path d="M70 30l-3 7m-4 5-2 5m-4-4-2 5m21 8 4 2" fill="none" strokeWidth={1.5} />
       {eye(79, 27, 2.7)}
     </G>;
     case 'Whale Shark': return <G {...edge}>
-      <Path d="M30 45C20 39 16 26 10 22q-3 17 8 28L9 67q12-3 22-14M45 35q2-17 14-22l7 21M45 61l-7 13 22-9" fill="#345d70" />
-      <Path d="M25 44c15-11 29-15 46-15 13-1 19 4 19 12v14c0 9-10 13-23 11C48 64 36 56 25 53Z" fill="#436e82" />
-      <Path d="M30 52q29 12 59 2c0 8-10 12-22 10-16-2-28-7-37-10Z" fill="#d5e4d8" stroke="none" />
-      <Path d="M33 44q20-11 41-9M36 49q20-8 37-7" fill="none" stroke="#6794a1" strokeWidth={2.3} />
+      <Path d="M30 45C20 39 16 26 10 22q-3 17 8 28L9 67q12-3 22-14M45 35q2-17 14-22l7 21M45 61l-7 13 22-9" fill="#2d627c" />
+      <Path d="M25 44c15-11 29-15 46-15 13-1 19 4 19 12v14c0 9-10 13-23 11C48 64 36 56 25 53Z" fill="#3e839d" />
+      <Path d="M30 52q29 12 59 2c0 8-10 12-22 10-16-2-28-7-37-10Z" fill="#fff2cf" stroke="none" />
+      <Path d="M33 44q20-11 41-9M36 49q20-8 37-7" fill="none" stroke="#91c9d1" strokeWidth={2.3} />
       <G fill="#f9edcb" stroke="none">
-        <Circle cx={42} cy={39} r={1.8}/><Circle cx={51} cy={35} r={1.8}/><Circle cx={60} cy={33} r={1.8}/><Circle cx={69} cy={33} r={1.8}/>
-        <Circle cx={39} cy={47} r={1.8}/><Circle cx={49} cy={43} r={1.9}/><Circle cx={59} cy={41} r={1.9}/><Circle cx={69} cy={40} r={1.9}/>
-        <Circle cx={45} cy={53} r={1.8}/><Circle cx={55} cy={51} r={1.9}/><Circle cx={65} cy={49} r={1.9}/><Circle cx={76} cy={48} r={1.8}/><Circle cx={82} cy={40} r={1.7}/>
+        <Circle cx={42} cy={39} r={2.2}/><Circle cx={51} cy={35} r={2.2}/><Circle cx={60} cy={33} r={2.2}/><Circle cx={69} cy={33} r={2.2}/>
+        <Circle cx={39} cy={47} r={2.2}/><Circle cx={49} cy={43} r={2.3}/><Circle cx={59} cy={41} r={2.3}/><Circle cx={69} cy={40} r={2.3}/>
+        <Circle cx={45} cy={53} r={2.2}/><Circle cx={55} cy={51} r={2.3}/><Circle cx={65} cy={49} r={2.3}/><Circle cx={76} cy={48} r={2.2}/><Circle cx={82} cy={40} r={1.7}/>
       </G>
-      <Path d="M60 53q-6 18-19 22l6-21" fill="#345d70" />
+      <Path d="M60 53q-6 18-19 22l6-21" fill="#2d627c" />
       <Path d="m69 51-1 7m-5-7-1 5M87 40q-2 9 0 16" fill="none" strokeWidth={1.6} />
       {eye(78, 35, 3.1)}
     </G>;
     case 'Manta Ray': return <G {...edge}>
       <Path d="M49 55C43 69 60 75 51 88" fill="none" strokeWidth={2.7} />
       <Path d="M40 31C28 28 20 18 7 13c1 16 7 36 23 48l14-6q7 10 16 0l12 5C85 44 88 27 89 16 73 22 68 28 57 30l-3-9-7 4Z" fill="#354e68" />
-      <Path d="M40 32C31 34 20 25 11 19q5 22 20 35l12-5q8 9 16 0l11 5q11-14 14-31C72 33 63 36 57 32Z" fill="#52778a" stroke="none" />
+      <Path d="M40 32C31 34 20 25 11 19q5 22 20 35l12-5Z" fill="#52778a" stroke="none" />
+      <Path d="M57 32C63 36 72 33 84 23q-3 17-14 31l-11-5Z" fill="#52778a" stroke="none" />
+      <Path d="M43 49q8 9 16 0l-4 6q-6 6-11 0Z" fill="#8ba8b7" stroke="none" />
       <Path d="M41 30q-8-12-1-15l5 7 5-1 5-7q8 4-1 16" fill="#73939e" />
       <Path d="M39 43q10 9 20-1l-4 11q-5 5-11 0Z" fill="#e4e9db" stroke="none" />
       <Path d="M45 33q5 4 10-1" fill="none" strokeWidth={1.5} />
@@ -81,21 +88,21 @@ export function OpenWaterFishArt({ fish }: { fish: BirdDef }) {
       {eye(69, 44, 2.8)}
     </G>;
     case 'Flying Fish': return <G {...edge}>
-      <Path d="M59 44C50 23 29 11 15 12c-1 18 10 32 31 37M51 53C38 73 23 79 12 75c3-16 16-25 29-27" fill="#d0dfd3" />
-      <Path d="M49 41Q34 21 21 18m23 32Q28 58 19 69" fill="none" stroke="#829f91" strokeWidth={2} />
-      <Path d="M29 45 14 34l3 14-7 21q15-6 20-16M47 38q4-12 13-13l8 14" fill="#809e9a" />
-      <Path d="M25 45c18-10 39-11 54-4l9 7c-14 14-38 14-63 4Z" fill="#83b9b6" />
+      <Path d="M59 44C50 23 29 11 15 12c-1 18 10 32 31 37M51 53C38 73 23 79 12 75c3-16 16-25 29-27" fill="#deedf3" />
+      <Path d="M49 41Q34 21 21 18m23 32Q28 58 19 69" fill="none" stroke="#6198bf" strokeWidth={2} />
+      <Path d="M29 45 14 34l3 14-7 21q15-6 20-16M47 38q4-12 13-13l8 14" fill="#367eae" />
+      <Path d="M25 45c18-10 39-11 54-4l9 7c-14 14-38 14-63 4Z" fill="#3d99c6" />
       <Path d="M29 50q25 5 56-2c-14 13-35 13-56 3Z" fill="#f1eed8" stroke="none" />
-      <Path d="M66 48C57 55 45 69 29 70c1-13 14-23 24-26Z" fill="#d8e5d7" />
+      <Path d="M66 48C57 55 45 69 29 70c1-13 14-23 24-26Z" fill="#e6f1e9" />
       <Path d="M56 49Q45 59 35 65m37-19-2 7m10-3 5-1" fill="none" strokeWidth={1.6} />
       {eye(77, 43, 2.9)}
     </G>;
     case 'Atlantic Bluefin Tuna': return <G {...edge}>
-      <Path d="M29 45C17 39 16 26 10 19 7 34 13 44 17 49q-9 10-7 25c6-10 9-18 19-20M43 34q5-13 14-16l4 17M43 62l12 13 7-14" fill="#314f73" />
-      <Path d="M24 45C42 32 63 25 78 38l11 12-11 12c-17 12-37 0-54-9Z" fill="#427a99" />
-      <Path d="M28 50q32 6 59 0C73 69 52 67 28 52Z" fill="#cbdedc" stroke="none" />
-      <Path d="M32 43q21-12 35-8" fill="none" stroke="#5e9ba9" strokeWidth={2.6} />
-      <Path d="M61 48q-9 12-23 17l13-16" fill="#314f73" />
+      <Path d="M29 45C17 39 16 26 10 19 7 34 13 44 17 49q-9 10-7 25c6-10 9-18 19-20M43 34q5-13 14-16l4 17M43 62l12 13 7-14" fill="#254b85" />
+      <Path d="M24 46C44 27 62 23 78 38l11 12-11 12c-17 16-35 7-54-9Z" fill="#356fba" />
+      <Path d="M28 50q32 6 59 0C73 69 52 67 28 52Z" fill="#f5f0d6" stroke="none" />
+      <Path d="M32 43q21-12 35-8" fill="none" stroke="#79c5e4" strokeWidth={2.6} />
+      <Path d="M61 48q-9 12-23 17l13-16" fill="#254b85" />
       <Path d="m37 39-2-6-4 8m-1 17 3 5 4-4m-8-16-3-5-3 7m-1 11 2 5 3-3" fill="#eac75d" strokeWidth={1.5} />
       <Path d="m70 40-2 13m12 1 5-2" fill="none" strokeWidth={1.6} />
       {eye(77, 43, 3.1)}
@@ -107,7 +114,7 @@ export function OpenWaterFishArt({ fish }: { fish: BirdDef }) {
       <Path d="M27 47q26-3 55-1l-2 7q-30-3-53-3Z" fill="#df94a0" stroke="none" />
       <G fill="#416653" stroke="none">
         <Circle cx={38} cy={40} r={2.1}/><Circle cx={49} cy={36} r={2.3}/><Circle cx={60} cy={39} r={2.2}/>
-        <Circle cx={19} cy={40} r={1.8}/><Circle cx={52} cy={26} r={1.7}/><Circle cx={68} cy={35} r={1.8}/>
+        <Circle cx={19} cy={40} r={2.2}/><Circle cx={52} cy={26} r={1.7}/><Circle cx={68} cy={35} r={2.2}/>
       </G>
       <Path d="M60 52q-4 10-14 11l6-12" fill="#a3b88e" />
       <Path d="m71 43-2 9m11-2 5-1" fill="none" strokeWidth={1.5} />
@@ -124,13 +131,13 @@ export function OpenWaterFishArt({ fish }: { fish: BirdDef }) {
       {eye(76, 40, 2.7)}
     </G>;
     case 'Sturgeon': return <G {...edge}>
-      <Path d="M31 47C20 40 17 23 10 15q-4 19 7 34L9 63q13-1 22-10M36 41q2-12 13-15l9 13M40 57q-2 12-10 17l23-13" fill="#547e7b" />
-      <Path d="M25 46c13-7 28-13 43-9l22 10-16 7c-17 10-34 5-49-2Z" fill="#7faaa0" />
-      <Path d="M29 51q24 5 57-3l-14 8q-22 8-43-3Z" fill="#e1e6d2" stroke="none" />
+      <Path d="M31 47C20 40 17 23 10 15q-4 19 7 34L9 63q13-1 22-10M36 41q2-12 13-15l9 13M40 57q-2 12-10 17l23-13" fill="#52658c" />
+      <Path d="M25 46c13-7 28-13 40-9l25 10-19 5c-14 12-31 7-46 0Z" fill="#8191b0" />
+      <Path d="M29 51q24 5 57-3l-14 8q-22 8-43-3Z" fill="#f6edcf" stroke="none" />
       <G fill="#f7efd2" stroke="none">
         <Path d="m31 46 4-4 4 2-4 3Zm9-5 5-4 5 3-5 3Zm12-3 5-3 5 4-6 2Zm12 1 5-1 5 4-6 1ZM38 52l4-3 5 2-4 3Zm12 1 5-3 5 1-5 3Zm13-1 5-3 4 1-4 3Z" />
       </G>
-      <Path d="M60 52q-4 13-17 15l7-14" fill="#547e7b" />
+      <Path d="M60 52q-4 13-17 15l7-14" fill="#52658c" />
       <Path d="m68 44-2 7m14-3-1 7m-4-5-1 7m-3-1q3 3 6 0" fill="none" strokeWidth={1.6} />
       {eye(73, 43, 2.9)}
     </G>;

@@ -11,7 +11,7 @@ flowchart LR
   App --> Branch
   Branch --> Bird
   Bird --> Art[ParrotArt / SongbirdArt / WildBirdArt]
-  Bird --> Fish[inline fish artwork]
+  Bird --> Fish[FishArt / ReefFishArt / OpenWaterFishArt]
   App --> Storage[storage.ts]
 ```
 

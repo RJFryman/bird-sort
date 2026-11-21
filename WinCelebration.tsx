@@ -13,6 +13,7 @@ export function WinCelebration({ collection, species, newCount, total, reducedMo
       <Text style={styles.stars}>✦ ★ ✦</Text>
       <Text accessibilityRole="header" style={styles.title}>You brought everyone together!</Text>
       <Text style={styles.sub}>{newCount ? `${newCount} new ${newCount === 1 ? 'sticker' : 'stickers'} for your journal` : 'Another beautiful puzzle solved'}</Text>
+      <Pressable accessibilityRole="button" style={styles.secondary} onPress={onRest}><Text style={styles.secondaryText}>All done for now ✓</Text></Pressable>
       <View style={styles.flock}>{species.map(id => <View key={id} style={styles.sticker}>
         <Bird species={id} collection={collection} scale={1.2} dancing={!reducedMotion} />
         <Text style={styles.name}>{COLLECTIONS[collection][id].name}</Text>
@@ -22,7 +23,6 @@ export function WinCelebration({ collection, species, newCount, total, reducedMo
       <Pressable accessibilityRole="button" style={styles.primary} onPress={onNext}><Text style={styles.primaryText}>Next level →</Text></Pressable>
       <Pressable accessibilityRole="button" style={styles.secondary} onPress={onJournal}><Text style={styles.secondaryText}>★ Open my journal</Text></Pressable>
       <Pressable accessibilityRole="button" style={styles.secondary} onPress={onClose}><Text style={styles.secondaryText}>Look at my solved puzzle</Text></Pressable>
-      <Pressable accessibilityRole="button" style={styles.secondary} onPress={onRest}><Text style={styles.secondaryText}>All done for now ✓</Text></Pressable>
       <Text style={styles.rest}>Your discoveries stay safe when you take a break.</Text>
     </ScrollView>
   </View>;

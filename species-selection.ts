@@ -15,7 +15,7 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     ['Blue Macaw', 'Blue-and-Gold Macaw', 'Blue-throated Macaw', 'Hyacinth Macaw', 'Bluejay', 'Bluebird'],
     // The teal breast/long tail and lilac breast/round body differ, but conservatively
     // avoid asking a child to sort two purple parrots on the same board.
-    ['Parrot', 'Purple Parrot'],
+    ['Parrot', 'Purple Parrot', 'Hyacinth Macaw', 'Blue Macaw'],
     ['Kea', 'Kakapo', 'Military Macaw'],
     ["Hahn's Macaw", 'Rainbow Lorikeet'],
     ['Parakeet', 'Lovebird', 'Budgie'],
@@ -24,6 +24,8 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     ['Dove', 'Seagull', 'Swan', 'Pelican', 'Cockatoo'],
     ['Galah', 'Flamingo', 'Eclectus Female'],
     ['Robin', 'Oriole'],
+    ['Sun Conure', 'Budgie', 'Rosella', 'Lovebird'],
+    ['Galah', 'African Grey', 'Cockatiel'],
   ],
   // New silhouettes still avoid close warm-color, striped, shark and ray families.
   // At least ten compatible choices remain across the expanded collection.
@@ -36,8 +38,16 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     ['Rainbow Trout', 'Sturgeon', 'Hammerhead Shark'],
     ['Blue Tang', 'Royal Blue Discus'],
     ['Atlantic Bluefin Tuna', 'Sailfish'],
+    ['Whale Shark', 'Atlantic Bluefin Tuna', 'Great White Shark', 'Sturgeon'],
+    ['Great White Shark', 'Rainbow Trout', 'Neon Tetra'],
     ['Flying Fish', 'Guppy', 'Neon Tetra'],
   ],
+};
+
+// The first three gentle levels introduce bold colors and very different outlines.
+export const STARTER_SPECIES: Record<CollectionId, readonly string[]> = {
+  birds: ['Cardinal', 'Bluebird', 'Canary', 'Toucan', 'Penguin', 'Owl', 'Flamingo'],
+  fish: ['Clownfish', 'Blue Tang', 'Yellow Tang', 'Seahorse', 'Betta', 'Goldfish', 'Pufferfish'],
 };
 
 /** True for duplicate species or a pair that must never share a new deal. */
@@ -88,13 +98,14 @@ function choose(candidates: number[], count: number, conflicts: (a: number, b: n
 }
 
 /** Pick exact, unique, compatible saved-roster indices without excluding species. */
-export function pickDistinctSpecies(count: number, collection: CollectionId, rng: () => number = Math.random): number[] {
+export function pickDistinctSpecies(count: number, collection: CollectionId, rng: () => number = Math.random, starter = false): number[] {
   const roster = COLLECTIONS[collection];
   if (!Number.isInteger(count) || count < 0 || count > roster.length) {
     throw new Error(`Cannot deal ${count} ${collection} species from a collection of ${roster.length}.`);
   }
   if (count === 0) return [];
-  const candidates = roster.map((_, index) => index);
+  const candidates = roster.map((_, index) => index).filter(index =>
+    !starter || STARTER_SPECIES[collection].includes(roster[index].name));
   shuffle(candidates, rng);
   const chosen = choose(candidates, count, (a, b) => speciesConflict(a, b, collection));
   if (!chosen) {

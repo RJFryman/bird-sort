@@ -317,3 +317,14 @@ test('Medium survives save reload with its exact deal and starting board',async(
   expect(resumed!.board).toEqual(mid);
   expect(resumed!.initialBoard).toEqual(mid);
 });
+
+test('damaged boards retain an explicit supported difficulty with unlock progress', async () => {
+  for (const difficulty of ['medium', 'hard'] as const) {
+    AS.__reset();
+    await AS.setItem(saveKey('fish'), JSON.stringify({v:2, level:7, maxLevel:24, board:'damaged', difficulty}));
+    const recovered = await loadGame('fish');
+    expect(recovered?.difficulty).toBe(difficulty);
+    expect(recovered?.maxLevel).toBe(24);
+    expect(recovered?.level).toBe(1);
+  }
+});

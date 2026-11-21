@@ -14,7 +14,8 @@ import { CAP } from './state';
  * column count that makes the birds biggest. The caller then pins the board to
  * exactly `cols` cells wide so flexWrap breaks where we decided it should.
  *
- * The whole board must always be on screen — no scrolling, no clipping. So the
+ * fitGrid solves the whole board on screen; fitPlayGrid adds a readable scrolling
+ * fallback when that fit would make creatures too small. Within fitGrid, the
  * touch target is what gives, not the fit: we solve at the full toddler target
  * and at the HIG minimum and keep whichever draws bigger birds. In practice it
  * only ever drops on a 320px screen, because past ~42px slot the stick alone is
@@ -137,13 +138,13 @@ export function fitGrid(n: number, width: number, height: number, cap = CAP, con
   };
 }
 
-// Dense optional Hard boards scroll instead of reducing creatures to thumbnails.
-// Easy keeps the fitted whole-board layout. The UI labels the scrollable board.
-export function fitPlayGrid(n: number, width: number, height: number, cap = CAP, viewport?: number, minimumSlot = 32): Grid & { scroll: boolean } {
+// Any board can scroll rather than reduce creatures below its readability floor.
+// The UI keeps controls visible and reveals off-screen coached rows.
+export function fitPlayGrid(n: number, width: number, height: number, cap = CAP, viewport?: number, minimumSlot = 36): Grid & { scroll: boolean } {
   // Reserve the board’s32px padding and8px top margin inside its viewport.
   const contentHeight = Math.max(60, (viewport ?? height - verticalChrome(height)) - 40);
   const fitted = fitGrid(n, width, height, cap, contentHeight);
-  if (fitted.slot >= minimumSlot || n <= 6) return { ...fitted, scroll: false };
+  if (fitted.slot >= minimumSlot) return { ...fitted, scroll: false };
   const usableW = Math.max(200, Math.min(width, 1000) - 48);
   const slot = Math.max(36, minimumSlot);
   const cols = Math.max(1, Math.min(n, Math.floor(usableW / cellWidth(slot, cap, 96))));

@@ -5,7 +5,7 @@ This candidate addresses the previous Fable findings with three distinct changes
 - Stronger bird species identities, gestures and silhouettes; redraws of the weakest
   fish and refinements of open-water/reef patterns and small-size legibility.
 - Optional Medium progression: four, then five, then six species with breathers.
-  Easy remains unchanged; Medium is saved as a difficulty in existing v2 records.
+  Easy keeps its gentle puzzle counts; Medium is saved as a difficulty in existing v2 records.
 - Primary-sourced discoveries for every one of52bird entries and31real fish;
   imaginary game creatures are explicitly identified. All84actual SVGs remain
   available to the journal and coloring pipeline.
@@ -15,7 +15,7 @@ Old paint records are retained at per-species `:previous` before new-geometry sa
 replace them. A changed outline still opens as a new coloring page, rather than
 misapplying old region IDs to unrelated shapes.
 
-Validation:128tests, TypeScript and production export pass; browser Medium menu
+Validation of the first candidate:128tests, TypeScript and production export pass; browser Medium menu
 fits320px, exact board/mode survive reload, same-mode selection preserves the deal,
 milestones show4/5/6species and a six-species Medium board wins in19hinted moves.
 Ten viewport/mode cases, all-ten win stickers and off-screen-source/destination
@@ -26,3 +26,25 @@ Release gate: a fresh Fable review must give BOTH bird and fish art and the whol
 game each at least90/100 on the same candidate, with no material unresolved play
 findings. Scores are not averaged. The candidate is not published merely because
 unit tests pass or a previous model gave another area a higher score.
+
+## Response to the first minimum90 review
+
+Fable graded b65eebd at89game/88birds/85fish with no material bugs. That failed
+the per-area release gate. The next candidate addresses the named quality gaps:
+
+- Distinct green-parrot silhouettes/poses, singing Canary, heavy-billed glossy
+  Crow, stronger small feather tells and magenta/gold make-believe Parrot.
+- Higher contrast open-water fish, clearer tails/heads, simplified Picasso bands
+  and six or more paint regions on the eight previously sparse fish pages.
+- Additional conservative lookalike families; the full roster remains reachable
+  in ten-species deals. Easy levels1–3 use vivid, compatible starter species.
+- All modes respect36px bird/40px fish slot floors. Small screens scroll within
+  the measured viewport with controls visible and scroll-aware hint coaching.
+- One/two/three-star difficulty icons; stopping on a win is visible before the
+  sticker list; neutral device-voice copy; supported difficulty survives damaged
+  boards whenever trustworthy versioned mode metadata remains.
+
+Validation:132tests, typecheck and production export pass. Actual browser proof
+checks the320px floors, visible rest action, Medium4→5→6, exact saved board/mode,
+no-op reselect, alltenstickers, tenviewport/modefits and off-screen hint reveal.
+A new independent review is required; passing tests does not certify90.

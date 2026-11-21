@@ -49,7 +49,9 @@ export function ReefFishArt({ fish }: { fish: BirdDef }) {
       <Path d="m33 43-18-9q3 13 0 26l18-8Z" fill="#759bd0" />
       <Path d="M31 36Q35 18 54 17q22 0 27 23l-2 24Q65 83 43 78L29 60Z" fill="#328ccc" />
       <Path d="M37 26c13-9 30-6 40 9 8 13 4 29-8 38-13 8-30 3-37-10-7-12-4-28 5-37Z" fill="#4ab7db" />
-      <Path d="M41 29c-5 12 11 9 7 21s-6 15 1 22M54 25c-6 12 11 14 5 25s-5 16 1 23M66 29c-5 10 8 14 5 24s-6 13-4 16" fill="none" stroke="#dc6e66" strokeWidth={3} />
+      <Path d="M40 29c-5 12 11 9 7 21s-6 15 1 22l4-1c-7-8-3-12 0-21s-11-13-7-22Z" fill="#dc6e66" stroke="none" />
+      <Path d="M53 25c-6 12 11 14 5 25s-5 16 1 23l4-2c-6-6-3-11 0-21s-10-14-6-25Z" fill="#dc6e66" stroke="none" />
+      <Path d="M66 29c-5 10 8 14 5 24s-6 13-4 16l4-2c-1-3 3-7 4-14s-9-18-5-21Z" fill="#dc6e66" stroke="none" />
       <Path d="M32 35q-6 16 2 29m5-41q16-10 31 1M42 76q15 6 29-5" fill="none" stroke="#8bdde3" strokeWidth={2.5} />
       <Path d="M63 51q-12 3-12 14l13-8Z" fill="#398ecc" strokeWidth={1.5} />
       <Path d="m77 49 5 1m-64-10 9 7-9 6" fill="none" strokeWidth={1.5} />
@@ -65,8 +67,10 @@ export function ReefFishArt({ fish }: { fish: BirdDef }) {
       {eye(75, 45, 2.9)}
     </G>;
     case 'Mandarinfish': return <G {...edge}>
+      <Path d="M50 35q8-15 17-9l-3 14Z" fill="#ed964e" />
+      <Path d="M35 57q5 16 20 13l10-11Z" fill="#ed964e" />
       <Path d="M31 43Q15 29 11 41q-4 12 7 21l15-8Z" fill="#ed964e" />
-      <Path d="M32 40Q34 24 45 22l5 13q8-15 17-9l-3 14M35 57q5 16 20 13l10-11" fill="#ed964e" />
+      <Path d="M32 40Q34 24 45 22l5 13Z" fill="#ed964e" />
       <Path d="M27 44c12-10 26-7 37-9 8-5 17 1 17 9l6 5-7 5c-2 9-11 12-18 7-11 3-27 0-35-8Z" fill="#e9974c" />
       <G fill="none" stroke="#20788d" strokeWidth={6}>
         <Path d="M32 46c14-11 30 0 21 7-7 5-16-2-9-5M62 40c-7 4-4 12 3 13M69 37q-8 10 5 18M20 40q-3 9 4 16" />
@@ -81,10 +85,11 @@ export function ReefFishArt({ fish }: { fish: BirdDef }) {
     case 'Picasso Triggerfish': return <G {...edge}>
       <Path d="m29 43-16-9 3 13-3 13 16-8M43 33q5-15 16-13l-3 13M40 59q6 16 20 12l4-12" fill="#d2c5a3" />
       <Path d="M25 43c7-6 13-17 26-17 14 0 22 10 26 16l10 6-9 6C69 67 53 75 42 65L25 53Z" fill="#e9dfc5" />
-      <Path d="M31 41q7-11 19-13l23 11-10 5-14-8-12 10Z" fill="#e8c34c" stroke="none" />
-      <Path d="m48 35 15 3 3 10 11 7-12 10-13-9-12 5-10-9 12-3Z" fill="#33454b" stroke="none" />
-      <Path d="m31 53 12 7 8-3 12 10-5 3-9-8-7 3-15-12ZM36 48l9 5 7-3 13 11-3 3-12-9-6 3-11-7Z" fill="#fff6df" stroke="none" />
-      <Path d="m62 38 12 3 3 6-12-1Z" fill="#43a7be" stroke="none" />
+      <Path d="M34 35q6-6 13-7l3 11-13 14-9-3Z" fill="#33454b" stroke="none" />
+      <Path d="M56 28q10 2 17 11l-9 5 2 17-9 7-8-11 7-15Z" fill="#33454b" stroke="none" />
+      <Path d="M38 54l10-5 7 11-6 4Z" fill="#fff6df" stroke="none" />
+      <Path d="M64 37l10 4 3 6-12-1Z" fill="#43a7be" stroke="none" />
+      <Path d="m78 44 9 4-9 6-4-5Z" fill="#efc74f" stroke="none" />
       <Path d="M66 47q-10 1-9 9l10-4Z" fill="#dab74b" strokeWidth={1.5} />
       <Path d="m45 30 7-9m26 27 6 0" fill="none" strokeWidth={1.5} />
       {eye(70, 39, 3)}

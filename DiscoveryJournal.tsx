@@ -84,7 +84,7 @@ export function DiscoveryJournal({ collection, earned, onClose, reducedMotion }:
             <Pressable accessibilityRole="link" style={styles.source} onPress={() => { void Linking.openURL(CARDINAL_RECORDING.licenseUrl); }}><Text style={styles.sourceText}>Recording licence: {CARDINAL_RECORDING.licenseName} ↗</Text></Pressable>
           </View>}
           <Pressable accessibilityRole="button" style={styles.action} onPress={() => setColoring(true)}><Text style={styles.actionText}>🎨 Color this {collection === 'birds' ? 'bird' : 'fish'}</Text></Pressable>
-          <Text style={styles.small}>Device voice · spoken name, not a bird call</Text>
+          <Text style={styles.small}>Device voice · says the name aloud</Text>
           {!!notice && <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text>}
           {clue.source && <Pressable accessibilityRole="link"
             accessibilityLabel={`Read the nature fact source: ${clue.sourceLabel}`}
