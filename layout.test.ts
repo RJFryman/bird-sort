@@ -128,3 +128,12 @@ test('hint coaching centers an off-screen row and reserves space for the hand',(
   expect(isBranchVisible({y:176,height:76},0,180)).toBe(false);
   expect(hintScrollTarget(undefined,0,180)).toBeNull();
 });
+
+
+test('fitted play rows include board padding inside the measured viewport',()=>{
+  for(const [w,h]of Object.values(SCREENS))for(const n of [4,6,9,12]){
+    const viewport=h-verticalChrome(h)-12;
+    const grid=fitPlayGrid(n,w,h,CAP,viewport);
+    if(!grid.scroll)expect((cellHeight(grid.slot)+grid.rowGap)*grid.rows+40).toBeLessThanOrEqual(viewport);
+  }
+});

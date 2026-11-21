@@ -291,7 +291,7 @@ export default function App() {
   const n = s.board.length;
   // Pick the grid first, then size to it. Sizing off `boardW / n` assumed one
   // row of n branches, which stopped being true as soon as the board wrapped.
-  const { slot, boardW, touchMin, rowGap, colGap, scroll } = fitPlayGrid(n, width, height, CAP);
+  const { slot, boardW, touchMin, rowGap, colGap, scroll } = fitPlayGrid(n, width, height, CAP, boardViewport || undefined);
   const slotH = slot * 0.96;
   const perchW = perchWidth(slot, CAP);
   const birdScale = slot / 48;
@@ -341,7 +341,7 @@ export default function App() {
       {scroll && !coachNotice && <Text style={{ color: '#486254', fontSize: 12 }}>↕ Scroll to see all {n} groups · larger friends</Text>}
       <ScrollView ref={boardScroll} scrollEnabled={scroll} scrollEventThrottle={16}
         onScroll={event => setBoardOffset(event.nativeEvent.contentOffset.y)}
-        onLayout={event => setBoardViewport(event.nativeEvent.layout.height)} style={{ flexGrow: 0, maxHeight: height - verticalChrome(height) }}
+        onLayout={event => setBoardViewport(event.nativeEvent.layout.height)} style={{ flexGrow: 0, flexShrink: 1, height: Math.max(100, height - verticalChrome(height)) }}
         contentContainerStyle={{ alignItems: 'center' }} accessibilityLabel={scroll ? 'Scrollable puzzle board' : 'Puzzle board'}>
       <View style={[styles.board, { width: boardW + 32 }]} pointerEvents="box-none">
         {s.board.map((b, i) => (

@@ -13,7 +13,7 @@ export function WinCelebration({ collection, species, newCount, total, reducedMo
       <Text style={styles.stars}>✦ ★ ✦</Text>
       <Text accessibilityRole="header" style={styles.title}>You brought everyone together!</Text>
       <Text style={styles.sub}>{newCount ? `${newCount} new ${newCount === 1 ? 'sticker' : 'stickers'} for your journal` : 'Another beautiful puzzle solved'}</Text>
-      <View style={styles.flock}>{species.slice(0, 4).map(id => <View key={id} style={styles.sticker}>
+      <View style={styles.flock}>{species.map(id => <View key={id} style={styles.sticker}>
         <Bird species={id} collection={collection} scale={1.2} dancing={!reducedMotion} />
         <Text style={styles.name}>{COLLECTIONS[collection][id].name}</Text>
         <Text style={styles.check}>★</Text>

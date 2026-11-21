@@ -107,10 +107,10 @@ function withGaps(g: Omit<Grid, 'rowGap' | 'colGap'>, usableW: number, usableH: 
   return { ...g, rowGap, colGap, boardW: g.boardW + 2 * colGap * g.cols };
 }
 
-export function fitGrid(n: number, width: number, height: number, cap = CAP): Grid {
+export function fitGrid(n: number, width: number, height: number, cap = CAP, contentHeight?: number): Grid {
   // 16 keeps us off the screen edges, 32 is the board's own horizontal padding.
   const usableW = Math.min(width, 1000) - 16 - 32;
-  const usableH = height - verticalChrome(height);
+  const usableH = contentHeight ?? height - verticalChrome(height);
 
   // Solve at both hitbox floors and take the bigger bird, tie going to the
   // bigger target. Preferring 96 outright looked safer and wasn't: on a 320px
@@ -139,8 +139,10 @@ export function fitGrid(n: number, width: number, height: number, cap = CAP): Gr
 
 // Dense optional Hard boards scroll instead of reducing creatures to thumbnails.
 // Easy keeps the fitted whole-board layout. The UI labels the scrollable board.
-export function fitPlayGrid(n: number, width: number, height: number, cap = CAP): Grid & { scroll: boolean } {
-  const fitted = fitGrid(n, width, height, cap);
+export function fitPlayGrid(n: number, width: number, height: number, cap = CAP, viewport?: number): Grid & { scroll: boolean } {
+  // Reserve the board’s32px padding and8px top margin inside its viewport.
+  const contentHeight = Math.max(60, (viewport ?? height - verticalChrome(height)) - 40);
+  const fitted = fitGrid(n, width, height, cap, contentHeight);
   if (fitted.slot >= 32 || n <= 6) return { ...fitted, scroll: false };
   const usableW = Math.max(200, Math.min(width, 1000) - 48);
   const slot = 36;
