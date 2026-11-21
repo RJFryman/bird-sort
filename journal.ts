@@ -1,6 +1,7 @@
 // Owns earned discovery stickers, serialized persistence, and sourced nature clues.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLLECTIONS, CollectionId } from './roster';
+import { FISH_KNOWLEDGE } from './fish-knowledge';
 
 export const discoveryKey = (collection: CollectionId) => `bird-sort-discoveries-v1:${collection}`;
 const writes: Partial<Record<CollectionId, Promise<number[]>>> = {};
@@ -122,6 +123,7 @@ const facts: Partial<Record<CollectionId, Record<string, DiscoveryClue>>> = {
 export function getDiscoveryClue(collection: CollectionId, index: number): DiscoveryClue {
   const bird = COLLECTIONS[collection][index];
   if (!bird) return { text: 'Choose a friend to take a closer look.' };
+  if (collection === 'fish' && FISH_KNOWLEDGE[bird.name]) return FISH_KNOWLEDGE[bird.name];
   const fact = facts[collection]?.[bird.name];
   if (fact) return fact;
   if (bird.name === 'Purple Parrot' || bird.name === 'Parrot') {

@@ -12,17 +12,26 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     // shouldn't be the deciding clue, even where the species' proportions differ.
     ['Macaw', 'Military Macaw', "Hahn's Macaw", 'Amazon', 'Parakeet', 'Eclectus'],
     // Includes both blue/yellow macaws and the largely blue versions of this outline.
-    ['Blue Macaw', 'Blue-and-Gold Macaw', 'Blue-throated Macaw', 'Hyacinth Macaw'],
+    ['Blue Macaw', 'Blue-and-Gold Macaw', 'Blue-throated Macaw', 'Hyacinth Macaw', 'Bluejay', 'Bluebird'],
     // The teal breast/long tail and lilac breast/round body differ, but conservatively
     // avoid asking a child to sort two purple parrots on the same board.
     ['Parrot', 'Purple Parrot'],
     ['Kea', 'Kakapo'],
     ['Canary', 'Goldfinch'],
-    ['Dove', 'Seagull'],
+    ['Dove', 'Seagull', 'Swan', 'Pelican', 'Cockatoo'],
+    ['Galah', 'Flamingo', 'Eclectus Female'],
+    ['Robin', 'Oriole'],
   ],
-  // FishArt gives each fish its own silhouette. Still avoid the orange/orange
-  // clownfish/goldfish pair at puzzle size; ten distinct fish remain possible.
-  fish: [['Clownfish', 'Goldfish']],
+  // New silhouettes still avoid close warm-color, striped, shark and ray families.
+  // At least ten compatible choices remain across the expanded collection.
+  fish: [
+    ['Clownfish', 'Goldfish', 'Copperband Butterflyfish'],
+    ['Yellow Tang', 'Yellow Longnose Butterflyfish', 'Longhorn Cowfish', 'Pufferfish'],
+    ['Angelfish', 'Moorish Idol', 'Picasso Triggerfish'],
+    ['Great White Shark', 'Hammerhead Shark', 'Atlantic Bluefin Tuna', 'Sturgeon'],
+    ['Manta Ray', 'Spotted Eagle Ray'],
+    ['Blue Tang', 'Royal Blue Discus'],
+  ],
 };
 
 /** True for duplicate species or a pair that must never share a new deal. */

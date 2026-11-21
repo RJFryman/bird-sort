@@ -26,7 +26,8 @@ flowchart LR
 | `ColoringPage.tsx`, `coloring.ts` | Interactive saved coloring from the real SVG tree, printable/downloadable on web |
 | `roster.ts` | Stable bird/fish indices and species definitions |
 | `Bird.tsx` | Creature dimensions, animation and illustration dispatch |
-| `FishArt.tsx`, `ReefPerch.tsx` | Eleven distinct fish silhouettes and reef ledges |
+| `FishArt.tsx`, `ReefFishArt.tsx`, `OpenWaterFishArt.tsx`, `ReefPerch.tsx` |32 stable fish silhouettes, reef/open-water groups and reef ledges |
+| `fish-knowledge.ts` | Short primary-sourced facts for every real fish |
 | `Habitat.tsx` | Quiet grove scenery and underwater reef atmosphere |
 | `audio.ts`, `cardinal-recording.ts` | Procedural feedback and credited CC0 cardinal song |
 | `ParrotArt.tsx` | Parrot and cockatoo silhouettes and markings |
@@ -62,3 +63,11 @@ Jest explicitly resolves React runtime modules from this app. TypeScript's
 linked-package declaration mappings are not runtime aliases: Expo tsconfigPaths
 is disabled, and Jest's mapper override prevents component tests importing types
 as runtime code. No new runtime package was added by the second pass.
+
+The fish roster appends entries11–31 while preserving the original0–10 for saved
+boards, stickers and coloring. Easy stays at2–4species; more fish add variety,
+not difficulty. Fish facts distinguish the imaginary Green Fish explicitly.
+Hard coaching uses bounded depth-first winning paths, cached per exact board;
+search exhaustion is distinct from a blocked board and never implies a fresh
+solvable puzzle is broken. Compact coaching uses hand/target cues, not invisible
+branch numbers. Landscape hides the redundant scroll label during coaching.

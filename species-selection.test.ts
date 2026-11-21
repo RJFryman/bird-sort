@@ -57,7 +57,7 @@ test('similar illustration families conflict regardless of the roster color', ()
 test('large silhouette and color patches keep other species available together', () => {
   // Gray body/yellow face/orange cheek versus cream body/face, and pink Galah.
   for (const [a, b] of [['Cockatiel', 'Cockatoo'], ['Cockatoo', 'Galah'],
-    ['Cardinal', 'Scarlet Macaw'], ['Swan', 'Cockatoo'], ['Budgie', 'Rainbow Lorikeet']]) {
+    ['Cardinal', 'Scarlet Macaw'], ['Swan', 'Canary'], ['Budgie', 'Rainbow Lorikeet']]) {
     expect(speciesConflict(index(a), index(b), 'birds')).toBe(false);
   }
 });
@@ -104,10 +104,21 @@ test('the same random sequence gives the same saved indices without changing eit
 });
 
 test('impossible deals throw instead of returning fewer species or allowing lookalikes', () => {
-  expect(() => pickDistinctSpecies(11, 'fish', seeded(1))).toThrow(/11.*visually distinct fish/);
+  expect(() => pickDistinctSpecies(COLLECTIONS.fish.length, 'fish', seeded(1))).toThrow(/visually distinct fish/);
   expect(() => pickDistinctSpecies(52, 'birds', seeded(1))).toThrow(/52.*visually distinct birds/);
   for (const invalid of [-1, 2.5, NaN, Infinity, 53]) {
     expect(() => pickDistinctSpecies(invalid, 'birds')).toThrow(/Cannot deal/);
   }
   expect(pickDistinctSpecies(0, 'birds')).toEqual([]);
+});
+
+
+test('the expanded reef preserves all original saved fish positions and has32 unique names',()=>{
+  expect(COLLECTIONS.fish.slice(0,11).map(f=>f.name)).toEqual(['Clownfish','Blue Tang','Yellow Tang','Pufferfish','Seahorse','Angelfish','Betta','Goldfish','Guppy','Koi','Green Fish']);
+  expect(COLLECTIONS.fish).toHaveLength(32);
+  expect(new Set(COLLECTIONS.fish.map(f=>f.name)).size).toBe(32);
+});
+test('new deals separate the extra blue, pink and pale bird families',()=>{
+  for(const names of [['Hyacinth Macaw','Bluejay'],['Galah','Flamingo'],['Pelican','Cockatoo'],['Robin','Oriole']])
+    expect(speciesConflict(index(names[0]),index(names[1]),'birds')).toBe(true);
 });

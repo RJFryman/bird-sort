@@ -1,8 +1,10 @@
-// Eleven fish silhouettes, with species markings in the shared field-guide style.
+// Original fish silhouettes plus the reef and open-water collections, with species markings in the shared field-guide style.
 import React from 'react';
 import { Circle, G, Path } from 'react-native-svg';
 import { BirdDef } from './roster';
 import { BirdEye, INK } from './BirdDetails';
+import { ReefFishArt } from './ReefFishArt';
+import { OpenWaterFishArt } from './OpenWaterFishArt';
 
 const edge = { stroke: INK, strokeWidth: 1.9, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const };
 const eye = (x: number, y: number, r = 3.1) => <G stroke="none"><BirdEye x={x} y={y} r={r} /></G>;
@@ -124,6 +126,6 @@ export function FishArt({ fish }: { fish: BirdDef }) {
       <Path d="m78 49 5-1m-66-8 9 7-9 8" fill="none" strokeWidth={1.5} />
       {eye(73, 43, 3.2)}
     </G>;
-    default: return null;
+    default: return ReefFishArt({ fish }) ?? OpenWaterFishArt({ fish });
   }
 }

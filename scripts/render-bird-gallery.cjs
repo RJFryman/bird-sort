@@ -22,13 +22,16 @@ Module._load = function (id, ...args) {
   } });
   return load.call(this, id, ...args);
 };
-const { ROSTER } = require(path.join(root, 'roster.ts'));
+const { COLLECTIONS } = require(path.join(root, 'roster.ts'));
+const collection = process.argv.includes('--fish') ? 'fish' : 'birds';
+const roster = COLLECTIONS[collection];
+const { FishArt } = require(path.join(root, 'FishArt.tsx'));
 const { ParrotArt } = require(path.join(root, 'ParrotArt.tsx'));
 const { SongbirdArt } = require(path.join(root, 'SongbirdArt.tsx'));
 const { WildBirdArt } = require(path.join(root, 'WildBirdArt.tsx'));
 const escape = s => s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('"', '&quot;');
-const svgs = ROSTER.map(bird => {
-  const art = ParrotArt({ bird }) ?? SongbirdArt({ bird }) ?? WildBirdArt({ bird });
+const svgs = roster.map(bird => {
+  const art = collection === 'fish' ? FishArt({ fish: bird }) : ParrotArt({ bird }) ?? SongbirdArt({ bird }) ?? WildBirdArt({ bird });
   if (!art) throw Error(`Missing artwork: ${bird.name}`);
   const svg = renderToStaticMarkup(React.createElement('svg', {
     xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 96 96', width: 96, height: 96,
@@ -37,9 +40,9 @@ const svgs = ROSTER.map(bird => {
   return { name: bird.name, svg };
 });
 const cards = svgs.map(({name, svg}, i) => `<article><div class="art">${svg}<span class="small">${svg.replace('width="96" height="96"', 'width="48" height="56"')}</span></div><p><small>${i}</small> ${escape(name)}</p></article>`).join('');
-const html = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bird Sort · Species artwork</title><style>*{box-sizing:border-box}body{margin:0;padding:28px;background:#edf5ef;color:#233c3b;font:15px system-ui}h1{font-size:28px;margin:0 0 8px}header{margin-bottom:24px}header p{max-width:760px;line-height:1.5}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:12px}article{background:#fffdf6;border:1px solid #d5e2d7;border-radius:16px;padding:12px}.art{height:116px;display:flex;align-items:center;justify-content:center;gap:8px}.small{display:flex;background:#cfebf3;border-radius:8px;padding:6px}article p{margin:7px 0 0;font-weight:600}small{color:#718b83;font-size:11px;font-weight:400}svg{overflow:hidden}</style><header><h1>Bird Sort · ${ROSTER.length} species</h1><p>Actual illustration components at 96px and game size (48 × 56px). Numeric roster positions are preserved for existing saves. This sheet checks artwork; animation and the game interface require the real app.</p></header><main>${cards}</main></html>`;
+const html = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bird Sort · Species artwork</title><style>*{box-sizing:border-box}body{margin:0;padding:28px;background:#edf5ef;color:#233c3b;font:15px system-ui}h1{font-size:28px;margin:0 0 8px}header{margin-bottom:24px}header p{max-width:760px;line-height:1.5}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(176px,1fr));gap:12px}article{background:#fffdf6;border:1px solid #d5e2d7;border-radius:16px;padding:12px}.art{height:116px;display:flex;align-items:center;justify-content:center;gap:8px}.small{display:flex;background:#cfebf3;border-radius:8px;padding:6px}article p{margin:7px 0 0;font-weight:600}small{color:#718b83;font-size:11px;font-weight:400}svg{overflow:hidden}</style><header><h1>${collection === 'fish' ? 'Fish' : 'Bird'} Sort · ${roster.length} species</h1><p>Actual illustration components at 96px and game size (48 × 56px). Numeric roster positions are preserved for existing saves. This sheet checks artwork; animation and the game interface require the real app.</p></header><main>${cards}</main></html>`;
 const output = path.resolve(process.argv[2] || '/tmp/bird-sort-art/gallery.html');
 fs.mkdirSync(path.dirname(output), {recursive:true});
 fs.writeFileSync(output, html);
 svgs.forEach(({name, svg}, i) => fs.writeFileSync(path.join(path.dirname(output), `${String(i).padStart(2,'0')}.svg`), svg));
-console.log(`Rendered ${svgs.length} birds: ${output}`);
+console.log(`Rendered ${svgs.length} ${collection}: ${output}`);

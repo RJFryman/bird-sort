@@ -113,8 +113,28 @@ export const FISH: BirdDef[] = [
   { name: 'Koi', color: '#f4f1ea', shape: 'fish', belly: '#e8622f', spot: '#e8622f' },
   // --- Asher's picks (fill from what he names) ---
   { name: 'Green Fish', color: '#3fae5f', shape: 'fish', belly: '#bfe8c8' }, // Asher's, 2026-08
-  // { name: '???', color: '#______', shape: 'fish' },
-  // { name: '???', color: '#______', shape: 'fish' },
+  // Append only: older boards and coloring saves retain indices 0–10.
+  { name: 'Great White Shark', color: '#8295a5', shape: 'fish' },
+  { name: 'Hammerhead Shark', color: '#6f9a9a', shape: 'fish' },
+  { name: 'Whale Shark', color: '#386780', shape: 'fish' },
+  { name: 'Manta Ray', color: '#425a72', shape: 'fish' },
+  { name: 'Spotted Eagle Ray', color: '#566e85', shape: 'fish' },
+  { name: 'Moray Eel', color: '#778b48', shape: 'fish' },
+  { name: 'Lionfish', color: '#b5624a', shape: 'fish' },
+  { name: 'Moorish Idol', color: '#f4d35d', shape: 'fish' },
+  { name: 'Copperband Butterflyfish', color: '#f0aa59', shape: 'fish' },
+  { name: 'Royal Blue Discus', color: '#3e8abb', shape: 'fish' },
+  { name: 'Neon Tetra', color: '#41c8dc', shape: 'fish' },
+  { name: 'Mandarinfish', color: '#e6903d', shape: 'fish' },
+  { name: 'Picasso Triggerfish', color: '#f1e1b4', shape: 'fish' },
+  { name: 'Yellow Longnose Butterflyfish', color: '#eacd4c', shape: 'fish' },
+  { name: 'Sailfish', color: '#467eaa', shape: 'fish' },
+  { name: 'Flying Fish', color: '#68adce', shape: 'fish' },
+  { name: 'Atlantic Bluefin Tuna', color: '#547d96', shape: 'fish' },
+  { name: 'Rainbow Trout', color: '#9fac9a', shape: 'fish' },
+  { name: 'Sockeye Salmon', color: '#d95b54', shape: 'fish' },
+  { name: 'Sturgeon', color: '#8b9894', shape: 'fish' },
+  { name: 'Longhorn Cowfish', color: '#e3c25f', shape: 'fish' },
 ];
 
 // One sort mechanic, two collections. `birds` aliases ROSTER for back-compat.

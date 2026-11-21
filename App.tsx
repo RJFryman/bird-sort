@@ -17,7 +17,7 @@ import { DiscoveryJournal } from './DiscoveryJournal';
 import { loadDiscoveries, recordDiscoveries } from './journal';
 import { WinCelebration } from './WinCelebration';
 import { useReducedMotion } from './motion';
-import { winningMove, tutorialSeen, rememberTutorial, say, CoachingMove } from './coaching';
+import { findCoachingMove, tutorialSeen, rememberTutorial, say, CoachingMove } from './coaching';
 
 // Feedback remains in the menu, away from the puzzle surface.
 configureFeedback({
@@ -84,6 +84,7 @@ export default function App() {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
   const rid = useRef(0);
   const enterEpoch = useRef(0);
+  const cardinalWin = useRef(false);
   const winPop = useRef(new Animated.Value(0)).current;
 
   // Added to the home screen, iOS runs this standalone and paints the status-bar
@@ -176,12 +177,16 @@ export default function App() {
   }, [s.won, s.board, collection, loaded, home]);
 
   const showCoach = () => {
-    const move = winningMove(s.board);
+    const result = findCoachingMove(s.board);
+    if (s.selected !== null) dispatch({ type: 'TAP', i: s.selected });
+    const move = result.status === 'move' ? result.move : null;
     setCoach(move);
     if (move) {
-      setCoachNotice(`Tap branch ${move.from + 1}, then branch ${move.to + 1}. ${s.board[move.to].length ? 'Put matching friends together.' : 'Use an empty space to reach the friends behind.'}`);
+      setCoachNotice('Follow 👆, then tap the teal ↓.');
       setHintFrom(move.from);
-    } else setCoachNotice('Try Undo or Restart for a fresh way forward.');
+    } else if (result.status === 'limited') setCoachNotice('No quick hint yet. You can keep playing!');
+    else if (result.status === 'solved') setCoachNotice('Everyone is already together!');
+    else setCoachNotice(s.history.length ? 'Try Undo to make some room.' : 'Try Restart for another way to play.');
   };
 
   // onboarding demo + idle re-invite: after quiet time, point at a legal move.
@@ -200,6 +205,14 @@ export default function App() {
       Animated.spring(winPop, { toValue: 1, friction: 5, tension: 90, useNativeDriver: true }).start();
     } else winPop.setValue(1);
   }, [s.won, winPop, reducedMotion]);
+
+  // Let the real cardinal phrase finish before the victory fanfare. Cancel it
+  // if the child leaves the celebration, so sound never follows them into play.
+  useEffect(() => {
+    if (!s.won || !celebrate || home || !cardinalWin.current) return;
+    const timer = setTimeout(() => { playSfx('win'); cardinalWin.current = false; }, 2900);
+    return () => clearTimeout(timer);
+  }, [s.won, celebrate, home, collection]);
 
   // Send anything captured while offline. Safe on every start — the collector
   // dedupes on ref, so a re-send costs nothing.
@@ -226,6 +239,7 @@ export default function App() {
       const locked = clearedCount(next) > clearedCount(board);
       playSfx('drop');
       const cardinalLock = locked && collection === 'birds' && next[i][0] === 0;
+      cardinalWin.current = won && cardinalLock;
       if (won && !cardinalLock) playSfx('win');
       if (cardinalLock) playSfx('cardinal');
       else if (locked && !won) playSfx('chirp');
@@ -305,9 +319,9 @@ export default function App() {
           : 'Now tap a glowing branch to move.')}
       </Text>
 
-      {/* Width is pinned to exactly `cols` cells so flexWrap breaks where fitGrid
-          decided. The whole board always fits — never scrolls, never clips. */}
-      {scroll && <Text style={{ color: '#486254', fontSize: 12 }}>↕ Scroll to see all {n} groups · larger friends</Text>}
+      {/* Easy fits as a whole board. Dense Hard boards keep larger creatures
+          and scroll inside a bounded viewport with the controls still visible. */}
+      {scroll && !coachNotice && <Text style={{ color: '#486254', fontSize: 12 }}>↕ Scroll to see all {n} groups · larger friends</Text>}
       <ScrollView scrollEnabled={scroll} style={{ flexGrow: 0, maxHeight: height - verticalChrome(height) }}
         contentContainerStyle={{ alignItems: 'center' }} accessibilityLabel={scroll ? 'Scrollable puzzle board' : 'Puzzle board'}>
       <View style={[styles.board, { width: boardW + 32 }]} pointerEvents="box-none">
@@ -375,7 +389,7 @@ export default function App() {
           </View>
           <Text style={styles.menuSub}>Changing difficulty starts a new board. Your choice is saved.</Text>
           <View style={styles.menuRow}>
-            <Pressable style={styles.menuBtn} onPress={() => guard(() => dispatch({ type: 'GOTO', level: s.level - 1 }))}>
+            <Pressable disabled={s.level <= 1} style={[styles.menuBtn, s.level <= 1 && { opacity: .45 }]} onPress={() => guard(() => dispatch({ type: 'GOTO', level: s.level - 1 }))}>
               <Text style={styles.menuBtnText}>◀ Level</Text>
             </Pressable>
             <Text style={styles.menuLevel}>Level {s.level}</Text>
@@ -415,9 +429,9 @@ export default function App() {
       {gallery && <DiscoveryJournal collection={collection} earned={earned} reducedMotion={reducedMotion} onClose={() => setGallery(false)} />}
       {celebrate && !gallery && !home && <WinCelebration collection={collection} species={[...new Set(s.board.flat())]}
         newCount={newCount} total={earned.length} reducedMotion={reducedMotion}
-        onNext={() => { setCelebrate(false); dispatch({ type: 'NEXT' }); }}
-        onJournal={() => { setCelebrate(false); setGallery(true); }} onClose={() => setCelebrate(false)}
-        onRest={() => { setCelebrate(false); setHome(true); }} />}
+        onNext={() => { cardinalWin.current = false; setCelebrate(false); dispatch({ type: 'NEXT' }); }}
+        onJournal={() => { cardinalWin.current = false; setCelebrate(false); setGallery(true); }} onClose={() => { cardinalWin.current = false; setCelebrate(false); }}
+        onRest={() => { cardinalWin.current = false; setCelebrate(false); setHome(true); }} />}
       {tutorial && !home && <View style={[styles.overlay, { backgroundColor: 'rgba(29,59,46,.8)', padding: 20 }]}>
         <ScrollView style={{ backgroundColor: '#fffdf3', borderRadius: 26, maxWidth: 400, width: '100%', maxHeight: '95%', flexGrow: 0 }} contentContainerStyle={{ padding: 24, gap: 16, alignItems: 'center' }}>
           <Text style={{ fontSize: 26, color: '#244b39', fontWeight: '900' }}>Let’s sort together</Text>
@@ -458,7 +472,7 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, letterSpacing: 3, fontWeight: '800', color: '#547364' },
   title: { fontSize: 32, fontWeight: '900', color: '#243e33', letterSpacing: -1 },
   progress: { fontSize: 13, color: '#486254', fontWeight: '600', marginTop: 3 },
-  instruction: { paddingHorizontal: 16, maxWidth: 560, fontSize: 15, color: '#304e40', textAlign: 'center', marginTop: 12, minHeight: 22 },
+  instruction: { paddingHorizontal: 16, maxWidth: 560, fontSize: 15, color: '#304e40', textAlign: 'center', marginTop: 12, minHeight: 22, flexShrink: 0 },
   toolbar: { flexDirection: 'row', maxWidth: '100%', paddingHorizontal: 8, gap: 6, marginTop: 8, paddingBottom: 8 },
   tool: { minHeight: 52, paddingHorizontal: 8, flexShrink: 1, justifyContent: 'center', borderRadius: 18, borderWidth: 1, borderColor: '#b5c6ae', backgroundColor: '#fffdf3' },
   toolOff: { opacity: 0.45 },

@@ -121,3 +121,13 @@ test('every friend has a clue, facts link to their source, and fantasy birds are
   const purple = COLLECTIONS.birds.findIndex(bird => bird.name === 'Purple Parrot');
   expect(getDiscoveryClue('birds', purple).text).toContain('imaginative game bird');
 });
+
+
+test('every real fish has its own sourced journal fact and the imaginary fish is clearly labelled',()=>{
+  for (let id=0;id<COLLECTIONS.fish.length;id++) {
+    const entry=getDiscoveryClue('fish',id);
+    expect(entry.text.length).toBeGreaterThan(15);
+    if(COLLECTIONS.fish[id].name==='Green Fish') expect(entry.text).toMatch(/make-believe|imaginary/i);
+    else { expect(entry.source).toMatch(/^https:\/\//); expect(entry.sourceLabel).toBeTruthy(); }
+  }
+});
