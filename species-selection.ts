@@ -16,7 +16,9 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     // The teal breast/long tail and lilac breast/round body differ, but conservatively
     // avoid asking a child to sort two purple parrots on the same board.
     ['Parrot', 'Purple Parrot'],
-    ['Kea', 'Kakapo'],
+    ['Kea', 'Kakapo', 'Military Macaw'],
+    ["Hahn's Macaw", 'Rainbow Lorikeet'],
+    ['Parakeet', 'Lovebird', 'Budgie'],
     ['Canary', 'Goldfinch'],
     ['Dove', 'Seagull', 'Swan', 'Pelican', 'Cockatoo'],
     ['Galah', 'Flamingo', 'Eclectus Female'],
@@ -30,6 +32,7 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     ['Angelfish', 'Moorish Idol', 'Picasso Triggerfish'],
     ['Great White Shark', 'Hammerhead Shark', 'Atlantic Bluefin Tuna', 'Sturgeon'],
     ['Manta Ray', 'Spotted Eagle Ray'],
+    ['Rainbow Trout', 'Sturgeon', 'Hammerhead Shark'],
     ['Blue Tang', 'Royal Blue Discus'],
   ],
 };
@@ -55,8 +58,7 @@ function shuffle(candidates: number[], rng: () => number): void {
 }
 
 // A partition into conflicting cliques gives a safe upper bound: any valid deal
-// can take at most one from each clique. Today the families are disjoint, so this
-// also proves impossibility without traversing exponentially many combinations.
+// can take at most one from each clique, including when conflict families overlap.
 function availableSlots(candidates: number[], conflicts: (a: number, b: number) => boolean): number {
   const cliques: number[][] = [];
   for (const candidate of candidates) {

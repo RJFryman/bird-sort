@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, Text, View, type LayoutChangeEvent } from 'react-native';
 import { Bird } from './Bird';
 import { CollectionId } from './roster';
 import { ReefPerch } from './ReefPerch';
@@ -46,6 +46,7 @@ export function Branch({
   rowGap,
   reducedMotion = false,
   coachedTarget = false,
+  onLayout,
 }: {
   birds: number[];
   collection: CollectionId;
@@ -71,6 +72,7 @@ export function Branch({
   rowGap: number;
   reducedMotion?: boolean;
   coachedTarget?: boolean;
+  onLayout?: (event: LayoutChangeEvent) => void;
 }) {
   const wig = useRef(new Animated.Value(0)).current; // -1..1 shake
   const pop = useRef(new Animated.Value(0)).current; // 0..1 lock burst
@@ -183,6 +185,7 @@ export function Branch({
       accessibilityRole="button"
       accessibilityLabel={`Branch ${branchNumber}, ${birds.length} of ${capacity}${selected ? ', selected' : destination ? ', move here' : done ? ', complete' : ''}`}
       accessibilityState={{ selected }}
+      onLayout={onLayout}
       onPress={onPress}
       onPressIn={reducedMotion ? undefined : squash}
       onPressOut={reducedMotion ? undefined : unsquash}

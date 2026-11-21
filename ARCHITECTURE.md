@@ -71,3 +71,8 @@ Hard coaching uses bounded depth-first winning paths, cached per exact board;
 search exhaustion is distinct from a blocked board and never implies a fresh
 solvable puzzle is broken. Compact coaching uses hand/target cues, not invisible
 branch numbers. Landscape hides the redundant scroll label during coaching.
+
+Scrollable coaching measures branch rows and the board viewport. Explicit Hint
+requests center the source, then the destination after selection; repeating Hint
+recenters after manual scrolling. Hand cues render only when their complete row
+is visible, so off-screen cues cannot impersonate another row.

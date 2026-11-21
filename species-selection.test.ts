@@ -57,7 +57,7 @@ test('similar illustration families conflict regardless of the roster color', ()
 test('large silhouette and color patches keep other species available together', () => {
   // Gray body/yellow face/orange cheek versus cream body/face, and pink Galah.
   for (const [a, b] of [['Cockatiel', 'Cockatoo'], ['Cockatoo', 'Galah'],
-    ['Cardinal', 'Scarlet Macaw'], ['Swan', 'Canary'], ['Budgie', 'Rainbow Lorikeet']]) {
+    ['Cardinal', 'Scarlet Macaw'], ['Swan', 'Canary'], ['Budgie', 'Toucan']]) {
     expect(speciesConflict(index(a), index(b), 'birds')).toBe(false);
   }
 });
@@ -121,4 +121,10 @@ test('the expanded reef preserves all original saved fish positions and has32 un
 test('new deals separate the extra blue, pink and pale bird families',()=>{
   for(const names of [['Hyacinth Macaw','Bluejay'],['Galah','Flamingo'],['Pelican','Cockatoo'],['Robin','Oriole']])
     expect(speciesConflict(index(names[0]),index(names[1]),'birds')).toBe(true);
+});
+
+
+test('Hard-size lookalike pairs from the independent review are excluded',()=>{
+  for(const [a,b,c] of [["Hahn's Macaw",'Rainbow Lorikeet','birds'],['Kea','Military Macaw','birds'],['Parakeet','Lovebird','birds'],['Rainbow Trout','Sturgeon','fish']] as const)
+    expect(speciesConflict(index(a,c),index(b,c),c)).toBe(true);
 });

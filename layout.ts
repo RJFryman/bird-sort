@@ -147,3 +147,13 @@ export function fitPlayGrid(n: number, width: number, height: number, cap = CAP)
   const cols = Math.max(1, Math.min(n, Math.floor(usableW / cellWidth(slot, cap, 96))));
   return { slot, cols, rows: Math.ceil(n / cols), boardW: cols * cellWidth(slot, cap, 96), touchMin: 96, rowGap: 8, colGap: 0, scroll: true };
 }
+
+export type BranchFrame = { y: number; height: number };
+/** Includes room above a row for the pointing hand, so it cannot impersonate the row above. */
+export function isBranchVisible(frame: BranchFrame | undefined, offset: number, viewport: number): boolean {
+  return !!frame && viewport > 0 && frame.y >= offset + 8 && frame.y + frame.height <= offset + viewport - 4;
+}
+export function hintScrollTarget(frame: BranchFrame | undefined, offset: number, viewport: number): number | null {
+  if (!frame || viewport <= 0 || isBranchVisible(frame, offset, viewport)) return null;
+  return Math.max(0, frame.y - Math.max(12, (viewport - frame.height) / 2));
+}

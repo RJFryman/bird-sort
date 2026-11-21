@@ -6,7 +6,7 @@ import { Bird } from './Bird';
 import { COLLECTIONS, CollectionId } from './roster';
 import { isCleared, canMove, applyMove, isWon, Board } from './game';
 import { reducer, init, CAP } from './state';
-import { fitPlayGrid, verticalChrome, marginFor, handFor, perchWidth } from './layout';
+import { fitPlayGrid, verticalChrome, isBranchVisible, hintScrollTarget, marginFor, handFor, perchWidth } from './layout';
 import { loadGame, saveGame, loadLastCollection, saveLastCollection } from './storage';
 import { initAudio, playSfx } from './audio';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
@@ -76,6 +76,7 @@ export default function App() {
   const [tutorial, setTutorial] = useState(false);
   const [coach, setCoach] = useState<CoachingMove | null>(null);
   const [coachNotice, setCoachNotice] = useState('');
+  const [hintRequest, setHintRequest] = useState(0);
   const [home, setHome] = useState(true); // two-world picker (first run)
   const collection = s.collection; // active collection is the single source of truth
   const [wiggle, setWiggle] = useState({ i: -1, n: 0 }); // illegal-tap shake target
@@ -85,6 +86,11 @@ export default function App() {
   const rid = useRef(0);
   const enterEpoch = useRef(0);
   const cardinalWin = useRef(false);
+  const boardScroll = useRef<ScrollView>(null);
+  const branchFrames = useRef<Record<number, { y: number; height: number }>>({});
+  const [boardOffset, setBoardOffset] = useState(0);
+  const [boardViewport, setBoardViewport] = useState(0);
+  const [layoutRevision, setLayoutRevision] = useState(0);
   const winPop = useRef(new Animated.Value(0)).current;
 
   // Added to the home screen, iOS runs this standalone and paints the status-bar
@@ -177,12 +183,13 @@ export default function App() {
   }, [s.won, s.board, collection, loaded, home]);
 
   const showCoach = () => {
+    setHintRequest(value => value + 1);
     const result = findCoachingMove(s.board);
     if (s.selected !== null) dispatch({ type: 'TAP', i: s.selected });
     const move = result.status === 'move' ? result.move : null;
     setCoach(move);
     if (move) {
-      setCoachNotice('Follow 👆, then tap the teal ↓.');
+      setCoachNotice('Follow 👆, then tap the glowing ↓.');
       setHintFrom(move.from);
     } else if (result.status === 'limited') setCoachNotice('No quick hint yet. You can keep playing!');
     else if (result.status === 'solved') setCoachNotice('Everyone is already together!');
@@ -291,6 +298,16 @@ export default function App() {
   const branchMargin = marginFor(slot) + colGap;
   const handH = handFor(slot);
 
+  const coachedBranch = coach ? (s.selected === coach.from ? coach.to : coach.from) : null;
+  useEffect(() => {
+    if (!scroll || coachedBranch === null) return;
+    const y = hintScrollTarget(branchFrames.current[coachedBranch], boardOffset, boardViewport);
+    if (y !== null) boardScroll.current?.scrollTo({ y, animated: !reducedMotion });
+    // Offset changes only control hand visibility; they must not fight manual scrolling.
+  }, [coachedBranch, coach, hintRequest, scroll, boardViewport, layoutRevision, width, height, reducedMotion]);
+
+  useEffect(() => { boardScroll.current?.scrollTo({ y: 0, animated: false }); }, [s.level, s.difficulty, collection]);
+
   const isFish = collection === 'fish';
 
   return (
@@ -322,7 +339,9 @@ export default function App() {
       {/* Easy fits as a whole board. Dense Hard boards keep larger creatures
           and scroll inside a bounded viewport with the controls still visible. */}
       {scroll && !coachNotice && <Text style={{ color: '#486254', fontSize: 12 }}>↕ Scroll to see all {n} groups · larger friends</Text>}
-      <ScrollView scrollEnabled={scroll} style={{ flexGrow: 0, maxHeight: height - verticalChrome(height) }}
+      <ScrollView ref={boardScroll} scrollEnabled={scroll} scrollEventThrottle={16}
+        onScroll={event => setBoardOffset(event.nativeEvent.contentOffset.y)}
+        onLayout={event => setBoardViewport(event.nativeEvent.layout.height)} style={{ flexGrow: 0, maxHeight: height - verticalChrome(height) }}
         contentContainerStyle={{ alignItems: 'center' }} accessibilityLabel={scroll ? 'Scrollable puzzle board' : 'Puzzle board'}>
       <View style={[styles.board, { width: boardW + 32 }]} pointerEvents="box-none">
         {s.board.map((b, i) => (
@@ -335,7 +354,14 @@ export default function App() {
             destination={s.selected !== null && canMove(s.board, s.selected, i, CAP)}
             branchNumber={i + 1}
             done={isCleared(b, CAP)}
-            hint={(coach?.from ?? hintFrom) === i && s.selected === null}
+            hint={(coach?.from ?? hintFrom) === i && s.selected === null && (!scroll || isBranchVisible(branchFrames.current[i], boardOffset, boardViewport))}
+            onLayout={event => {
+              const { y, height: rowHeight } = event.nativeEvent.layout;
+              const old = branchFrames.current[i];
+              if (old?.y === y && old?.height === rowHeight) return;
+              branchFrames.current[i] = { y, height: rowHeight };
+              setLayoutRevision(value => value + 1);
+            }}
             reducedMotion={reducedMotion}
             coachedTarget={coach?.to === i && s.selected === coach.from}
             wiggleNonce={wiggle.i === i ? wiggle.n : 0}

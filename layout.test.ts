@@ -117,3 +117,14 @@ test('dense Hard boards offer readable 36px creatures in a scrollable board inst
   expect(fitPlayGrid(12,320,568).scroll).toBe(true);
   expect(fitPlayGrid(4,390,844).scroll).toBe(false);
 });
+
+import { hintScrollTarget, isBranchVisible } from './layout';
+test('hint coaching centers an off-screen row and reserves space for the hand',()=>{
+  const hidden={y:240,height:76};
+  expect(isBranchVisible(hidden,0,180)).toBe(false);
+  const offset=hintScrollTarget(hidden,0,180)!;
+  expect(isBranchVisible(hidden,offset,180)).toBe(true);
+  expect(hintScrollTarget(hidden,offset,180)).toBeNull();
+  expect(isBranchVisible({y:176,height:76},0,180)).toBe(false);
+  expect(hintScrollTarget(undefined,0,180)).toBeNull();
+});
