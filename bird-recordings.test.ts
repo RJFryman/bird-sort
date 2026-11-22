@@ -40,8 +40,21 @@ test('hash-bound measurements enforce audible levels and reject flat noise-like 
     expect(measurement.integratedLufs).toBeLessThanOrEqual(-17);
     expect(measurement.loudest100msDbfs).toBeGreaterThanOrEqual(-24);
     expect(measurement.peakDbfs).toBeLessThanOrEqual(-1);
-    expect(measurement.windowContrastDb >= 8 || measurement.tonalConcentration90 >= .1).toBe(true);
+    expect(measurement.tonalConcentration90).toBeGreaterThanOrEqual(.1);
+    if (measurement.windowContrastDb < 8) {
+      const reviewed = require('./bird-audio-reviewed-windows.json') as Record<string, {sha256: string; finding: string}>;
+      expect(reviewed[measurement.asset]?.sha256).toBe(measurement.sha256);
+      expect(reviewed[measurement.asset]?.finding.length).toBeGreaterThan(20);
+    }
   }
   const levels = measurements.map(m => m.integratedLufs);
   expect(Math.max(...levels) - Math.min(...levels)).toBeLessThanOrEqual(4);
+});
+
+test('the rejected African Grey noise window cannot use a tonal-only exception', () => {
+  const reviewed = require('./bird-audio-reviewed-windows.json');
+  expect(reviewed['psittacus-erithacus']).toBeUndefined();
+  const measurement = require('./bird-audio-measurements.json').find((m: {asset: string}) => m.asset === 'psittacus-erithacus');
+  expect(measurement.windowContrastDb).toBeGreaterThanOrEqual(8);
+  expect(measurement.sha256).not.toBe('1b64f8ed0baef9fa84515ff9c5d9188ea8861a4c72bd1926d16bb0e78f2d0a1e');
 });

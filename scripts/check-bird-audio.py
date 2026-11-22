@@ -38,13 +38,18 @@ def main():
     parser = argparse.ArgumentParser(); parser.add_argument('--write', action='store_true'); args = parser.parse_args()
     records = json.loads((ROOT / 'bird-recordings.json').read_text())
     measurements = [inspect(record) for record in {record['asset']: record for record in records}.values()]
+    reviewed = json.loads((ROOT / 'bird-audio-reviewed-windows.json').read_text())
     failures = []
     for item in measurements:
         reasons = []
         if not -23 <= item['integratedLufs'] <= -17: reasons.append('integrated loudness outside -23..-17 LUFS')
         if item['loudest100msDbfs'] < -24: reasons.append('100ms loudness below -24 dBFS')
         if item['peakDbfs'] > -1: reasons.append('peak above -1 dBFS')
-        if item['windowContrastDb'] < 8 and item['tonalConcentration90'] < .1: reasons.append('low dynamics and no strong tonal structure')
+        if item['tonalConcentration90'] < .1: reasons.append('no strong tonal structure')
+        # Tonal concentration alone never overrides low contrast. Five known
+        # hiss-heavy field clips have explicit, hash-bound visual inspections.
+        if item['windowContrastDb'] < 8 and reviewed.get(item['asset'], {}).get('sha256') != item['sha256']:
+            reasons.append('low contrast without an exact reviewed vocal window')
         if reasons: failures.append({'asset': item['asset'], 'reasons': reasons})
     path = ROOT / 'bird-audio-measurements.json'
     if args.write: path.write_text(json.dumps(measurements, indent=2) + '\n')

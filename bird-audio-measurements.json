@@ -81,13 +81,13 @@
   },
   {
     "asset": "zenaida-macroura",
-    "sha256": "9cef7c7a899e7846505b34165568ea1b517a19f3e107de3ff49c4773d6d8b469",
+    "sha256": "802c37d2fd2c13bcedff32be4e77d7e0356d68a80f8269ecb39945b621c2beaf",
     "decodedDuration": 3.2,
     "integratedLufs": -20.0,
-    "loudest100msDbfs": -10.850605964660645,
-    "windowContrastDb": 12.27302074432373,
-    "tonalConcentration90": 0.4483244744840626,
-    "peakDbfs": -3.061155565293924
+    "loudest100msDbfs": -11.098981857299805,
+    "windowContrastDb": 11.198465347290039,
+    "tonalConcentration90": 0.48087285501006427,
+    "peakDbfs": -3.181843225470502
   },
   {
     "asset": "alcedo-atthis",
@@ -321,13 +321,13 @@
   },
   {
     "asset": "psittacus-erithacus",
-    "sha256": "1b64f8ed0baef9fa84515ff9c5d9188ea8861a4c72bd1926d16bb0e78f2d0a1e",
-    "decodedDuration": 3.2000625,
-    "integratedLufs": -20.1,
-    "loudest100msDbfs": -18.185945510864258,
-    "windowContrastDb": 4.102088928222656,
-    "tonalConcentration90": 0.17465666428172325,
-    "peakDbfs": -4.689876072136222
+    "sha256": "80728e5f3c46ab4617890a5428df534f15251ea85db97e25d8fff38365f7878b",
+    "decodedDuration": 1.1504375,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -17.942626953125,
+    "windowContrastDb": 26.277042388916016,
+    "tonalConcentration90": 0.5115525053577644,
+    "peakDbfs": -9.819311000641271
   },
   {
     "asset": "nestor-notabilis",

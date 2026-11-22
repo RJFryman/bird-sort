@@ -56,8 +56,9 @@ ForCardinal, retain the original documented command in cardinal-audio.md.
 
 Run `python3 scripts/check-bird-audio.py --write` (asset-authoring tool; requires
 FFmpeg andNumPy) to decode and remeasure all clips. It enforces integrated levels
-of-23..-17LUFS, loudest100ms>=-24dBFS, peaks<=-1dBFS, and rejects clips with
-both low dynamics and weak tonal structure. bird-audio-measurements.json binds
+of-23..-17LUFS, loudest100ms>=-24dBFS, peaks<=-1dBFS, and requires tonal structure. A low-contrast
+clip also requires an exact hash-bound reviewed vocal window; tonal concentration
+alone cannot bypass the contrast check. bird-audio-measurements.json binds
 each measurement to its MP3hash; Jest fails stale hashes or failed thresholds.
 Spectral heuristics cannot certify species identity or replace listening.
 
@@ -128,3 +129,25 @@ production export andqualitychecker exit0. All50clips measure-21.7..-19.9LUFS.
 The updated browser probe matched52birds and replayed52journal entries with a
 0.05RMS signal threshold (500times the rejected0.0001 threshold), and verified
 Cardinal/Bluebird fanfare-after-ended. No page errors. Fresh review pending.
+
+## Vocal-window follow-up
+
+The second candidate still failed on African Grey: its old6.5–9.7s window
+contained noise. Its replacement uses0.6–1.75s of the same licensed source and
+visibly contains the harmonic call; contrast is now26.3dB. Dove now starts5.2s
+and includes two coos. Bluebird wording correctly says1.9seconds.
+
+The five existing hiss-heavy but visibly vocal clips (Bluebird, Sparrow, Downy,
+Hahn’s Macaw, Rainbow Lorikeet) remain unchanged. The independent24c99a2review
+confirmed their vocal structures and classified the hiss as non-blocking. They
+are explicit exceptions in bird-audio-reviewed-windows.json, bound to exact
+MP3hashes with inspection notes. New or changed low-contrast clips fail without
+a separate recorded inspection; a tonal metric alone no longer passes them.
+These are spectral inspections, not listening or expert auditory identification.
+The rejected African Grey window has no exception and cannot pass.
+
+Vocal-window validation:143tests, typecheck andexport pass. Both changed birds
+pass real browser match/journal playback and fanfare-after-ended checks, with
+RMS>.05 andno pageerrors. The new checker rejects the actual rejected GreyMP3
+(4.1dBcontrast,no exception); the replacement has26.3dBcontrast. All50clips still
+pass loudness limits. The other48recordings and playback code are unchanged.

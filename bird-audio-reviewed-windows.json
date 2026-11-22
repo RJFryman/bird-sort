@@ -1,0 +1,32 @@
+{
+  "sialia-sialis": {
+    "sha256": "0bec0dccda22376ef2ea683c5abf31f865fe81ca6c83398ce71ff871bd9985e8",
+    "method": "Spectrogram inspection; not human listening or expert auditory identification.",
+    "finding": "Three visible tonal notes over a steady hiss floor; source window 0.05s, Eastern Bluebird.",
+    "basis": "Both parent and independent Fable24c99a2 inspections found vocal structure; remaining hiss was non-blocking."
+  },
+  "passer-domesticus": {
+    "sha256": "70001b60ac5fcc0ad7319773f52581fd2737f5189b448ae310737c6f9bc3e443",
+    "method": "Spectrogram inspection; not human listening or expert auditory identification.",
+    "finding": "Repeated chirp streaks over steady field hiss; source window 10.0s, House Sparrow.",
+    "basis": "Both parent and independent Fable24c99a2 inspections found vocal structure; remaining hiss was non-blocking."
+  },
+  "dryobates-pubescens": {
+    "sha256": "f802485a8c90b56a5651c1a38326ddf79f141ab1223fc8737ec832c0ff484994",
+    "method": "Spectrogram inspection; not human listening or expert auditory identification.",
+    "finding": "Visible descending call streaks over steady hiss; full short source, Downy Woodpecker.",
+    "basis": "Both parent and independent Fable24c99a2 inspections found vocal structure; remaining hiss was non-blocking."
+  },
+  "diopsittaca-nobilis": {
+    "sha256": "ad6f8a723a2b2661f6812a8c8b981dfd7b7973d6db787d7038bb11b5951d9a2e",
+    "method": "Spectrogram inspection; not human listening or expert auditory identification.",
+    "finding": "Visible harmonic call structures over field hiss; source window 6.6s, Hahn’s Macaw.",
+    "basis": "Both parent and independent Fable24c99a2 inspections found vocal structure; remaining hiss was non-blocking."
+  },
+  "trichoglossus-moluccanus": {
+    "sha256": "6e95884456704fd8ad1b04d4dbc48be2b585077dfd570a07f92c1fb65de60893",
+    "method": "Spectrogram inspection; not human listening or expert auditory identification.",
+    "finding": "Visible repeated harmonic phrases over field hiss; source window 10.2s, Rainbow Lorikeet.",
+    "basis": "Both parent and independent Fable24c99a2 inspections found vocal structure; remaining hiss was non-blocking."
+  }
+}
