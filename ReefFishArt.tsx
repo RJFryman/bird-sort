@@ -58,7 +58,9 @@ export function ReefFishArt({ fish }: { fish: BirdDef }) {
       {eye(71, 43, 3.1)}
     </G>;
     case 'Neon Tetra': return <G {...edge}>
-      <Path d="M31 43 13 32l4 15-4 16 18-10M45 39q5-13 15-10l4 12M43 56l8 12 10-11" fill="#acc9c8" />
+      <Path d="M31 43 13 32l4 15-4 16 18-10" fill="#acc9c8" />
+      <Path d="M45 39q5-13 15-10l4 12" fill="#acc9c8" />
+      <Path d="M43 56l8 12 10-11" fill="#acc9c8" />
       <Path d="M27 44c16-10 35-10 49-3l10 8-10 8c-16 6-32 1-49-4Z" fill="#e0eddf" />
       <Path d="M28 45q24-9 45-3l6 5q-21-5-51 3Z" fill="#237d9d" stroke="none" />
       <Path d="M28 47q21-6 43-2l5 4q-25-3-48 2Z" fill="#44d4e5" stroke="none" />

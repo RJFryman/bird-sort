@@ -41,6 +41,10 @@ const LOOKALIKE_FAMILIES: Record<CollectionId, readonly (readonly string[])[]> =
     ['Whale Shark', 'Atlantic Bluefin Tuna', 'Great White Shark', 'Sturgeon'],
     ['Great White Shark', 'Rainbow Trout', 'Neon Tetra'],
     ['Flying Fish', 'Guppy', 'Neon Tetra'],
+    ['Sailfish', 'Betta'],
+    ['Sailfish', 'Flying Fish'],
+    ['Hammerhead Shark', 'Whale Shark'],
+    ['Koi', 'Clownfish', 'Goldfish'],
   ],
 };
 

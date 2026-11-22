@@ -152,3 +152,9 @@ test('small-size review pairs never share a new board', () => {
     ['Galah','African Grey','birds'],['African Grey','Cockatiel','birds'],
   ] as const) expect(speciesConflict(index(a,c),index(b,c),c)).toBe(true);
 });
+
+test('reviewed tall-fin, teal-shark and warm koi pairs stay separate', () => {
+  for (const [a,b] of [['Sailfish','Betta'],['Sailfish','Flying Fish'],
+    ['Hammerhead Shark','Whale Shark'],['Koi','Clownfish'],['Koi','Goldfish']])
+    expect(speciesConflict(index(a,'fish'),index(b,'fish'),'fish')).toBe(true);
+});

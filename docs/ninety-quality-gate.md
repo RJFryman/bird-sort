@@ -48,3 +48,14 @@ Validation:132tests, typecheck and production export pass. Actual browser proof
 checks the320px floors, visible rest action, Medium4→5→6, exact saved board/mode,
 no-op reselect, alltenstickers, tenviewport/modefits and off-screen hint reveal.
 A new independent review is required; passing tests does not certify90.
+
+## Fish-only response to the second review
+
+Fable9d50ad0:93game/92birds/89fish, no material bugs. Publication remains held.
+The next bounded revision joins Hammerhead's head/back into a continuous outline,
+joins Sturgeon's dorsal/head line with a bold scute stripe, shortens Koi barbels,
+and excludes Sailfish/Betta, Sailfish/FlyingFish, Hammerhead/WhaleShark and warm
+Koi/orangefish pairs. Compound fin regions are separated into anatomical paint
+regions; all32fish pages now offer at least6. Bird art and gameplay are unchanged.
+134tests/typecheck/export pass. Medium fish wins through hints in the browser;
+smallphone floors and visible rest action pass. Fresh same-rubric review required.

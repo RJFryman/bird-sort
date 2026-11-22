@@ -156,3 +156,10 @@ test('redesigned outlines retain earlier paint data before the first new save',a
   expect(await AsyncStorage.getItem(coloringKey('birds',0)+':previous')).toBe(raw);
   expect(await loadColoring('birds',0,next)).toEqual({[id]:PALETTE[1].color});
 });
+
+test('every fish coloring page offers at least six independently paintable regions', () => {
+  for (const fish of COLLECTIONS.fish) {
+    const outline = outlineArtwork(FishArt({ fish }), native);
+    expect(outline.regions.length).toBeGreaterThanOrEqual(6);
+  }
+});
