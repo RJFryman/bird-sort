@@ -392,11 +392,11 @@ export default function App() {
         {!s.won && <Pressable accessibilityRole="button" accessibilityLabel="Show a winning move hint" style={styles.tool} onPress={showCoach}><Text style={styles.toolText}>💡 Hint</Text></Pressable>}
         <Pressable accessibilityRole="button" accessibilityLabel="Undo last move" disabled={!s.history.length}
           style={[styles.tool, !s.history.length && styles.toolOff]}
-          onPress={() => { initAudio(); setActivity(a => a + 1); playSfx('lift'); dispatch({ type: 'UNDO' }); }}>
+          onPress={() => { stopBirdCall(); pendingBirdWin.current = false; initAudio(); setActivity(a => a + 1); playSfx('lift'); dispatch({ type: 'UNDO' }); }}>
           <Text style={styles.toolText}>↶ Undo</Text>
         </Pressable>
         {s.won ? <Pressable accessibilityRole="button" style={[styles.tool, styles.nextTool]}
-          onPress={() => { initAudio(); playSfx('lift'); dispatch({ type: 'NEXT' }); }}>
+          onPress={() => { stopBirdCall(); pendingBirdWin.current = false; initAudio(); playSfx('lift'); dispatch({ type: 'NEXT' }); }}>
           <Text style={styles.nextText}>Next level →</Text>
         </Pressable> : <Pressable accessibilityRole="button" style={styles.tool}
           onPress={() => void enter(isFish ? 'birds' : 'fish')}>

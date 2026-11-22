@@ -13,66 +13,77 @@ there is no claim that an imaginary species was recorded. Fish retain game SFX.
 
 ## Sources and reuse
 
-Individual iNaturalist sound licences, not observation/photo licences, were
-checked in the observation API. Only CC0, CC BY4.0 and CC BY-SA4.0 were selected.
-The official licence module defines those versions:
-https://github.com/inaturalist/inaturalist/blob/main/app/models/shared/license_module.rb
-Media reuse guidance: https://help.inaturalist.org/en/support/solutions/articles/151000169918
+The52entries use50real recordings:43iNaturalist,6Tierstimmenarchiv and1DOC.
+Sound licences are checked separately from observation/photo licences. OnlyCC0,
+CCBY4.0, CCBY-SA4.0 andCCBY-SA3.0 unported are bundled; noNC/ND assets. The
+individual source, creator, licence and modifications appear in the journal.
+Every excerpt retains its listed licence, including ShareAlike where listed.
 
-Four archive recordings (Great Green Macaw, Great White Pelican, Sun Conure,
-Eclectus) come from Tierstimmenarchiv, Museum für Naturkunde Berlin under the
-CC BY-SA3.0 licence linked on their English record pages. Kakapo comes from
-Department of Conservation (NZ), explicitly reusable with attribution:
+Official licence definitions:
+https://github.com/inaturalist/inaturalist/blob/main/app/models/shared/license_module.rb
+https://help.inaturalist.org/en/support/solutions/articles/151000169918
 https://www.doc.govt.nz/nature/native-animals/birds/bird-songs-and-calls/
 https://www.doc.govt.nz/footer-links/copyright/
 
-Every excerpt retains its source's listed licence, including ShareAlike where
-listed. The individual source/creator/licence and modifications are shown in
-the journal and in bird-recordings.json. No NC, ND or all-rights-reserved clips
-are bundled. No source service is queried during play.
+Cockatiel, African Grey, Budgie andBlue-throated Macaw are casual-grade captive
+iNaturalist recordings, not community-verified research-grade IDs. The six
+archive recordings also come from captive birds. Captivity is disclosed in the
+journal. Neither captivity nor the archive curator establishes human auditory
+acceptance of our specific excerpt.
 
 ## Preparation and verification
 
-The existing2.8s Cardinal excerpt is retained. New excerpts are at most3.2s,
-mono44.1kHz96kbps MP3, with300Hz–7kHz bandpass, bounded gain, short edge fades
-and limiting. Pitch and speed are unchanged. A high-energy window was selected
-from each source; it is not a studio-isolated vocal. Field ambience may remain.
-bird-recordings.json retains exact original URLs, source licence codes where
-available, taxon, excerpt offsets, filter settings and original/excerpt SHA256.
-Those per-record fields reproduce the conversion with:
+The accepted2.8s Cardinal reference is retained. All other clips are at most3.2s,
+mono44.1kHz96kbps MP3. Two-pass loudness normalization targets-20LUFS, followed
+by measured output calibration and a peak limiter. Owl/dove filters retain
+their lower call frequencies. Pitch and speed are unchanged.
+
+New Bluebird andDove sources replace the noise-floor excerpts. Eagle andOwl
+now use curated Tierstimmenarchiv call recordings. These four replacement
+windows were inspected as spectrograms for visible calls; no human listening
+or expert auditory identification is claimed. Field ambience can remain.
+
+bird-recordings.json retains original URLs, per-sound licence codes where
+available, taxon, excerpt offsets, exact filter chain and original/excerptSHA256.
+The new chain starts with atrim/asetpts so fades and normalization apply to the
+selected window. Reproduce each non-Cardinal clip with:
 
 ```sh
-ffmpeg -ss START -t DURATION -i ORIGINAL -af FILTERS -ac 1 -ar 44100 -b:a 96k -map_metadata -1 CLIP.mp3
+ffmpeg -i ORIGINAL -af FILTERS -ac 1 -ar 44100 -b:a 96k -map_metadata -1 CLIP.mp3
 ```
 
-Automated checks verify all saved names/order, attribution/asset coverage, hashes,
-decodeability, nonzero signal, actual browser playing/time advance, match and
-journal paths and final-call/fanfare ordering. They do not constitute a human
-listening test, expert auditory identification or physical iOS-device acceptance.
+ForCardinal, retain the original documented command in cardinal-audio.md.
+
+Run `python3 scripts/check-bird-audio.py --write` (asset-authoring tool; requires
+FFmpeg andNumPy) to decode and remeasure all clips. It enforces integrated levels
+of-23..-17LUFS, loudest100ms>=-24dBFS, peaks<=-1dBFS, and rejects clips with
+both low dynamics and weak tonal structure. bird-audio-measurements.json binds
+each measurement to its MP3hash; Jest fails stale hashes or failed thresholds.
+Spectral heuristics cannot certify species identity or replace listening.
 
 ## Per-entry credits
 
 | Game entry | Recorded species | Recorder | Licence | Original |
 |---|---|---|---|---|
 | Cardinal | Northern Cardinal | Aleksandr Berdnikov · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/71577658) |
-| Bluebird | Eastern Bluebird | Kristi Zoebelein · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/333425527) |
+| Bluebird | Eastern Bluebird | CJ Campbell · iNaturalist | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Recording](https://www.inaturalist.org/observations/105394386) |
 | Canary | Atlantic Canary | Jane Concannon · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/339608550) |
 | Macaw | Great Green Macaw | Lütgens, Hans · Tierstimmenarchiv, Museum für Naturkunde Berlin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) | [Recording](https://suche.tierstimmenarchiv.de/search/showdetails.html?unique_identifier=TSA%3AAra_ambiguus_Lue_54_1_1&language=english) |
 | Crow | American Crow | Kent P. McFarland · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/142523684) |
 | Robin | American Robin | Kathlin Simpkins · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/355313120) |
 | Flamingo | Greater Flamingo | Pieter Huybrechts · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/219143299) |
 | Sparrow | House Sparrow | kristinpiston · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/223362275) |
-| Dove | Mourning Dove | dugald · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/176705822) |
+| Dove | Mourning Dove | spacewhales · iNaturalist | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) | [Recording](https://www.inaturalist.org/observations/194543121) |
 | Kingfisher | Common Kingfisher | Norrland · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/187015100) |
 | Oriole | Baltimore Oriole | peakaytea · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/361722567) |
 | Parrot | Blue-fronted Amazon | Paula Romano · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/288721628) |
-| Owl | Great Horned Owl | Rudyard · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/99059484) |
+| Owl | Great Horned Owl | Lütgens, Hans · Tierstimmenarchiv, Museum für Naturkunde Berlin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) | [Recording](https://suche.tierstimmenarchiv.de/search/showdetails.html?unique_identifier=TSA%3ABubo_virginianus_Lue_57_7_1&language=english) |
 | Toucan | Toco Toucan | preinzi · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/103837635) |
 | Goldfinch | American Goldfinch | dregyn · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/401302736) |
 | Peacock | Indian Peafowl | Damien Wallace · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/365289781) |
 | Bluejay | Blue Jay | Chase Harris · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/349599336) |
 | Hummingbird | Ruby-throated Hummingbird | David Hurtado · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/184530932) |
-| Eagle | Bald Eagle | Ben · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/415381305) |
+| Eagle | Bald Eagle | Tembrock, Günter · Tierstimmenarchiv, Museum für Naturkunde Berlin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) | [Recording](https://suche.tierstimmenarchiv.de/search/showdetails.html?unique_identifier=TSA%3AHaliaeetus_leucocephalus_V_2123_11_1&language=english) |
 | Hawk | Red-tailed Hawk | Dan Horowitz · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/289189909) |
 | Falcon | Peregrine Falcon | Kalvin Chan · iNaturalist | [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) | [Recording](https://www.inaturalist.org/observations/133693122) |
 | Pelican | Great White Pelican | Tembrock, Günter · Tierstimmenarchiv, Museum für Naturkunde Berlin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) | [Recording](https://suche.tierstimmenarchiv.de/search/showdetails.html?unique_identifier=TSA%3APelecanus_onocrotalus_V_2119_10_2&language=english) |
@@ -107,9 +118,13 @@ listening test, expert auditory identification or physical iOS-device acceptance
 | Eclectus Female | Eclectus Parrot | Tembrock, Günter · Tierstimmenarchiv, Museum für Naturkunde Berlin | [CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/legalcode) | [Recording](https://suche.tierstimmenarchiv.de/search/showdetails.html?unique_identifier=TSA%3AEclectus_roratus_V_2099_20_2&language=english) |
 | Purple Parrot | Senegal Parrot | Ben Costamagna · iNaturalist | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) | [Recording](https://www.inaturalist.org/observations/197550293) |
 
-Validation for the candidate:141tests andtypecheck/export pass. Actual Chrome
-UI probe matched all52entries, verified resolved playback promises, advancing
-media time and nonzero analyser signal; all52journal replays andcredits pass.
-Cardinal andBluebird final-match fanfares followed actual ended events. All50
-MP3s decode with expected durations, nonzero signal and valid peaks. No page
-errors. No human listening or physical-device acceptance is claimed.
+The first audio candidate failed review: quiet/non-vocal excerpts and a test
+typecheck regression. Its nonzero-signal threshold was inadequate; it was never
+published. The replacement candidate requires new full checks and peer review.
+No human listening, physical device or native-playback acceptance is claimed.
+
+Replacement candidate validation:142tests, explicit `tsc --noEmit` exit0,
+production export andqualitychecker exit0. All50clips measure-21.7..-19.9LUFS.
+The updated browser probe matched52birds and replayed52journal entries with a
+0.05RMS signal threshold (500times the rejected0.0001 threshold), and verified
+Cardinal/Bluebird fanfare-after-ended. No page errors. Fresh review pending.

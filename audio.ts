@@ -1,12 +1,11 @@
-// Bundled procedural feedback plus a CC0 real cardinal recording; no runtime network.
+// Bundled procedural feedback. Real recordings and completion belong to bird-calls.ts.
 // Every sound here has a VISUAL twin in the UI (spec §3): audio may be off on a
 // silent tablet, so nothing depends on sound to convey state.
 import { Platform } from 'react-native';
-import { CARDINAL_SOURCE } from './cardinal-recording';
 import { Asset } from 'expo-asset';
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from 'expo-audio';
 
-export type Sfx = 'tap' | 'lift' | 'drop' | 'chirp' | 'win' | 'nope' | 'cardinal';
+export type Sfx = 'tap' | 'lift' | 'drop' | 'chirp' | 'win' | 'nope';
 
 const SOURCES: Record<Sfx, number> = {
   tap: require('./assets/sfx/tap.wav'),
@@ -15,7 +14,6 @@ const SOURCES: Record<Sfx, number> = {
   chirp: require('./assets/sfx/chirp.wav'),
   win: require('./assets/sfx/win.wav'),
   nope: require('./assets/sfx/nope.wav'),
-  cardinal: CARDINAL_SOURCE,
 };
 
 // Native handles require() ids directly. On web, expo-audio resolves assets to a
@@ -38,7 +36,7 @@ export function resolveAudioSource(mod: number): number | string {
 // screen hears a living instrument, not one repeated beep. Fraction = ± range on
 // playback rate (pitch, since we disable pitch-correction). Win/nope stay steady:
 // the fanfare should land the same triumphant every time, the nope stay gentle.
-const JITTER: Record<Sfx, number> = { tap: 0.08, lift: 0.07, drop: 0.07, chirp: 0.06, win: 0, nope: 0, cardinal: 0 };
+const JITTER: Record<Sfx, number> = { tap: 0.08, lift: 0.07, drop: 0.07, chirp: 0.06, win: 0, nope: 0 };
 
 const players: Partial<Record<Sfx, AudioPlayer>> = {};
 let ready = false;

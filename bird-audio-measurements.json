@@ -1,0 +1,502 @@
+[
+  {
+    "asset": "cardinal",
+    "sha256": "56e1b13fb9c281d09fc475821895236470b29a683805f82a18c301f5cb687c21",
+    "decodedDuration": 2.8,
+    "integratedLufs": -21.7,
+    "loudest100msDbfs": -19.786174774169922,
+    "windowContrastDb": 26.57408905029297,
+    "tonalConcentration90": 0.3394616619504632,
+    "peakDbfs": -6.595871819356981
+  },
+  {
+    "asset": "sialia-sialis",
+    "sha256": "0bec0dccda22376ef2ea683c5abf31f865fe81ca6c83398ce71ff871bd9985e8",
+    "decodedDuration": 1.936125,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -17.723526000976562,
+    "windowContrastDb": 5.176784515380859,
+    "tonalConcentration90": 0.18459661194345525,
+    "peakDbfs": -5.552018620053046
+  },
+  {
+    "asset": "serinus-canaria",
+    "sha256": "a77ffd8597b16cbfaa5b520c59b86095cee76c0219fd33e76901cf49b104b32d",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.920547485351562,
+    "windowContrastDb": 12.225303649902344,
+    "tonalConcentration90": 0.14084163610152065,
+    "peakDbfs": -2.702516449063235
+  },
+  {
+    "asset": "ara-ambiguus",
+    "sha256": "b6b068b896aa1b8ed764197bd35159a077342b23e4cbedbd81080b3dee1f0b7e",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -17.505859375,
+    "windowContrastDb": 35.209049224853516,
+    "tonalConcentration90": 0.3209966391762717,
+    "peakDbfs": -8.933075512267534
+  },
+  {
+    "asset": "corvus-brachyrhynchos",
+    "sha256": "e472d6af7e5fed14e40142095c227eecd7defb2496b9addc7737c5f6a8026eb8",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.42350196838379,
+    "windowContrastDb": 9.779321670532227,
+    "tonalConcentration90": 0.39199825156713436,
+    "peakDbfs": -5.955545234290892
+  },
+  {
+    "asset": "turdus-migratorius",
+    "sha256": "8a03216296d8a95319bb6440a212c79e20597e6e70585e2bf8f9292d254c719c",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.387733459472656,
+    "windowContrastDb": 13.195619583129883,
+    "tonalConcentration90": 0.27923874588334974,
+    "peakDbfs": -5.430377321526062
+  },
+  {
+    "asset": "phoenicopterus-roseus",
+    "sha256": "c3ea05429d19f9c7ef7e7e3c76c2286b824510e4bc8515285d4cdbecde3732c6",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -12.365870475769043,
+    "windowContrastDb": 12.323987007141113,
+    "tonalConcentration90": 0.5291783063490569,
+    "peakDbfs": -2.420972757947571
+  },
+  {
+    "asset": "passer-domesticus",
+    "sha256": "70001b60ac5fcc0ad7319773f52581fd2737f5189b448ae310737c6f9bc3e443",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -17.92911720275879,
+    "windowContrastDb": 2.9361743927001953,
+    "tonalConcentration90": 0.22800364408036622,
+    "peakDbfs": -6.755021793001566
+  },
+  {
+    "asset": "zenaida-macroura",
+    "sha256": "9cef7c7a899e7846505b34165568ea1b517a19f3e107de3ff49c4773d6d8b469",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -10.850605964660645,
+    "windowContrastDb": 12.27302074432373,
+    "tonalConcentration90": 0.4483244744840626,
+    "peakDbfs": -3.061155565293924
+  },
+  {
+    "asset": "alcedo-atthis",
+    "sha256": "5746a973ea3e37839156dccd05dd725648f1e8c93aa857605e79bb7628ca8c92",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.136695861816406,
+    "windowContrastDb": 12.408842086791992,
+    "tonalConcentration90": 0.18587559443620266,
+    "peakDbfs": -3.36436575005802
+  },
+  {
+    "asset": "icterus-galbula",
+    "sha256": "035b75f05d699b54f33915d7dfa5eff335bb6632b376169a75dce9e1ca389d18",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -13.790241241455078,
+    "windowContrastDb": 14.315671920776367,
+    "tonalConcentration90": 0.25092450474182376,
+    "peakDbfs": -3.0094376568437764
+  },
+  {
+    "asset": "amazona-aestiva",
+    "sha256": "80f02219827039e7a1926177bcf90428d90020a9be26f082f613a8295fad473b",
+    "decodedDuration": 3.2000625,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.316486358642578,
+    "windowContrastDb": 17.111637115478516,
+    "tonalConcentration90": 0.38773012555602,
+    "peakDbfs": -3.641308131340997
+  },
+  {
+    "asset": "bubo-virginianus",
+    "sha256": "4f421a5064567d8ca28c31e027539a4a8d926dd2271c2899e25bb3e5867889b6",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.001274108886719,
+    "windowContrastDb": 44.136878967285156,
+    "tonalConcentration90": 0.6128568373813287,
+    "peakDbfs": -9.565289433041016
+  },
+  {
+    "asset": "ramphastos-toco",
+    "sha256": "53930ac79446dff048642df18be5ba96de04e381065f3578e39d692c4c07aa59",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -15.733264923095703,
+    "windowContrastDb": 29.51775360107422,
+    "tonalConcentration90": 0.21633718866262613,
+    "peakDbfs": -3.6379397760635483
+  },
+  {
+    "asset": "spinus-tristis",
+    "sha256": "efe4c60b500178c43876608a556ff80b8b234533de23d231c73b3ef0424b1683",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.0706787109375,
+    "windowContrastDb": 12.75828742980957,
+    "tonalConcentration90": 0.35269039521211437,
+    "peakDbfs": -5.4164905297633315
+  },
+  {
+    "asset": "pavo-cristatus",
+    "sha256": "fe90061512b9f5f82707cc27ea0d0a151b959d5f1e0200de3392c4f77784bca4",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.875761032104492,
+    "windowContrastDb": 19.870641708374023,
+    "tonalConcentration90": 0.350465299991879,
+    "peakDbfs": -2.9363013904484356
+  },
+  {
+    "asset": "cyanocitta-cristata",
+    "sha256": "192de7cfecd4c3ec6ce9e01ee1fde0ac3a72d1c101d0f9a0c35da603b1435f5c",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -18.45191192626953,
+    "windowContrastDb": 15.968647003173828,
+    "tonalConcentration90": 0.28207835217027827,
+    "peakDbfs": -6.836373170409175
+  },
+  {
+    "asset": "archilochus-colubris",
+    "sha256": "fd8a65fd03c8de3898d074c7b620485abdd45699e4b13afe34e7cb1ea5a42400",
+    "decodedDuration": 3.200125,
+    "integratedLufs": -20.1,
+    "loudest100msDbfs": -13.985762596130371,
+    "windowContrastDb": 12.748337745666504,
+    "tonalConcentration90": 0.3172713532863279,
+    "peakDbfs": -2.5032462170819336
+  },
+  {
+    "asset": "haliaeetus-leucocephalus",
+    "sha256": "478df14502c0a23c900ddb3e1270983a6c2e5f94dd32773c82a0a24ecdad08c2",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.525050163269043,
+    "windowContrastDb": 22.26650619506836,
+    "tonalConcentration90": 0.21846593739369796,
+    "peakDbfs": -4.691624537443862
+  },
+  {
+    "asset": "buteo-jamaicensis",
+    "sha256": "efef6626bca4e9851ce92e0836b7f57a0986726bba2e88529b8b3c4d3d37b8fa",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.607409477233887,
+    "windowContrastDb": 18.938045501708984,
+    "tonalConcentration90": 0.4814279118195031,
+    "peakDbfs": -3.1126053855036013
+  },
+  {
+    "asset": "falco-peregrinus",
+    "sha256": "0683256a27d5a131088ca753f667d953ae1def5bd43cef6ba1f8f165e79b82d5",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.1,
+    "loudest100msDbfs": -16.11695098876953,
+    "windowContrastDb": 8.309894561767578,
+    "tonalConcentration90": 0.30101746189768636,
+    "peakDbfs": -4.07171718368142
+  },
+  {
+    "asset": "pelecanus-onocrotalus",
+    "sha256": "671081ae831dc1aa79ca12cc38b77cf0c56ad913f66838552fde00b4ca19cb95",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -13.966399192810059,
+    "windowContrastDb": 23.904834747314453,
+    "tonalConcentration90": 0.29919215341388816,
+    "peakDbfs": -5.399472153413679
+  },
+  {
+    "asset": "aptenodytes-patagonicus",
+    "sha256": "2d249afc2f50b40a539137a0aace8af6f4b4dbf19b09c49ac17bad926697931c",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -12.309760093688965,
+    "windowContrastDb": 14.087882041931152,
+    "tonalConcentration90": 0.3711199730508458,
+    "peakDbfs": -4.360461514590452
+  },
+  {
+    "asset": "ara-macao",
+    "sha256": "606a94c6818a6ce2c6b969d61df7252143a0be391513dab1ca6865a0d9242ae2",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.1,
+    "loudest100msDbfs": -12.735724449157715,
+    "windowContrastDb": 9.703099250793457,
+    "tonalConcentration90": 0.2395039109112572,
+    "peakDbfs": -2.263881908774652
+  },
+  {
+    "asset": "anodorhynchus-hyacinthinus",
+    "sha256": "33b1b60cb047fc81fddddaed74288810723d2ba356782c8d0c27ab9ca92d3713",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -18.542762756347656,
+    "windowContrastDb": 39.788902282714844,
+    "tonalConcentration90": 0.18853128249328852,
+    "peakDbfs": -5.296094663806877
+  },
+  {
+    "asset": "cygnus-olor",
+    "sha256": "32351c3da4d7d5323bbb3cdc3b5cb7bc3312e7e6e9af0a2b5feb625dc134e148",
+    "decodedDuration": 3.17,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -19.8062744140625,
+    "windowContrastDb": 9.377431869506836,
+    "tonalConcentration90": 0.2318380508842258,
+    "peakDbfs": -3.7922074564192325
+  },
+  {
+    "asset": "anas-platyrhynchos",
+    "sha256": "13015e63d52a5a938fecc6bae7cf0f7e8a4a27b502bef191963347624fbdac98",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.18524742126465,
+    "windowContrastDb": 8.045419692993164,
+    "tonalConcentration90": 0.18295177819350159,
+    "peakDbfs": -3.845390546813886
+  },
+  {
+    "asset": "larus-argentatus",
+    "sha256": "f567969d49afe545e8571d8f2091fe73442d0c23908fe4b9423564edebdee8f7",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.324142456054688,
+    "windowContrastDb": 26.455039978027344,
+    "tonalConcentration90": 0.3562787011934383,
+    "peakDbfs": -11.73617969984726
+  },
+  {
+    "asset": "dryobates-pubescens",
+    "sha256": "f802485a8c90b56a5651c1a38326ddf79f141ab1223fc8737ec832c0ff484994",
+    "decodedDuration": 2.474,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -20.050642013549805,
+    "windowContrastDb": 4.355630874633789,
+    "tonalConcentration90": 0.15465151345777364,
+    "peakDbfs": -9.441714757344805
+  },
+  {
+    "asset": "nymphicus-hollandicus",
+    "sha256": "8d7cf3e1e06e77c783480a04e56adb8d76ac99c1eb12e7c325abe979e0384fcc",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.010181427001953,
+    "windowContrastDb": 14.570549011230469,
+    "tonalConcentration90": 0.49719911643027936,
+    "peakDbfs": -6.204276327537979
+  },
+  {
+    "asset": "cacatua-galerita",
+    "sha256": "c41ef64e610319034536e1e063fb7afe946360a89c9e53daea43174f3975c219",
+    "decodedDuration": 3.200125,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -17.922834396362305,
+    "windowContrastDb": 31.965085983276367,
+    "tonalConcentration90": 0.18373156533996932,
+    "peakDbfs": -6.776108321867012
+  },
+  {
+    "asset": "eolophus-roseicapilla",
+    "sha256": "5e4b3d3a338cf95e971427d4a701d1221980941dc07fb3a366e7d4cb5973ecfa",
+    "decodedDuration": 3.2000625,
+    "integratedLufs": -19.9,
+    "loudest100msDbfs": -16.845529556274414,
+    "windowContrastDb": 32.72199249267578,
+    "tonalConcentration90": 0.29837174055236015,
+    "peakDbfs": -6.59409411541518
+  },
+  {
+    "asset": "psittacus-erithacus",
+    "sha256": "1b64f8ed0baef9fa84515ff9c5d9188ea8861a4c72bd1926d16bb0e78f2d0a1e",
+    "decodedDuration": 3.2000625,
+    "integratedLufs": -20.1,
+    "loudest100msDbfs": -18.185945510864258,
+    "windowContrastDb": 4.102088928222656,
+    "tonalConcentration90": 0.17465666428172325,
+    "peakDbfs": -4.689876072136222
+  },
+  {
+    "asset": "nestor-notabilis",
+    "sha256": "970a54e9a8664428ad7f2650fdd1fd13d1f53e3456df25c64779d8939238d61e",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.227148056030273,
+    "windowContrastDb": 12.915401458740234,
+    "tonalConcentration90": 0.4192117257292005,
+    "peakDbfs": -4.757417819791962
+  },
+  {
+    "asset": "strigops-habroptilus",
+    "sha256": "95b35cf9f5630d5af3775561b322e63b850ffa7815657551cad3e6d740d1148d",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -15.14603042602539,
+    "windowContrastDb": 30.916908264160156,
+    "tonalConcentration90": 0.2867751790090681,
+    "peakDbfs": -4.612929835619259
+  },
+  {
+    "asset": "platycercus-eximius",
+    "sha256": "578a1ecddf22c2f71e61c318e33a9bd9ca2e045b649ec22db0e989c60747db79",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.435090065002441,
+    "windowContrastDb": 10.491219520568848,
+    "tonalConcentration90": 0.2508466475333875,
+    "peakDbfs": -2.866244752712692
+  },
+  {
+    "asset": "amazona-ochrocephala",
+    "sha256": "beccead40da4c1d79e06eca6dfc89d034d54db1721fc6e2302fe60b973e2e5cf",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -13.848873138427734,
+    "windowContrastDb": 12.373512268066406,
+    "tonalConcentration90": 0.34150439148227973,
+    "peakDbfs": -3.039949184074922
+  },
+  {
+    "asset": "psittacula-krameri",
+    "sha256": "2fb68215c63d4c426b818f97d6b270cae19566a0eabaf402581fd1aa5f477273",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -18.207355499267578,
+    "windowContrastDb": 29.736492156982422,
+    "tonalConcentration90": 0.18403590642707096,
+    "peakDbfs": -5.640483347659387
+  },
+  {
+    "asset": "melopsittacus-undulatus",
+    "sha256": "ce10b0daf85990a7684521477c6c083d3e15855af80dd90cd7747b60c4b9d14a",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.748003005981445,
+    "windowContrastDb": 27.019224166870117,
+    "tonalConcentration90": 0.22203768661921391,
+    "peakDbfs": -4.610495529564015
+  },
+  {
+    "asset": "agapornis-roseicollis",
+    "sha256": "ab0d7d663009a301b2c74b88b75cf3f6d2da715234b6b2121c5d8f1e7bb404d0",
+    "decodedDuration": 1.9166875,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -14.883502960205078,
+    "windowContrastDb": 11.371225357055664,
+    "tonalConcentration90": 0.26412075879979874,
+    "peakDbfs": -4.234210952758
+  },
+  {
+    "asset": "alisterus-scapularis",
+    "sha256": "5dc1656d80d277333a86b6440f23fabeb09df56259a1a5e0c3c39eae72491ea5",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.657283782958984,
+    "windowContrastDb": 36.27352523803711,
+    "tonalConcentration90": 0.5986505201633289,
+    "peakDbfs": -11.270854013987332
+  },
+  {
+    "asset": "aratinga-solstitialis",
+    "sha256": "960c63b2803751bc96405b74e2e24620f91bef86dda3b044c3a1024a52aa58d1",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.1,
+    "loudest100msDbfs": -20.226972579956055,
+    "windowContrastDb": 30.959699630737305,
+    "tonalConcentration90": 0.1257809771904817,
+    "peakDbfs": -11.380375605823518
+  },
+  {
+    "asset": "ara-ararauna",
+    "sha256": "b7275b805e9ba285fee8bae1cd94efcd0d44b9657ef42163007d6baae999f8db",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -13.216360092163086,
+    "windowContrastDb": 16.525070190429688,
+    "tonalConcentration90": 0.23203275980949256,
+    "peakDbfs": -3.144010756142655
+  },
+  {
+    "asset": "ara-chloropterus",
+    "sha256": "486f4bbb7c750616853d33d106353e8688633dc2f7f3b9c74da2a3cfa3c753c0",
+    "decodedDuration": 1.946,
+    "integratedLufs": -20.2,
+    "loudest100msDbfs": -13.612768173217773,
+    "windowContrastDb": 18.011367797851562,
+    "tonalConcentration90": 0.2623058156184268,
+    "peakDbfs": -2.506603414793349
+  },
+  {
+    "asset": "ara-militaris",
+    "sha256": "f9caacc13476dfd3551a41861f97bdae20647dfdf4ee7d388b8475494e75c1b4",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -16.73529815673828,
+    "windowContrastDb": 11.240135192871094,
+    "tonalConcentration90": 0.25146253456849194,
+    "peakDbfs": -5.527059082332931
+  },
+  {
+    "asset": "ara-glaucogularis",
+    "sha256": "8d1b395ef0d55c7e7eb06ee21a789e93d2ff71adee2f421db88d8c7b40cdb688",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.4,
+    "loudest100msDbfs": -16.043983459472656,
+    "windowContrastDb": 39.7849235534668,
+    "tonalConcentration90": 0.22283874784201502,
+    "peakDbfs": -5.427528748483992
+  },
+  {
+    "asset": "diopsittaca-nobilis",
+    "sha256": "ad6f8a723a2b2661f6812a8c8b981dfd7b7973d6db787d7038bb11b5951d9a2e",
+    "decodedDuration": 3.2000625,
+    "integratedLufs": -19.9,
+    "loudest100msDbfs": -19.665430068969727,
+    "windowContrastDb": 6.368902206420898,
+    "tonalConcentration90": 0.1328858780920887,
+    "peakDbfs": -6.5953479839022915
+  },
+  {
+    "asset": "trichoglossus-moluccanus",
+    "sha256": "6e95884456704fd8ad1b04d4dbc48be2b585077dfd570a07f92c1fb65de60893",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -19.97238540649414,
+    "windowContrastDb": 5.714284896850586,
+    "tonalConcentration90": 0.27397741046478413,
+    "peakDbfs": -9.317713531213318
+  },
+  {
+    "asset": "eclectus-roratus",
+    "sha256": "23d95c66ea2e56072b0eb31ad17b511bb80df119fc7c64ac9989e414a785cee7",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -15.84723949432373,
+    "windowContrastDb": 30.225772857666016,
+    "tonalConcentration90": 0.3272841350323939,
+    "peakDbfs": -2.9972100640864325
+  },
+  {
+    "asset": "poicephalus-senegalus",
+    "sha256": "00667fd6c2e57e8cdd54ef803c69cd0a75d85628da97318686ffc5d2b4feef15",
+    "decodedDuration": 3.2,
+    "integratedLufs": -20.0,
+    "loudest100msDbfs": -17.458284378051758,
+    "windowContrastDb": 9.114219665527344,
+    "tonalConcentration90": 0.17828909779310106,
+    "peakDbfs": -5.4786634532312775
+  }
+]

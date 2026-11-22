@@ -36,7 +36,7 @@ export const BIRD_CALL_ASSETS: Record<string, number> = {
   "nymphicus-hollandicus": require("./assets/sfx/birds/nymphicus-hollandicus.mp3"),
   "passer-domesticus": require("./assets/sfx/birds/passer-domesticus.mp3"),
   "pavo-cristatus": require("./assets/sfx/birds/pavo-cristatus.mp3"),
-  "pelecanus-occidentalis": require("./assets/sfx/birds/pelecanus-occidentalis.mp3"),
+  "pelecanus-onocrotalus": require("./assets/sfx/birds/pelecanus-onocrotalus.mp3"),
   "phoenicopterus-roseus": require("./assets/sfx/birds/phoenicopterus-roseus.mp3"),
   "platycercus-eximius": require("./assets/sfx/birds/platycercus-eximius.mp3"),
   "poicephalus-senegalus": require("./assets/sfx/birds/poicephalus-senegalus.mp3"),

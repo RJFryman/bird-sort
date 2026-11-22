@@ -35,6 +35,7 @@ flowchart LR
 | `SongbirdArt.tsx` | Perching birds, dove, woodpecker and hummingbird |
 | `WildBirdArt.tsx` | Raptors, waterbirds, owl, toucan and peacock |
 | `BirdDetails.tsx` | Shared eye and foot illustration details |
+| `scripts/check-bird-audio.py`, `bird-audio-measurements.json` | Asset-authoring loudness/signal checks and hash-bound quality measurements |
 | `scripts/render-bird-gallery.cjs` | Offline contact sheet from actual art components |
 | `UpdateBanner.tsx`, `scripts/stamp-version.mjs` | Opt-in update notification and build stamp |
 

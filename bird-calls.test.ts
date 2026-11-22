@@ -7,16 +7,16 @@ import { BIRD_RECORDINGS } from './bird-recordings';
 jest.mock('./audio', () => ({ initAudio: jest.fn(), resolveAudioSource: (source: number) => String(source) }));
 jest.mock('expo-audio', () => ({ createAudioPlayer: jest.fn() }));
 const audios: { play: jest.Mock; pause: jest.Mock }[] = [];
-const OriginalAudio = global.Audio;
+const OriginalAudio = globalThis.Audio;
 beforeEach(() => {
   stopBirdCall(); audios.length = 0;
   (Platform as any).OS = 'web';
-  global.Audio = jest.fn().mockImplementation(() => {
+  globalThis.Audio = jest.fn().mockImplementation(() => {
     const player = { play: jest.fn().mockResolvedValue(undefined), pause: jest.fn() };
     audios.push(player); return player;
   }) as any;
 });
-afterAll(() => { stopBirdCall(); global.Audio = OriginalAudio; });
+afterAll(() => { stopBirdCall(); globalThis.Audio = OriginalAudio; });
 
 test('every roster entry starts real audio, including non-cardinals; a new call stops the previous one', () => {
   for (let species = 0; species < BIRD_RECORDINGS.length; species++) {
@@ -27,14 +27,14 @@ test('every roster entry starts real audio, including non-cardinals; a new call 
 });
 test('a blocked browser play reports failure without an unhandled rejection', async () => {
   const error = jest.fn();
-  (global.Audio as any).mockImplementationOnce(() => ({ play: () => Promise.reject(new Error('NotAllowedError')), pause: jest.fn() }));
+  (globalThis.Audio as any).mockImplementationOnce(() => ({ play: () => Promise.reject(new Error('NotAllowedError')), pause: jest.fn() }));
   playBirdCall(1,error);
   await Promise.resolve();
   expect(error).toHaveBeenCalledTimes(1);
 });
 test('a cancelled older request cannot report failure over a newer call', async () => {
   const error = jest.fn();
-  (global.Audio as any).mockImplementationOnce(() => ({ play: () => Promise.reject(new Error('AbortError')), pause: jest.fn() }));
+  (globalThis.Audio as any).mockImplementationOnce(() => ({ play: () => Promise.reject(new Error('AbortError')), pause: jest.fn() }));
   playBirdCall(1,error); playBirdCall(2);
   await Promise.resolve();
   expect(error).not.toHaveBeenCalled();
