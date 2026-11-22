@@ -29,7 +29,8 @@ flowchart LR
 | `FishArt.tsx`, `ReefFishArt.tsx`, `OpenWaterFishArt.tsx`, `ReefPerch.tsx` |32 stable fish silhouettes, reef/open-water groups and reef ledges |
 | `bird-knowledge.ts`, `fish-knowledge.ts` | Short primary-sourced discoveries for all52birds and32fish, fantasy entries explicitly identified |
 | `Habitat.tsx` | Quiet grove scenery and underwater reef atmosphere |
-| `audio.ts`, `cardinal-recording.ts` | Procedural feedback and credited CC0 cardinal song |
+| `audio.ts`, `cardinal-recording.ts` | Procedural feedback, asset URLs and original CC0 cardinal provenance |
+| `bird-calls.ts`, `bird-recordings.ts`, `bird-recordings.json`, `bird-call-assets.ts`, `BirdCallCredit.tsx` | Single real-call playback, completion,52 roster mappings, bundled assets and journal credits |
 | `ParrotArt.tsx` | Parrot and cockatoo silhouettes and markings |
 | `SongbirdArt.tsx` | Perching birds, dove, woodpecker and hummingbird |
 | `WildBirdArt.tsx` | Raptors, waterbirds, owl, toucan and peacock |

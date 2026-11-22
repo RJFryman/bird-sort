@@ -9,6 +9,7 @@ import { reducer, init, CAP, type Difficulty } from './state';
 import { fitPlayGrid, verticalChrome, isBranchVisible, hintScrollTarget, marginFor, handFor, perchWidth } from './layout';
 import { loadGame, saveGame, loadLastCollection, saveLastCollection } from './storage';
 import { initAudio, playSfx } from './audio';
+import { playBirdCall, stopBirdCall } from './bird-calls';
 import { configureFeedback, flushFeedback } from '@harmony/feedback';
 import { FeedbackButton } from '@harmony/feedback/FeedbackButton';
 import UpdateBanner from './UpdateBanner';
@@ -85,7 +86,7 @@ export default function App() {
   const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
   const rid = useRef(0);
   const enterEpoch = useRef(0);
-  const cardinalWin = useRef(false);
+  const pendingBirdWin = useRef(false);
   const boardScroll = useRef<ScrollView>(null);
   const branchFrames = useRef<Record<number, { y: number; height: number }>>({});
   const [boardOffset, setBoardOffset] = useState(0);
@@ -213,11 +214,17 @@ export default function App() {
     } else winPop.setValue(1);
   }, [s.won, winPop, reducedMotion]);
 
-  // Let the real cardinal phrase finish before the victory fanfare. Cancel it
+  useEffect(() => () => { stopBirdCall(); pendingBirdWin.current = false; }, [collection, home]);
+
+  // Let the real bird phrase finish before the victory fanfare. Cancel it
   // if the child leaves the celebration, so sound never follows them into play.
   useEffect(() => {
-    if (!s.won || !celebrate || home || !cardinalWin.current) return;
-    const timer = setTimeout(() => { playSfx('win'); cardinalWin.current = false; }, 2900);
+    if (!s.won || !celebrate || home || !pendingBirdWin.current) return;
+    // The call's ended event normally plays the fanfare. This only covers an
+    // unavailable backend that never reports completion or failure.
+    const timer = setTimeout(() => {
+      if (pendingBirdWin.current) { pendingBirdWin.current = false; playSfx('win'); }
+    }, 10000);
     return () => clearTimeout(timer);
   }, [s.won, celebrate, home, collection]);
 
@@ -245,11 +252,13 @@ export default function App() {
       const won = isWon(next, CAP);
       const locked = clearedCount(next) > clearedCount(board);
       playSfx('drop');
-      const cardinalLock = locked && collection === 'birds' && next[i][0] === 0;
-      cardinalWin.current = won && cardinalLock;
-      if (won && !cardinalLock) playSfx('win');
-      if (cardinalLock) playSfx('cardinal');
-      else if (locked && !won) playSfx('chirp');
+      const birdLock = locked && collection === 'birds';
+      pendingBirdWin.current = won && birdLock;
+      if (birdLock) playBirdCall(next[i][0], undefined, () => {
+        if (pendingBirdWin.current) { pendingBirdWin.current = false; playSfx('win'); }
+      });
+      if (won && !birdLock) playSfx('win');
+      else if (locked && !birdLock) playSfx('chirp');
       dispatch({ type: 'TAP', i });
       return;
     }
@@ -459,9 +468,9 @@ export default function App() {
       {gallery && <DiscoveryJournal collection={collection} earned={earned} reducedMotion={reducedMotion} onClose={() => setGallery(false)} />}
       {celebrate && !gallery && !home && <WinCelebration collection={collection} species={[...new Set(s.board.flat())]}
         newCount={newCount} total={earned.length} reducedMotion={reducedMotion}
-        onNext={() => { cardinalWin.current = false; setCelebrate(false); dispatch({ type: 'NEXT' }); }}
-        onJournal={() => { cardinalWin.current = false; setCelebrate(false); setGallery(true); }} onClose={() => { cardinalWin.current = false; setCelebrate(false); }}
-        onRest={() => { cardinalWin.current = false; setCelebrate(false); setHome(true); }} />}
+        onNext={() => { pendingBirdWin.current = false; stopBirdCall(); setCelebrate(false); dispatch({ type: 'NEXT' }); }}
+        onJournal={() => { pendingBirdWin.current = false; stopBirdCall(); setCelebrate(false); setGallery(true); }} onClose={() => { pendingBirdWin.current = false; stopBirdCall(); setCelebrate(false); }}
+        onRest={() => { pendingBirdWin.current = false; stopBirdCall(); setCelebrate(false); setHome(true); }} />}
       {tutorial && !home && <View style={[styles.overlay, { backgroundColor: 'rgba(29,59,46,.8)', padding: 20 }]}>
         <ScrollView style={{ backgroundColor: '#fffdf3', borderRadius: 26, maxWidth: 400, width: '100%', maxHeight: '95%', flexGrow: 0 }} contentContainerStyle={{ padding: 24, gap: 16, alignItems: 'center' }}>
           <Text style={{ fontSize: 26, color: '#244b39', fontWeight: '900' }}>Let’s sort together</Text>

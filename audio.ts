@@ -22,7 +22,7 @@ const SOURCES: Record<Sfx, number> = {
 // root-absolute path ("/assets/...") and does NOT apply app.json's `baseUrl`
 // (e.g. "/bird-sort"), so the fetch 404s. Resolve against document.baseURI so it
 // works under any base path (GH Pages sub-path or root) — see msg to Cadence.
-function resolveSource(mod: number): number | string {
+export function resolveAudioSource(mod: number): number | string {
   if (Platform.OS !== 'web') return mod;
   const uri = Asset.fromModule(mod).uri;
   try {
@@ -52,7 +52,7 @@ export function initAudio() {
   setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
   for (const name of Object.keys(SOURCES) as Sfx[]) {
     try {
-      players[name] = createAudioPlayer(resolveSource(SOURCES[name]));
+      players[name] = createAudioPlayer(resolveAudioSource(SOURCES[name]));
     } catch {
       /* audio unavailable — game stays fully playable via visual twins */
     }

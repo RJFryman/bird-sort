@@ -4,8 +4,8 @@ import { Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from
 import { Bird } from './Bird';
 import { COLLECTIONS, CollectionId } from './roster';
 import { getDiscoveryClue } from './journal';
-import { CARDINAL_RECORDING } from './cardinal-recording';
-import { playSfx } from './audio';
+import { BirdCallCredit } from './BirdCallCredit';
+import { stopBirdCall } from './bird-calls';
 import { ColoringPage } from './ColoringPage';
 
 type Props = { collection: CollectionId; earned: number[]; onClose: () => void; reducedMotion: boolean };
@@ -23,10 +23,12 @@ export function DiscoveryJournal({ collection, earned, onClose, reducedMotion }:
   const clue = selected === null ? null : getDiscoveryClue(collection, selected);
 
   useEffect(() => () => {
+    stopBirdCall();
     if (speechAvailable()) window.speechSynthesis.cancel();
   }, []);
 
   const choose = (index: number) => {
+    stopBirdCall();
     if (speechAvailable()) window.speechSynthesis.cancel();
     setSelected(index);
     setNotice('');
@@ -76,14 +78,8 @@ export function DiscoveryJournal({ collection, earned, onClose, reducedMotion }:
           <Text style={styles.clue}>{clue.text}</Text>
           <Pressable accessibilityRole="button" accessibilityLabel={`Hear the name ${friend.name}`}
             onPress={pronounce} style={styles.action}><Text style={styles.actionText}>♪ Hear the name</Text></Pressable>
-          {collection === 'birds' && selected === 0 && <View style={{ gap: 8 }}>
-            <Pressable accessibilityRole="button" style={styles.action} onPress={() => playSfx('cardinal')}><Text style={styles.actionText}>♪ Hear the cardinal call</Text></Pressable>
-            <Text style={styles.clue}>Bird call recording</Text>
-            <Text style={styles.small}>{CARDINAL_RECORDING.title} — {CARDINAL_RECORDING.recordist}. {CARDINAL_RECORDING.licenseName}. Edited excerpt.</Text>
-            <Pressable accessibilityRole="link" style={styles.source} onPress={() => { void Linking.openURL(CARDINAL_RECORDING.sourceUrl); }}><Text style={styles.sourceText}>Original recording & recordist ↗</Text></Pressable>
-            <Pressable accessibilityRole="link" style={styles.source} onPress={() => { void Linking.openURL(CARDINAL_RECORDING.licenseUrl); }}><Text style={styles.sourceText}>Recording licence: {CARDINAL_RECORDING.licenseName} ↗</Text></Pressable>
-          </View>}
-          <Pressable accessibilityRole="button" style={styles.action} onPress={() => setColoring(true)}><Text style={styles.actionText}>🎨 Color this {collection === 'birds' ? 'bird' : 'fish'}</Text></Pressable>
+          {collection === 'birds' && <BirdCallCredit species={selected!} onNotice={setNotice} />}
+          <Pressable accessibilityRole="button" style={styles.action} onPress={() => { stopBirdCall(); setColoring(true); }}><Text style={styles.actionText}>🎨 Color this {collection === 'birds' ? 'bird' : 'fish'}</Text></Pressable>
           <Text style={styles.small}>Device voice · says the name aloud</Text>
           {!!notice && <Text accessibilityLiveRegion="polite" style={styles.notice}>{notice}</Text>}
           {clue.source && <Pressable accessibilityRole="link"
